@@ -405,6 +405,11 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6485558607702571300, guid: 7092d4211cac49140aa1ffd7d4847c02,
+        type: 3}
+      propertyPath: m_Name
+      value: TimeUI
+      objectReference: {fileID: 0}
     - target: {fileID: 6949217200737587578, guid: 7092d4211cac49140aa1ffd7d4847c02,
         type: 3}
       propertyPath: m_AnchorMax.y
