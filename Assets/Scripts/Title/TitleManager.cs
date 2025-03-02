@@ -32,6 +32,16 @@ namespace Title
 
         private void Start()
         {
+            UserDataManager.Instance.LoadUserData();
+
+            if (!UserDataManager.Instance.IsExistSaveData)
+            {
+                UserDataManager.Instance.SettingUserData();
+                UserDataManager.Instance.SaveUserData();
+            }
+            
+            UIManager.Instance.EnableTimeUI(false);
+            
             StartCoroutine(LoadingCo());
         }
 

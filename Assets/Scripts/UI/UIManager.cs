@@ -12,6 +12,28 @@ public class UIManager : SingletonBehaviour<UIManager>
     private Dictionary<Type, GameObject> openUIPool = new Dictionary<Type, GameObject>();
     private Dictionary<Type, GameObject> closedUIPool = new Dictionary<Type, GameObject>();
 
+    private TimeUI timeUI;
+    
+    protected override void Init()
+    {
+        base.Init();
+
+        timeUI = FindObjectOfType<TimeUI>();
+        if (timeUI == null)
+        {
+            Logger.LogError("Can't find TimeUI");
+        }
+    }
+
+    public void EnableTimeUI(bool value)
+    {
+        timeUI.gameObject.SetActive(value);
+        if (value)
+        {
+            timeUI.SetValue();
+        }
+    }
+    
     private BaseUI GetUI<T>(out bool isAlreadyOpen)
     {
         Type type = typeof(T);

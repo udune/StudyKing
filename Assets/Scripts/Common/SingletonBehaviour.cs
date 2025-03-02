@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class SingletonBehaviour<T> : MonoBehaviour where T : SingletonBehaviour<T>
 {
-    private readonly bool isDestroyOnLoad = false;
+    public bool isDestroyOnLoad = false;
 
     private static T instance;
     public static T Instance => instance;
