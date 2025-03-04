@@ -13,6 +13,7 @@ public class UIManager : SingletonBehaviour<UIManager>
     private Dictionary<Type, GameObject> closedUIPool = new Dictionary<Type, GameObject>();
 
     private TimeUI timeUI;
+    private TabUI tabUI;
     
     protected override void Init()
     {
@@ -23,6 +24,12 @@ public class UIManager : SingletonBehaviour<UIManager>
         {
             Logger.LogError("Can't find TimeUI");
         }
+        
+        tabUI = FindObjectOfType<TabUI>();
+        if (tabUI == null)
+        {
+            Logger.LogError("Can't find TabUI");
+        }
     }
 
     public void EnableTimeUI(bool value)
@@ -32,6 +39,11 @@ public class UIManager : SingletonBehaviour<UIManager>
         {
             timeUI.SetValue();
         }
+    }
+
+    public void EnableTabUI(bool value)
+    {
+        tabUI.gameObject.SetActive(value);
     }
     
     private BaseUI GetUI<T>(out bool isAlreadyOpen)

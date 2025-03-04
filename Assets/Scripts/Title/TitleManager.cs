@@ -41,6 +41,7 @@ namespace Title
             }
             
             UIManager.Instance.EnableTimeUI(false);
+            UIManager.Instance.EnableTabUI(false);
             
             StartCoroutine(LoadingCo());
         }

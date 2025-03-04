@@ -54,6 +54,8 @@ public class BaseUI : MonoBehaviour
             onClose?.Invoke();
         
         onClose = null;
+        
+        UIManager.Instance.CloseUI(this);
     }
 
     public virtual void OnClickClose()
