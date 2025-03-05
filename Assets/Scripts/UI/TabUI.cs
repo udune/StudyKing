@@ -61,6 +61,9 @@ public class TabUI : MonoBehaviour
     private void OnClickItemTabBtn()
     {
         Logger.Log($"{GetType()}::OnClickItemTabBtn");
+        
+        var data = new BaseUIData();
+        UIManager.Instance.OpenUI<ItemTabUI>(data);
     }
     
     private void OnClickHistoryTabBtn()
@@ -79,10 +82,16 @@ public class TabUI : MonoBehaviour
     private void OnClickDashboardTabBtn()
     {
         Logger.Log($"{GetType()}::OnClickDashboardTabBtn");
+        
+        var data = new BaseUIData();
+        UIManager.Instance.OpenUI<DashboardTabUI>(data);
     }
     
     private void OnClickMySettingTabBtn()
     {
         Logger.Log($"{GetType()}::OnClickMySettingTabBtn");
+        
+        var data = new BaseUIData();
+        UIManager.Instance.OpenUI<MySettingTabUI>(data);
     }
 }
