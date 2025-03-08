@@ -6,11 +6,15 @@ using Logger = Common.Logger;
 [Serializable]
 public class StudyItemData
 {
+    public int Id;
     public string Name;
+    public bool Check;
 
-    public StudyItemData(string name)
+    public StudyItemData(int id, string name, bool check)
     {
+        Id = id;
         Name = name;
+        Check = check;
     }
 }
 
@@ -28,8 +32,8 @@ public class UserStudyData : IUserData
     {
         Logger.Log($"{GetType()}::Setting");
         
-        StudyItemDataList.Add(new StudyItemData("수학"));
-        StudyItemDataList.Add(new StudyItemData("영어"));
+        StudyItemDataList.Add(new StudyItemData(1, "수학", false));
+        StudyItemDataList.Add(new StudyItemData(2, "영어", false));
     }
 
     public bool LoadData()
@@ -48,7 +52,7 @@ public class UserStudyData : IUserData
                 Logger.Log($"{GetType()}::StudyItemDataList");
                 foreach (var studyItemData in StudyItemDataList)
                 {
-                    Logger.Log($"Name:{studyItemData.Name}");
+                    Logger.Log($"Id:{studyItemData.Id}, Name:{studyItemData.Name}, Check:{studyItemData.Check}");
                 }
             }
 
@@ -77,7 +81,7 @@ public class UserStudyData : IUserData
             Logger.Log($"StudyItemDataList");
             foreach (var studyItemData in StudyItemDataList)
             {
-                Logger.Log($"Name:{studyItemData.Name}");
+                Logger.Log($"Id:{studyItemData.Id}, Name:{studyItemData.Name} Check:{studyItemData.Check}");
             }
             
             result = true;
