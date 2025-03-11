@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Gpm.Ui;
 using TMPro;
@@ -18,7 +19,16 @@ public class StudyingItemSlot : InfiniteScrollItem
     public int id;
     public TMP_InputField name;
     public Toggle check;
-    
+
+    private void Update()
+    {
+        if (LobbyManager.Instance.IsComplete)
+        {
+            check.isOn = true;
+            check.interactable = false;
+        }
+    }
+
     public override void UpdateData(InfiniteScrollData data)
     {
         base.UpdateData(data);

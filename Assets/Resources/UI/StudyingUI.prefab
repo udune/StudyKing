@@ -122,8 +122,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 6526159403230725911}
-        m_TargetAssemblyTypeName: BaseUI, Assembly-CSharp
-        m_MethodName: OnClickClose
+        m_TargetAssemblyTypeName: StudyingUI, Assembly-CSharp
+        m_MethodName: OnClickPause
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -623,6 +623,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   openAnimation: {fileID: 0}
   studyingScrollList: {fileID: 5489362510484777707}
+  time: {fileID: 3642788095215753335}
+  completeBtn: {fileID: 8079469705998198637}
 --- !u!111 &1498642415057290539
 Animation:
   m_ObjectHideFlags: 0
@@ -1018,7 +1020,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1194805009071204049}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 6526159403230725911}
+        m_TargetAssemblyTypeName: StudyingUI, Assembly-CSharp
+        m_MethodName: OnClickFinishStudyItem
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &8806737017898399755
 GameObject:
   m_ObjectHideFlags: 0

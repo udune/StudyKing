@@ -78,7 +78,7 @@ public class UserStudyData : IUserData
             string studyItemDataListJson = JsonUtility.ToJson(studyItemDataListWrapper);
             PlayerPrefs.SetString("StudyItemDataList", studyItemDataListJson);
             
-            Logger.Log($"StudyItemDataList");
+            Logger.Log($"{GetType()}::StudyItemDataList");
             foreach (var studyItemData in StudyItemDataList)
             {
                 Logger.Log($"Id:{studyItemData.Id}, Name:{studyItemData.Name} Check:{studyItemData.Check}");
