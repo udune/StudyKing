@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using Gpm.Ui;
 using TMPro;
 using UnityEngine;
@@ -10,6 +11,7 @@ public class StudyingUI : BaseUI
     public TextMeshProUGUI time;
     public Button completeBtn;
     private float elapsedTime;
+    private Coroutine timerCoroutine;
 
     private void OnApplicationFocus(bool focus)
     {
@@ -23,28 +25,6 @@ public class StudyingUI : BaseUI
                 UIManager.Instance.OpenUI<PauseUI>(data);
             }
         }
-    }
-
-    private void Update()
-    {
-        if (!LobbyManager.Instance.IsPaused)
-        {
-            elapsedTime += Time.deltaTime;
-            CalcTime();
-        }
-
-        if (LobbyManager.Instance.IsComplete)
-        {
-            LobbyManager.Instance.Pause();
-            completeBtn.interactable = true;
-        }
-    }
-
-    private void CalcTime()
-    {
-        int minutes = Mathf.FloorToInt(elapsedTime / 60);
-        int seconds = Mathf.FloorToInt(elapsedTime % 60);
-        time.text = $"{minutes:00}:{seconds:00}";
     }
 
     public override void Setting(BaseUIData data)
@@ -71,6 +51,54 @@ public class StudyingUI : BaseUI
 
             userStudyData.SaveData();
         }
+        
+        TimerStart();
+
+        LobbyManager.Instance.OnCompleteChanged -= UpdateCompleteButton;
+        LobbyManager.Instance.OnCompleteChanged += UpdateCompleteButton;
+
+        UpdateCompleteButton();
+    }
+
+    public void TimerStart()
+    {
+        if (timerCoroutine != null)
+            StopCoroutine(timerCoroutine);
+        timerCoroutine = StartCoroutine(TimerRoutine());
+    }
+
+    private IEnumerator TimerRoutine()
+    {
+        while (!LobbyManager.Instance.IsPaused)
+        {
+            elapsedTime += Time.deltaTime;
+            int minutes = Mathf.FloorToInt(elapsedTime / 60);
+            int seconds = Mathf.FloorToInt(elapsedTime % 60);
+            time.text = $"{minutes:00}:{seconds:00}";
+            
+            yield return null;
+        }
+    }
+
+    private void UpdateCompleteButton()
+    {
+        completeBtn.interactable = LobbyManager.Instance.IsComplete;
+    }
+
+    public void CheckCompleted()
+    {
+        var userStudyData = UserDataManager.Instance.GetUserData<UserStudyData>();
+        if (userStudyData != null)
+        {
+            bool all = userStudyData.StudyItemDataList.TrueForAll(item => item.Check);
+            LobbyManager.Instance.IsComplete = all;
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (LobbyManager.Instance != null)
+            LobbyManager.Instance.OnCompleteChanged -= UpdateCompleteButton;
     }
 
     public void OnClickPause()

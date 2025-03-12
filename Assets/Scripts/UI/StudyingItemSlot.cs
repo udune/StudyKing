@@ -20,15 +20,6 @@ public class StudyingItemSlot : InfiniteScrollItem
     public TMP_InputField name;
     public Toggle check;
 
-    private void Update()
-    {
-        if (LobbyManager.Instance.IsComplete)
-        {
-            check.isOn = true;
-            check.interactable = false;
-        }
-    }
-
     public override void UpdateData(InfiniteScrollData data)
     {
         base.UpdateData(data);
@@ -44,7 +35,20 @@ public class StudyingItemSlot : InfiniteScrollItem
         name.text = studyingItemSlotData.Name;
         check.isOn = studyingItemSlotData.Check;
         
+        check.onValueChanged.RemoveAllListeners();
         check.onValueChanged.AddListener(OnClickCheck);
+
+        LobbyManager.Instance.OnCompleteChanged -= UpdateCheckState;
+        LobbyManager.Instance.OnCompleteChanged += UpdateCheckState;
+        
+        UpdateCheckState();
+    }
+
+    private void UpdateCheckState()
+    {
+        bool isComplete = LobbyManager.Instance.IsComplete;
+        check.isOn = isComplete;
+        check.interactable = !isComplete;
     }
 
     public void OnClickCheck(bool isChecked)
@@ -56,10 +60,7 @@ public class StudyingItemSlot : InfiniteScrollItem
             return;
         }
         
-        var data = userStudyData.StudyItemDataList
-            .Where(x => x.Id == id)
-            .ToList()
-            .FirstOrDefault();
+        var data = userStudyData.StudyItemDataList.FirstOrDefault(x => x.Id == id);
         if (data == null)
         {
             Logger.Log($"{GetType()}::this data does not exist in StudyItemSlot");
@@ -67,6 +68,14 @@ public class StudyingItemSlot : InfiniteScrollItem
         }
         
         data.Check = isChecked;
+        var studyingUI = UIManager.Instance.GetActiveUI<StudyingUI>() as StudyingUI;
+        studyingUI?.CheckCompleted();
         userStudyData.SaveData();
+    }
+
+    private void OnDestroy()
+    {
+        if (LobbyManager.Instance != null)
+            LobbyManager.Instance.OnCompleteChanged -= UpdateCheckState;
     }
 }

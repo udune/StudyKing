@@ -3,9 +3,24 @@ using Logger = Common.Logger;
 
 public class LobbyManager : SingletonBehaviour<LobbyManager>
 {
+    public event Action OnCompleteChanged;
+    
     public LobbyController LobbyController { get; private set; }
     public bool IsPaused { get; set; }
-    public bool IsComplete { get; set; }
+
+    private bool isComplete;
+
+    public bool IsComplete
+    {
+        get => isComplete;
+        set
+        {
+            if (isComplete == value)
+                return;
+            isComplete = value;
+            OnCompleteChanged?.Invoke();
+        }
+    }
     
     protected override void Init()
     {
@@ -25,27 +40,6 @@ public class LobbyManager : SingletonBehaviour<LobbyManager>
         LobbyController.Init();
     }
 
-    private void Update()
-    {
-        if (IsComplete)
-        {
-            return;
-        }
-        
-        var checkCount = 0;
-        var userStudyData = UserDataManager.Instance.GetUserData<UserStudyData>();
-        if (userStudyData != null)
-        {
-            foreach (var itemData in userStudyData.StudyItemDataList)
-            {
-                if (itemData.Check)
-                    checkCount++;
-            }
-
-            IsComplete = checkCount == userStudyData.StudyItemDataList.Count;
-        }
-    }
-
     public void Pause()
     {
         IsPaused = true;
@@ -54,5 +48,7 @@ public class LobbyManager : SingletonBehaviour<LobbyManager>
     public void Resume()
     {
         IsPaused = false;
+        var studyingUI = UIManager.Instance.GetActiveUI<StudyingUI>() as StudyingUI;
+        studyingUI?.TimerStart();
     }
 }
