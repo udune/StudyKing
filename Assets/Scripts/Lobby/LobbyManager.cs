@@ -15,7 +15,7 @@ public class LobbyManager : SingletonBehaviour<LobbyManager>
         get => isComplete;
         set
         {
-            if (isComplete == value)
+            if (isComplete.Equals(value))
                 return;
             isComplete = value;
             OnCompleteChanged?.Invoke();
@@ -47,6 +47,9 @@ public class LobbyManager : SingletonBehaviour<LobbyManager>
 
     public void Resume()
     {
+        if (isComplete)
+            return;
+        
         IsPaused = false;
         var studyingUI = UIManager.Instance.GetActiveUI<StudyingUI>() as StudyingUI;
         studyingUI?.TimerStart();

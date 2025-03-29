@@ -85,14 +85,15 @@ public class StudyingUI : BaseUI
         completeBtn.interactable = LobbyManager.Instance.IsComplete;
     }
 
-    public void CheckCompleted()
+    public bool CheckCompleted()
     {
         var userStudyData = UserDataManager.Instance.GetUserData<UserStudyData>();
         if (userStudyData != null)
         {
-            bool all = userStudyData.StudyItemDataList.TrueForAll(item => item.Check);
-            LobbyManager.Instance.IsComplete = all;
+            return userStudyData.StudyItemDataList.TrueForAll(item => item.Check);
         }
+
+        return false;
     }
 
     private void OnDestroy()

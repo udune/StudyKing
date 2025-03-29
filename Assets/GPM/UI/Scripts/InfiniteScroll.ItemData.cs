@@ -14,8 +14,7 @@ namespace Gpm.Ui
                 this.data = data;
             }
 
-            public InfiniteScrollData data { get; private set; }
-            
+            internal InfiniteScrollData data;
             internal int index = -1;
 
             internal int itemIndex = -1;

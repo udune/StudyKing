@@ -122,6 +122,244 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1001 &358009072
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 51361884214257170, guid: 907b278a7d3eede48ac3da3286160283,
+        type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 51361884214257170, guid: 907b278a7d3eede48ac3da3286160283,
+        type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 551282938016283284, guid: 907b278a7d3eede48ac3da3286160283,
+        type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: Gpm.LogViewer.Internal.ConsoleView, gpm_logviewer
+      objectReference: {fileID: 0}
+    - target: {fileID: 566999546843923853, guid: 907b278a7d3eede48ac3da3286160283,
+        type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: Gpm.LogViewer.Internal.ConsoleView, gpm_logviewer
+      objectReference: {fileID: 0}
+    - target: {fileID: 1535009285910347680, guid: 907b278a7d3eede48ac3da3286160283,
+        type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1535009285910347680, guid: 907b278a7d3eede48ac3da3286160283,
+        type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1535009285910347680, guid: 907b278a7d3eede48ac3da3286160283,
+        type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1535009285910347680, guid: 907b278a7d3eede48ac3da3286160283,
+        type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3098798558877614488, guid: 907b278a7d3eede48ac3da3286160283,
+        type: 3}
+      propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: Gpm.LogViewer.Internal.Viewer, gpm_logviewer
+      objectReference: {fileID: 0}
+    - target: {fileID: 3482150055558123300, guid: 907b278a7d3eede48ac3da3286160283,
+        type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3482150055558123300, guid: 907b278a7d3eede48ac3da3286160283,
+        type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3482150055558123300, guid: 907b278a7d3eede48ac3da3286160283,
+        type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3482150055558123300, guid: 907b278a7d3eede48ac3da3286160283,
+        type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4222592810263868269, guid: 907b278a7d3eede48ac3da3286160283,
+        type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4222592810263868269, guid: 907b278a7d3eede48ac3da3286160283,
+        type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4222592810263868269, guid: 907b278a7d3eede48ac3da3286160283,
+        type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4222592810263868269, guid: 907b278a7d3eede48ac3da3286160283,
+        type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4377185104066271584, guid: 907b278a7d3eede48ac3da3286160283,
+        type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4377185104066271584, guid: 907b278a7d3eede48ac3da3286160283,
+        type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4377185104066271584, guid: 907b278a7d3eede48ac3da3286160283,
+        type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4400270820402916699, guid: 907b278a7d3eede48ac3da3286160283,
+        type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: Gpm.LogViewer.Internal.ConsoleView, gpm_logviewer
+      objectReference: {fileID: 0}
+    - target: {fileID: 6425929453810843283, guid: 907b278a7d3eede48ac3da3286160283,
+        type: 3}
+      propertyPath: m_Name
+      value: GpmLogViewer
+      objectReference: {fileID: 0}
+    - target: {fileID: 6425929453810843285, guid: 907b278a7d3eede48ac3da3286160283,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6425929453810843285, guid: 907b278a7d3eede48ac3da3286160283,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6425929453810843285, guid: 907b278a7d3eede48ac3da3286160283,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6425929453810843285, guid: 907b278a7d3eede48ac3da3286160283,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6425929453810843285, guid: 907b278a7d3eede48ac3da3286160283,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6425929453810843285, guid: 907b278a7d3eede48ac3da3286160283,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6425929453810843285, guid: 907b278a7d3eede48ac3da3286160283,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6425929453810843285, guid: 907b278a7d3eede48ac3da3286160283,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6425929453810843285, guid: 907b278a7d3eede48ac3da3286160283,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6425929453810843285, guid: 907b278a7d3eede48ac3da3286160283,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6898992502111043176, guid: 907b278a7d3eede48ac3da3286160283,
+        type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6898992502111043176, guid: 907b278a7d3eede48ac3da3286160283,
+        type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6898992502111043176, guid: 907b278a7d3eede48ac3da3286160283,
+        type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7122946776485879434, guid: 907b278a7d3eede48ac3da3286160283,
+        type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7122946776485879434, guid: 907b278a7d3eede48ac3da3286160283,
+        type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7122946776485879434, guid: 907b278a7d3eede48ac3da3286160283,
+        type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7273137345732591101, guid: 907b278a7d3eede48ac3da3286160283,
+        type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7273137345732591101, guid: 907b278a7d3eede48ac3da3286160283,
+        type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7273137345732591101, guid: 907b278a7d3eede48ac3da3286160283,
+        type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8381302771176752386, guid: 907b278a7d3eede48ac3da3286160283,
+        type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8694230799397044312, guid: 907b278a7d3eede48ac3da3286160283,
+        type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: Gpm.LogViewer.Internal.ConsoleView, gpm_logviewer
+      objectReference: {fileID: 0}
+    - target: {fileID: 8777843778285839942, guid: 907b278a7d3eede48ac3da3286160283,
+        type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: Gpm.LogViewer.Internal.ConsoleView, gpm_logviewer
+      objectReference: {fileID: 0}
+    - target: {fileID: 9093571082050527332, guid: 907b278a7d3eede48ac3da3286160283,
+        type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: Gpm.LogViewer.Internal.ConsoleView, gpm_logviewer
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 907b278a7d3eede48ac3da3286160283, type: 3}
 --- !u!1 &360259694
 GameObject:
   m_ObjectHideFlags: 0
@@ -761,3 +999,4 @@ SceneRoots:
   - {fileID: 360259697}
   - {fileID: 6430893620386371686}
   - {fileID: 1750539718}
+  - {fileID: 358009072}

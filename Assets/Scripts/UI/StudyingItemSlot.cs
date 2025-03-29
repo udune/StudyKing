@@ -68,9 +68,44 @@ public class StudyingItemSlot : InfiniteScrollItem
         }
         
         data.Check = isChecked;
-        var studyingUI = UIManager.Instance.GetActiveUI<StudyingUI>() as StudyingUI;
-        studyingUI?.CheckCompleted();
         userStudyData.SaveData();
+        LobbyManager.Instance.IsComplete = false;
+
+        if (isChecked)
+        {
+            var studyingUI = UIManager.Instance.GetActiveUI<StudyingUI>() as StudyingUI;
+            if (studyingUI == null)
+            {
+                Logger.Log($"{GetType()}::studyingUI is null");
+                return;
+            }
+            
+            if (studyingUI.CheckCompleted())
+            {
+                LobbyManager.Instance.Pause();
+                
+                var modal = new ModalUIData();
+                modal.Type = ModalType.OK_CANCEL;
+                modal.Title = "정말 다 하셨나요?";
+                modal.Desc = "공부 스케줄을 종료합니다.";
+                modal.OkBtnText = "종료";
+                modal.CancelBtnText = "취소";
+                modal.OKAction = () =>
+                {
+                    data.Check = true;
+                    userStudyData.SaveData();
+                    
+                    LobbyManager.Instance.IsComplete = true;
+                };
+                modal.CANCELAction = () =>
+                {
+                    LobbyManager.Instance.Resume();
+                    check.isOn = false;
+                };
+            
+                UIManager.Instance.OpenUI<ModalUI>(modal);
+            }
+        }
     }
 
     private void OnDestroy()

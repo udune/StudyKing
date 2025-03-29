@@ -55,9 +55,42 @@ public class StudyUI : BaseUI
 
     public void OnClickStart()
     {
-        Logger.Log($"{GetType()}::OnClickStart");
+        var userStudyData = UserDataManager.Instance.GetUserData<UserStudyData>();
+        if (userStudyData != null)
+        {
+            if (userStudyData.StudyItemDataList.Count <= 0)
+            {
+                Logger.Log($"{GetType()}::UserStudyData does not exist");
+                
+                var data1 = new ModalUIData();
+                data1.Type = ModalType.OK;
+                data1.Desc = "최소한 한 가지 공부 계획은 있어야 해요.";
+                data1.OkBtnText = "확인";
+                UIManager.Instance.OpenUI<ModalUI>(data1);
+                
+                return;
+            }
+            
+            var emptyData = userStudyData.StudyItemDataList.FirstOrDefault(data => string.IsNullOrEmpty(data.Name));
+            if (emptyData != null)
+            {
+                Logger.Log($"{GetType()}::UserStudyData Name is empty");
+                
+                var data2 = new ModalUIData();
+                data2.Type = ModalType.OK;
+                data2.Desc = $"{emptyData.Id} 번째 공부 계획 작성해주세요.";
+                data2.OkBtnText = "확인";
+                UIManager.Instance.OpenUI<ModalUI>(data2);
+                
+                return;
+            }
+            
+            Logger.Log($"{GetType()}::OnClickStart");
         
-        var data = new BaseUIData();
-        UIManager.Instance.OpenUI<StudyingUI>(data);
+            var data = new BaseUIData();
+            UIManager.Instance.OpenUI<StudyingUI>(data);
+        }
+        
+        Logger.Log($"{GetType()}::userStudyData is null");
     }
 }

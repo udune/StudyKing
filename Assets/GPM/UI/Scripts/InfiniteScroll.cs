@@ -4,10 +4,8 @@ namespace Gpm.Ui
     using UnityEngine;
     using UnityEngine.UI;
     using UnityEngine.Events;
-    using UnityEngine.EventSystems;
-    using System.Collections;
 
-    public partial class InfiniteScroll : MonoBehaviour, IEndDragHandler
+    public partial class InfiniteScroll : MonoBehaviour
     {
         protected bool                          isInitialize            = false;
 
@@ -22,13 +20,6 @@ namespace Gpm.Ui
         public StateChangeEvent                 onEndLine               = new StateChangeEvent();
 
         private Predicate<InfiniteScrollData>   onFilter                = null;
-
-        [Header("Snap", order = 5)]
-        public bool snap = false;
-
-        public int currentSnappedIndex { get; private set; } = 0;
-
-        public Action<int> OnSnap;
 
         private void Awake()
         {
@@ -428,67 +419,6 @@ namespace Gpm.Ui
             layout.SetDefaults();
         }
 
-        public void OnEndDrag(PointerEventData eventData)
-        {
-            if (snap)
-            {
-                StopScrolling();
-                currentSnappedIndex = GetSnapIndex();
-                MoveTo(currentSnappedIndex, MoveToType.MOVE_TO_CENTER, 0.3f);
-                Invoke("ResumeScrolling", 0.3f);
-            }
-        }
-
-        private int GetSnapIndex()
-        {
-            var snapIndex = 0;
-
-            if(layout.IsVertical())
-            {
-                var axisValue = scrollRect.content.GetComponent<RectTransform>().localPosition.y;
-                snapIndex = (int)(Math.Abs(axisValue) / itemPrefab.GetComponent<RectTransform>().sizeDelta.y);
-                var offSet = Math.Abs(axisValue) % itemPrefab.GetComponent<RectTransform>().sizeDelta.y;
-                if (offSet > itemPrefab.GetComponent<RectTransform>().sizeDelta.y / 2)
-                {
-                    snapIndex++;
-                }
-            }
-            else
-            {
-                var axisValue = scrollRect.content.GetComponent<RectTransform>().localPosition.x;
-                snapIndex = (int)(Math.Abs(axisValue) / itemPrefab.GetComponent<RectTransform>().sizeDelta.x);
-                var offSet = Math.Abs(axisValue) % itemPrefab.GetComponent<RectTransform>().sizeDelta.x;
-                if (offSet > itemPrefab.GetComponent<RectTransform>().sizeDelta.x / 2)
-                {
-                    snapIndex++;
-                }
-            }
-            
-            return snapIndex;
-        }
-
-        public void StopScrolling()
-        {
-            scrollRect.enabled = false;
-
-            scrollRect.velocity = Vector2.zero;
-        }
-
-        // Method to resume scrolling
-        public void ResumeScrolling()
-        {
-            OnSnap?.Invoke(currentSnappedIndex);
-
-            scrollRect.enabled = true; 
-        }
-        
-        public void SortDataList(Comparison<DataContext> comparison)
-        {
-            dataList.Sort(comparison);
-
-            needUpdateItemList = true;
-            UpdateShowItem();
-        }
 
         [Serializable]
         public class ChangeValueEvent : UnityEvent<int, int, bool, bool>
