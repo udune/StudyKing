@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using TMPro;
 using UnityEngine;
 using Logger = Common.Logger;
@@ -7,6 +8,7 @@ using Logger = Common.Logger;
 public class TimeUI : MonoBehaviour
 {
     public TextMeshProUGUI timeText;
+    private static readonly StringBuilder sb = new StringBuilder();
 
     public void SetValue()
     {
@@ -23,17 +25,16 @@ public class TimeUI : MonoBehaviour
 
     private string CalculateTimeFormat(long time)
     {
-        int hour = (int) time / 60;
-        int minute = (int) time % 60;
-
-        if (hour > 0 && minute > 0)
-        {
-            return $"{hour}시간 {minute}분";
-        }
-
-        if (hour > 0)
-            return $"{hour}시간";
+        sb.Clear();
         
-        return $"{minute}분";
+        int hour = (int)(time / 3600);
+        int minute = (int)((time % 3600) / 60);
+        int second = (int)(time % 60);
+
+        if (hour > 0) sb.Append(hour).Append("시간 ");
+        if (minute > 0) sb.Append(minute).Append("분 ");
+        if (second > 0) sb.Append(second).Append("초 ");
+
+        return sb.Length > 0 ? sb.ToString().TrimEnd() : "0초";
     }
 }

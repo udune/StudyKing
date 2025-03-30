@@ -687,6 +687,11 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3902522565765894621, guid: 6c024f2167e5f86459511d6021dc52e8,
+        type: 3}
+      propertyPath: m_Interactable
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4303556397010824986, guid: 6c024f2167e5f86459511d6021dc52e8,
         type: 3}
       propertyPath: m_AnchorMax.y
@@ -745,6 +750,11 @@ PrefabInstance:
     - target: {fileID: 5027493938693753630, guid: 6c024f2167e5f86459511d6021dc52e8,
         type: 3}
       propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6018459477499261723, guid: 6c024f2167e5f86459511d6021dc52e8,
+        type: 3}
+      propertyPath: m_Interactable
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6261002243016179442, guid: 6c024f2167e5f86459511d6021dc52e8,
@@ -781,6 +791,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: UIManager
+      objectReference: {fileID: 0}
+    - target: {fileID: 7390429941891087176, guid: 6c024f2167e5f86459511d6021dc52e8,
+        type: 3}
+      propertyPath: m_Interactable
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7411347332337629582, guid: 6c024f2167e5f86459511d6021dc52e8,
         type: 3}
@@ -830,6 +845,11 @@ PrefabInstance:
     - target: {fileID: 7411347332337629582, guid: 6c024f2167e5f86459511d6021dc52e8,
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8013980733753932496, guid: 6c024f2167e5f86459511d6021dc52e8,
+        type: 3}
+      propertyPath: m_Interactable
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []

@@ -4,6 +4,7 @@ using Gpm.Ui;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using Logger = Common.Logger;
 
 public class StudyingUI : BaseUI
 {
@@ -72,10 +73,12 @@ public class StudyingUI : BaseUI
         while (!LobbyManager.Instance.IsPaused)
         {
             elapsedTime += Time.deltaTime;
-            int minutes = Mathf.FloorToInt(elapsedTime / 60);
+            int hours = Mathf.FloorToInt(elapsedTime / 3600);
+            int minutes = Mathf.FloorToInt((elapsedTime % 3600) / 60);
             int seconds = Mathf.FloorToInt(elapsedTime % 60);
-            time.text = $"{minutes:00}:{seconds:00}";
-            
+
+            time.text = hours > 0 ? $"{hours:00}:{minutes:00}:{seconds:00}" : $"{minutes:00}:{seconds:00}";
+
             yield return null;
         }
     }
@@ -112,6 +115,17 @@ public class StudyingUI : BaseUI
 
     public void OnClickFinishStudyItem()
     {
+        var userTimeData = UserDataManager.Instance.GetUserData<UserTimeData>();
+        if (userTimeData == null)
+        {
+            Logger.Log($"{GetType()}::UserData is null");
+            return;
+        }
+
+        userTimeData.Time += (long) elapsedTime;
+        userTimeData.SaveData();
+        UIManager.Instance.EnableTimeUI(true);
         
+        UIManager.Instance.CloseAllOpenUI();
     }
 }
