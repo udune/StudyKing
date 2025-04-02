@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "222061272404",
+    "project_id": "study-king-1be40",
+    "storage_bucket": "study-king-1be40.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:222061272404:android:d3a1e08df027d5904e3cc1",
+        "android_client_info": {
+          "package_name": "com.MinchanKim.StudyKing"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCm1Nhma9sPlw_yzZUqmgSwkZU9IRsC6bg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
