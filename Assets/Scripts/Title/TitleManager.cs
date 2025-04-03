@@ -101,11 +101,11 @@ namespace Title
         private bool ValidateAppVersion()
         {
             bool result = false;
-            // if (Application.version == FirebaseManager.Instance.GetAppVersion())
-            // {
-            //     result = true;
-            // }
-            // else
+            if (Application.version == FirebaseManager.Instance.GetAppVersion())
+            {
+                result = true;
+            }
+            else
             {
                 var modal = new ModalUIData();
                 modal.Type = ModalType.OK_CANCEL;
