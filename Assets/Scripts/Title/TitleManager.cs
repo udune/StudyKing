@@ -55,10 +55,20 @@ namespace Title
             logoAnim.gameObject.SetActive(false);
             titleGo.SetActive(true);
 
+            if (!CheckThirdPartyServiceInit())
+            {
+                yield break;
+            }
+
+            if (!ValidateAppVersion())
+            {
+                yield break;
+            }
+
             async = SceneLoader.Instance.LoadSceneAsync(SceneType.Account);
             if (async == null)
             {
-                Logger.Log("Account async Loading Failed");
+                Logger.Log($"{GetType()}::Account async Loading Failed");
                 yield break;
             }
         
@@ -81,6 +91,44 @@ namespace Title
 
                 yield return null;
             }
+        }
+
+        private bool CheckThirdPartyServiceInit()
+        {
+            return FirebaseManager.Instance.IsInit();
+        }
+
+        private bool ValidateAppVersion()
+        {
+            bool result = false;
+            // if (Application.version == FirebaseManager.Instance.GetAppVersion())
+            // {
+            //     result = true;
+            // }
+            // else
+            {
+                var modal = new ModalUIData();
+                modal.Type = ModalType.OK_CANCEL;
+                modal.Title = string.Empty;
+                modal.Desc = "앱 버전이 오래되었어요.<br>업데이트하시겠어요?";
+                modal.OkBtnText = "업데이트";
+                modal.CancelBtnText = "취소";
+                modal.OKAction = () =>
+                {
+                    #if UNITY_ANDROID
+                        Application.OpenURL(GlobalDefine.GOOGLE_PLAY_STORE);
+                    #elif UNITY_IOS
+                        Application.OpenURL(GlobalDefine.APPLE_PLAY_STORE);
+                    #endif
+                };
+                modal.CANCELAction = () =>
+                {
+                    Application.Quit();
+                };
+                UIManager.Instance.OpenUI<ModalUI>(modal);
+            }
+            
+            return result;
         }
     }
 }
