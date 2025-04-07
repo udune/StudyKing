@@ -1,9 +1,11 @@
 <?xml version='1.0' encoding='utf-8'?>
-<resources xmlns:tools="http://schemas.android.com/tools" tools:keep="@string/gcm_defaultSenderId,@string/google_storage_bucket,@string/project_id,@string/google_api_key,@string/google_crash_reporting_api_key,@string/google_app_id">
+<resources xmlns:tools="http://schemas.android.com/tools" tools:keep="@string/gcm_defaultSenderId,@string/google_storage_bucket,@string/project_id,@string/google_api_key,@string/google_crash_reporting_api_key,@string/google_app_id,@string/default_android_client_id,@string/default_web_client_id">
   <string name="gcm_defaultSenderId" translatable="false">222061272404</string>
   <string name="google_storage_bucket" translatable="false">study-king-1be40.firebasestorage.app</string>
   <string name="project_id" translatable="false">study-king-1be40</string>
   <string name="google_api_key" translatable="false">AIzaSyCm1Nhma9sPlw_yzZUqmgSwkZU9IRsC6bg</string>
   <string name="google_crash_reporting_api_key" translatable="false">AIzaSyCm1Nhma9sPlw_yzZUqmgSwkZU9IRsC6bg</string>
   <string name="google_app_id" translatable="false">1:222061272404:android:d3a1e08df027d5904e3cc1</string>
+  <string name="default_android_client_id" translatable="false">222061272404-ohe1c2vfj47pttj5kccs9ht6rcqp64jo.apps.googleusercontent.com</string>
+  <string name="default_web_client_id" translatable="false">222061272404-27lp0ocv653h3jci5vitlp1qq97otq3p.apps.googleusercontent.com</string>
 </resources>

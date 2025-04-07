@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -32,5 +33,10 @@ public class SceneLoader : SingletonBehaviour<SceneLoader>
         Logger.Log($"{sceneType.ToString()} loading async scene...");
         Time.timeScale = 1;
         return SceneManager.LoadSceneAsync(sceneType.ToString());
+    }
+
+    public SceneType GetCurrentScene()
+    {
+        return Enum.Parse<SceneType>(SceneManager.GetActiveScene().name);
     }
 }

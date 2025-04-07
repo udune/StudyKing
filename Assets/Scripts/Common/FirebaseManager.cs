@@ -3,17 +3,31 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Net.NetworkInformation;
 using Firebase;
+using Firebase.Auth;
 using Firebase.Extensions;
 using Firebase.RemoteConfig;
+using Google;
 using UnityEngine;
 using Logger = Common.Logger;
 
 public class FirebaseManager : SingletonBehaviour<FirebaseManager>
 {
     private FirebaseApp app;
+    
+    // Remote Config
     private FirebaseRemoteConfig remoteConfig;
     private bool isRemoteConfigInit;
     private Dictionary<string, object> remoteConfigDic = new Dictionary<string, object>();
+    
+    // Auth
+    private FirebaseAuth auth;
+    private bool isAuthInit = false;
+    private const string GOOGLE_WEB_CLIENT_ID = "222061272404-27lp0ocv653h3jci5vitlp1qq97otq3p.apps.googleusercontent.com";
+    private GoogleSignInConfiguration googleSignInConfiguration;
+    private FirebaseUser firebaseUser;
+
+    public bool HasSignedWithGoogle { get; private set; }
+    public bool HasSignedWithApple { get; private set; }
 
     protected override void Init()
     {
@@ -23,7 +37,20 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>
 
     public bool IsInit()
     {
-        return isRemoteConfigInit;
+        return isRemoteConfigInit && isAuthInit;
+    }
+
+    private void LoadData()
+    {
+        HasSignedWithGoogle = PlayerPrefs.GetInt("HasSignedWithGoogle") == 1;
+        HasSignedWithApple = PlayerPrefs.GetInt("HasSignedWithApple") == 1;
+    }
+
+    private void SaveData()
+    {
+        PlayerPrefs.SetInt("HasSignedWithGoogle", HasSignedWithGoogle ? 1 : 0);
+        PlayerPrefs.SetInt("HasSignedWithApple", HasSignedWithApple ? 1 : 0);
+        PlayerPrefs.Save();
     }
 
     private IEnumerator InitFirebaseServiceCoroutine()
@@ -36,6 +63,8 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>
                 Logger.Log($"{GetType()}::FirebaseApp initialization success.");
                 app = FirebaseApp.DefaultInstance;
                 InitRemoteConfig();
+
+                InitAuth();
             }
             else
             {
@@ -106,6 +135,138 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>
         }
 #endif
         return string.Empty;
+    }
+    
+    #endregion
+    
+    #region AUTH
+
+    private void InitAuth()
+    {
+        auth = FirebaseAuth.DefaultInstance;
+        if (auth == null)
+        {
+            Logger.LogError($"{GetType()}::FirebaseApp Initialization failed. FirebaseAuth is null.");
+            return;
+        }
+
+        auth.StateChanged += OnAuthStateChanged;
+        googleSignInConfiguration = new GoogleSignInConfiguration()
+        {
+            WebClientId = GOOGLE_WEB_CLIENT_ID,
+            RequestIdToken = true
+        };
+        
+        isAuthInit = true;
+
+        if (auth.CurrentUser == null)
+        {
+            if (HasSignedWithGoogle)
+            {
+                SignInWithGoogle();
+            }
+            else if (HasSignedWithApple)
+            {
+                SignInWithApple();
+            }
+        }
+    }
+
+    private void OnAuthStateChanged(object sender, EventArgs eventArgs)
+    {
+        if (SceneLoader.Instance.GetCurrentScene() == SceneType.Title)
+        {
+            return;
+        }
+
+        if (auth != null && auth.CurrentUser == null)
+        {
+            Logger.Log("User Signed out or disconnected");
+            SceneLoader.Instance.LoadScene(SceneType.Title);
+            UIManager.Instance.CloseAllOpenUI();
+        }
+    }
+
+    public bool IsSignedIn()
+    {
+#if UNITY_EDITOR
+        return true;
+#else
+        return firebaseUser != null;
+#endif
+    }
+
+    public void SignInWithGoogle()
+    {
+        GoogleSignIn.Configuration = googleSignInConfiguration;
+        GoogleSignIn.DefaultInstance.SignIn().ContinueWithOnMainThread(task =>
+        {
+            if (task.IsCanceled || task.IsFaulted)
+            {
+                if (task.IsCanceled)
+                {
+                    Logger.LogError($"SignInWithGoogle was Canceled");
+                }
+                else if (task.IsFaulted)
+                {
+                    Logger.LogError($"SignInWithGoogle was Faulted: {task.Exception}");
+                }
+                
+                ShowLoginFailUI();
+                return;
+            }
+
+            GoogleSignInUser googleUser = task.Result;
+            Credential credential = GoogleAuthProvider.GetCredential(googleUser.IdToken, null);
+            auth.SignInWithCredentialAsync(credential).ContinueWithOnMainThread(task =>
+            {
+                if (task.IsCanceled || task.IsFaulted)
+                {
+                    if (task.IsCanceled)
+                    {
+                        Logger.LogError($"{GetType()}::SignInWithGoogle was Canceled");
+                    }
+                    else if (task.IsFaulted)
+                    {
+                        Logger.LogError($"{GetType()}::SignInWithGoogle was Faulted: {task.Exception}");
+                    }
+
+                    ShowLoginFailUI();
+                    return;
+                }
+                
+                firebaseUser = task.Result;
+                Logger.Log($"{GetType()}::User signed in successfully. {firebaseUser.DisplayName} ({firebaseUser.UserId})");
+
+                HasSignedWithGoogle = true;
+                HasSignedWithApple = true;
+                SaveData();
+            });
+        });
+    }
+
+    public void SignInWithApple()
+    {
+        
+    }
+
+    public void SignOut()
+    {
+        if (firebaseUser != null)
+        {
+            auth.SignOut();
+            Logger.Log($"{GetType()}::User signed out successfully.");
+        }
+    }
+
+    private void ShowLoginFailUI()
+    {
+        var modal = new ModalUIData();
+        modal.Type = ModalType.OK;
+        modal.Title = "오류";
+        modal.Desc = "로그인 실패";
+        modal.OkBtnText = "확인";
+        UIManager.Instance.OpenUI<ModalUI>(modal);
     }
     
     #endregion
