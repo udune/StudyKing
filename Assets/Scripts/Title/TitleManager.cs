@@ -65,32 +65,18 @@ namespace Title
                 yield break;
             }
 
-            async = SceneLoader.Instance.LoadSceneAsync(SceneType.Account);
-            if (async == null)
+            if (!FirebaseManager.Instance.IsSignedIn())
             {
-                Logger.Log($"{GetType()}::Account async Loading Failed");
-                yield break;
+                var modal = new ModalUIData();
+                UIManager.Instance.OpenUI<AccountUI>(modal);
             }
-        
-            async.allowSceneActivation = false;
 
-            loadingSlider.value = 0.5f;
-            loadingText.text = ((int)loadingSlider.value * 100).ToString();
-            yield return new WaitForSeconds(0.5f);
-
-            while (!async.isDone)
+            while (!FirebaseManager.Instance.IsSignedIn())
             {
-                loadingSlider.value = async.progress < 0.5f ? 0.5f : async.progress;
-                loadingText.text = $"{(int)(loadingSlider.value * 100)}%";
-
-                if (async.progress >= 0.9f)
-                {
-                    async.allowSceneActivation = true;
-                    yield break;
-                }
-
                 yield return null;
             }
+
+            yield return StartCoroutine(LoadLobbyCoroutine());
         }
 
         private bool CheckThirdPartyServiceInit()
@@ -129,6 +115,36 @@ namespace Title
             }
             
             return result;
+        }
+        
+        private IEnumerator LoadLobbyCoroutine()
+        {
+            async = SceneLoader.Instance.LoadSceneAsync(SceneType.Lobby);
+            if (async == null)
+            {
+                Logger.Log($"{GetType()}::Account async Loading Failed");
+                yield break;
+            }
+            
+            async.allowSceneActivation = false;
+
+            loadingSlider.value = 0.5f;
+            loadingText.text = ((int)loadingSlider.value * 100).ToString();
+            yield return new WaitForSeconds(0.5f);
+
+            while (!async.isDone)
+            {
+                loadingSlider.value = async.progress < 0.5f ? 0.5f : async.progress;
+                loadingText.text = $"{(int)(loadingSlider.value * 100)}%";
+
+                if (async.progress >= 0.9f)
+                {
+                    async.allowSceneActivation = true;
+                    yield break;
+                }
+
+                yield return null;
+            }
         }
     }
 }

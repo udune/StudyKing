@@ -61,7 +61,6 @@ public class BuildManager : Editor
         buildPlayerOptions.scenes = new[]
         { 
             "Assets/Scenes/Title.unity",
-            "Assets/Scenes/Account.unity",
             "Assets/Scenes/Lobby.unity",
         };
         buildPlayerOptions.target = BuildTarget.Android;

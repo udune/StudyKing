@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Net.NetworkInformation;
 using Firebase;
 using Firebase.Auth;
 using Firebase.Extensions;
@@ -32,6 +31,8 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>
     protected override void Init()
     {
         base.Init();
+        
+        LoadData();
         StartCoroutine(InitFirebaseServiceCoroutine());
     }
 
@@ -170,6 +171,10 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>
                 SignInWithApple();
             }
         }
+        else
+        {
+            firebaseUser = auth.CurrentUser;
+        }
     }
 
     private void OnAuthStateChanged(object sender, EventArgs eventArgs)
@@ -181,9 +186,13 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>
 
         if (auth != null && auth.CurrentUser == null)
         {
-            Logger.Log("User Signed out or disconnected");
-            SceneLoader.Instance.LoadScene(SceneType.Title);
+            Logger.Log($"{GetType()}::User Signed out or disconnected");
+            firebaseUser = null;
+            HasSignedWithGoogle = false;
+            HasSignedWithApple = false;
+            SaveData();
             UIManager.Instance.CloseAllOpenUI();
+            SceneLoader.Instance.LoadScene(SceneType.Title);
         }
     }
 
@@ -205,11 +214,11 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>
             {
                 if (task.IsCanceled)
                 {
-                    Logger.LogError($"SignInWithGoogle was Canceled");
+                    Logger.LogError($"{GetType()}::SignInWithGoogle was Canceled");
                 }
                 else if (task.IsFaulted)
                 {
-                    Logger.LogError($"SignInWithGoogle was Faulted: {task.Exception}");
+                    Logger.LogError($"{GetType()}::SignInWithGoogle was Faulted: {task.Exception}");
                 }
                 
                 ShowLoginFailUI();
@@ -266,6 +275,11 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>
         modal.Title = "오류";
         modal.Desc = "로그인 실패";
         modal.OkBtnText = "확인";
+        modal.OKAction = () =>
+        {
+            var modal = new ModalUIData();
+            UIManager.Instance.OpenUI<AccountUI>(modal);
+        };
         UIManager.Instance.OpenUI<ModalUI>(modal);
     }
     
