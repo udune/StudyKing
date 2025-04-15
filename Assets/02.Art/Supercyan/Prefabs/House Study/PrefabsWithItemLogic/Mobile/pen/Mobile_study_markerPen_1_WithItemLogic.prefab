@@ -1,0 +1,105 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &4284006885918689185
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4745355028176890405}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b040736da90200d469616062cbbd8ea4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_useBothHands: 0
+  m_preferredHand: 2
+  m_itemType: 3
+  m_dummyPoint: {fileID: 2576922756647039876}
+  m_itemAnimations: {fileID: 11400000, guid: 8b6d74af5bbdbd640918c9bca3eb2be2, type: 2}
+  m_accessoryLogic: {fileID: 0}
+  m_flipXForHand: 0
+  m_flipYForHand: 0
+  m_flipZForHand: 0
+--- !u!1001 &2826131363783228903
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 7413642701079009218, guid: c0f27407b9f54ac4381ff1fd4d3aa2ec,
+        type: 3}
+      propertyPath: m_Name
+      value: Mobile_study_markerPen_1_WithItemLogic
+      objectReference: {fileID: 0}
+    - target: {fileID: 7901948646362123640, guid: c0f27407b9f54ac4381ff1fd4d3aa2ec,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7901948646362123640, guid: c0f27407b9f54ac4381ff1fd4d3aa2ec,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7901948646362123640, guid: c0f27407b9f54ac4381ff1fd4d3aa2ec,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7901948646362123640, guid: c0f27407b9f54ac4381ff1fd4d3aa2ec,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7901948646362123640, guid: c0f27407b9f54ac4381ff1fd4d3aa2ec,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7901948646362123640, guid: c0f27407b9f54ac4381ff1fd4d3aa2ec,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7901948646362123640, guid: c0f27407b9f54ac4381ff1fd4d3aa2ec,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7901948646362123640, guid: c0f27407b9f54ac4381ff1fd4d3aa2ec,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7901948646362123640, guid: c0f27407b9f54ac4381ff1fd4d3aa2ec,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7901948646362123640, guid: c0f27407b9f54ac4381ff1fd4d3aa2ec,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7901948646362123640, guid: c0f27407b9f54ac4381ff1fd4d3aa2ec,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents:
+    - {fileID: 1418210895198026223, guid: c0f27407b9f54ac4381ff1fd4d3aa2ec, type: 3}
+  m_SourcePrefab: {fileID: 100100000, guid: c0f27407b9f54ac4381ff1fd4d3aa2ec, type: 3}
+--- !u!1 &4745355028176890405 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7413642701079009218, guid: c0f27407b9f54ac4381ff1fd4d3aa2ec,
+    type: 3}
+  m_PrefabInstance: {fileID: 2826131363783228903}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &2576922756647039876 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 359019238619516515, guid: c0f27407b9f54ac4381ff1fd4d3aa2ec,
+    type: 3}
+  m_PrefabInstance: {fileID: 2826131363783228903}
+  m_PrefabAsset: {fileID: 0}
