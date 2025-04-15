@@ -36,7 +36,7 @@ namespace Title
 
             if (!UserDataManager.Instance.IsExistSaveData)
             {
-                UserDataManager.Instance.SettingUserData();
+                UserDataManager.Instance.InitializeUserData();
                 UserDataManager.Instance.SaveUserData();
             }
             

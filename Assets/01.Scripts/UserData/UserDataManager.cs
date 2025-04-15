@@ -12,12 +12,13 @@ public class UserDataManager : SingletonBehaviour<UserDataManager>
     {
         base.Init();
         
+        UserDataList.Add(new UserSignedData());
         UserDataList.Add(new UserTimeData());
         UserDataList.Add(new UserSettingData());
         UserDataList.Add(new UserStudyData());
     }
 
-    public void SettingUserData()
+    public void InitializeUserData()
     {
         foreach (var userData in UserDataList)
         {

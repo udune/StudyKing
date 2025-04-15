@@ -12,12 +12,13 @@ public class UserTimeData : IUserData
 
     public void Initialize()
     {
-        Logger.Log($"{GetType()}::Setting");
+        Logger.Log($"{GetType()}::Initialize");
         Time = 0;
     }
 
     public void Setting(Dictionary<string, object> firestoreDict)
     {
+        Logger.Log($"{GetType()}::Setting");
         ConvertToData(firestoreDict);
     }
 

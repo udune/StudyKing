@@ -20,7 +20,7 @@ public class UserStudyData : IUserData
 
     public void Initialize()
     {
-        Logger.Log($"{GetType()}::Setting");
+        Logger.Log($"{GetType()}::Initialize");
         
         StudyItemDataList.Add(new StudyItemData { Id = 1, Name = "수학", Check = false });
         StudyItemDataList.Add(new StudyItemData { Id = 2, Name = "영어", Check = false });
@@ -28,6 +28,7 @@ public class UserStudyData : IUserData
 
     public void Setting(Dictionary<string, object> firestoreDict)
     {
+        Logger.Log($"{GetType()}::Setting");
         ConvertToData(firestoreDict);
     }
 
