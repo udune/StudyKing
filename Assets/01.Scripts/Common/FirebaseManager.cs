@@ -31,10 +31,14 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>
     private FirebaseFirestore database;
     private bool isFirestoreInit = false;
 
+    public bool HasSignedWithGoogle { get; private set; }
+    public bool HasSignedWithApple { get; private set; }
+
     protected override void Init()
     {
         base.Init();
         
+        LoadData();
         StartCoroutine(InitFirebaseServiceCoroutine());
     }
 
@@ -43,17 +47,17 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>
         return isRemoteConfigInit && isAuthInit && isFirestoreInit;
     }
 
-    private void SaveData(bool isSigned)
+    private void LoadData()
     {
-        var userSignedData = UserDataManager.Instance.GetUserData<UserSignedData>();
-        if (userSignedData == null)
-        {
-            Logger.Log($"{GetType()}::UserSignedData is null");
-            return;
-        }
-        userSignedData.HasSignedWithGoogle = isSigned;
-        userSignedData.HasSignedWithApple = isSigned;
-        userSignedData.SaveData();
+        HasSignedWithGoogle = PlayerPrefs.GetInt("HasSignedWithGoogle") == 1;
+        HasSignedWithApple = PlayerPrefs.GetInt("HasSignedWithApple") == 1;
+    }
+
+    private void SaveData()
+    {
+        PlayerPrefs.SetInt("HasSignedWithGoogle", HasSignedWithGoogle ? 1 : 0);
+        PlayerPrefs.SetInt("HasSignedWithApple", HasSignedWithApple ? 1 : 0);
+        PlayerPrefs.Save();
     }
 
     private IEnumerator InitFirebaseServiceCoroutine()
@@ -164,18 +168,11 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>
 
         if (auth.CurrentUser == null)
         {
-            var userSignedData = UserDataManager.Instance.GetUserData<UserSignedData>();
-            if (userSignedData == null)
-            {
-                Logger.Log($"{GetType()}::UserSignedData is null");
-                return;
-            }
-            
-            if (userSignedData.HasSignedWithGoogle)
+            if (HasSignedWithGoogle)
             {
                 SignInWithGoogle();
             }
-            else if (userSignedData.HasSignedWithApple)
+            else if (HasSignedWithApple)
             {
                 SignInWithApple();
             }
@@ -197,7 +194,9 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>
         {
             Logger.Log($"{GetType()}::User Signed out or disconnected");
             firebaseUser = null;
-            SaveData(false);
+            HasSignedWithGoogle = false;
+            HasSignedWithApple = false;
+            SaveData();
             UIManager.Instance.CloseAllOpenUI();
             SceneLoader.Instance.LoadScene(SceneType.Title);
         }
@@ -254,7 +253,9 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>
                 firebaseUser = task.Result;
                 Logger.Log($"{GetType()}::User signed in successfully. {firebaseUser.DisplayName} ({firebaseUser.UserId})");
 
-                SaveData(true);
+                HasSignedWithGoogle = true;
+                HasSignedWithApple = true;
+                SaveData();
             });
         });
     }
