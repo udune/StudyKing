@@ -29,7 +29,7 @@ public class UserDataManager : SingletonBehaviour<UserDataManager>
     {
         foreach (var userData in UserDataList)
         {
-            userData.LoadData();
+            //userData.LoadData();
         }
     }
 
@@ -38,7 +38,7 @@ public class UserDataManager : SingletonBehaviour<UserDataManager>
         bool error = false;
         foreach (var userData in UserDataList)
         {
-            userData.SaveData();
+            //userData.SaveData();
         }
     }
 
