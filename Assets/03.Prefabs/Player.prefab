@@ -670,13 +670,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 2
-  turnSpeed: 200
+  turnSpeed: 10
   minIdleTime: 0
   maxIdleTime: 10
-  patrolPointList:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  patrolPointList: []
   wayPointList: []
   wayPointIdxList: 
 --- !u!1 &4737642107527689730

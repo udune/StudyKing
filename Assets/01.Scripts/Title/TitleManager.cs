@@ -32,14 +32,6 @@ namespace Title
 
         private void Start()
         {
-            UserDataManager.Instance.LoadUserData();
-
-            if (!UserDataManager.Instance.IsExistSaveData)
-            {
-                UserDataManager.Instance.InitializeUserData();
-                UserDataManager.Instance.SaveUserData();
-            }
-            
             UIManager.Instance.EnableTimeUI(false);
             UIManager.Instance.EnableTabUI(false);
             
@@ -72,6 +64,13 @@ namespace Title
             }
 
             while (!FirebaseManager.Instance.IsSignedIn())
+            {
+                yield return null;
+            }
+
+            UserDataManager.Instance.LoadUserData();
+
+            while (!UserDataManager.Instance.IsUserDataLoaded())
             {
                 yield return null;
             }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Serialization;
@@ -17,9 +18,9 @@ public class PlayerController : MonoBehaviour
     [Range(0.0f, 10.0f)]
     [SerializeField] private float maxIdleTime = 10.0f;
 
-    [SerializeField] private List<Transform> patrolPointList;
-    [SerializeField] private List<Transform> wayPointList;
-    [SerializeField] private List<int> wayPointIdxList;
+    private List<Transform> patrolPointList = new List<Transform>();
+    private List<Transform> wayPointList = new List<Transform>();
+    private List<int> wayPointIdxList = new List<int>();
     private Transform targetWayPoint;
     private int wayPointIdx;
     
@@ -37,6 +38,10 @@ public class PlayerController : MonoBehaviour
     {
         animator = GetComponent<Animator>();
         agent = GetComponent<NavMeshAgent>();
+        agent.updateRotation = false;
+
+        patrolPointList = GameObject.Find("PatrolPoint")?.GetComponentsInChildren<Transform>().ToList();
+        patrolPointList?.RemoveAt(0);
     }
 
     private void Start()
@@ -97,7 +102,16 @@ public class PlayerController : MonoBehaviour
         {
             elapsedTime += Time.deltaTime;
             curState?.OnUpdate(elapsedTime);
-            yield return null;
+            
+            if (agent.remainingDistance > 0.1f)
+            {
+                if (agent.desiredVelocity != Vector3.zero)
+                {
+                    transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(agent.desiredVelocity), elapsedTime * turnSpeed);
+                }
+            }
+            
+            yield return new WaitForSeconds(0.1f);
         }
     }
 

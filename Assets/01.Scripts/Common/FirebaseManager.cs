@@ -27,7 +27,7 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>
     private FirebaseUser firebaseUser;
     
     // Firestore
-    private const string UNITY_EDITOR_USER_ID = "";
+    private const string UNITY_EDITOR_USER_ID = "9HyPrbDAf4Q1eLMhp9LVkxptBlx1";
     private FirebaseFirestore database;
     private bool isFirestoreInit = false;
 

@@ -60,8 +60,8 @@ public class BuildManager : Editor
         BuildPlayerOptions buildPlayerOptions = new BuildPlayerOptions();
         buildPlayerOptions.scenes = new[]
         { 
-            "Assets/Scenes/Title.unity",
-            "Assets/Scenes/Lobby.unity",
+            "Assets/00.Scenes/Title.unity",
+            "Assets/00.Scenes/Lobby.unity",
         };
         buildPlayerOptions.target = BuildTarget.Android;
         string fileExtension = string.Empty;
