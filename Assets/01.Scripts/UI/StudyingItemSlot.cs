@@ -86,7 +86,7 @@ public class StudyingItemSlot : InfiniteScrollItem
                 
                 var modal = new ModalUIData();
                 modal.Type = ModalType.OK_CANCEL;
-                modal.Title = "정말 다 하셨나요?";
+                modal.Title = "정말 다 하셨어요?";
                 modal.Desc = "공부 스케줄을 종료합니다.";
                 modal.OkBtnText = "종료";
                 modal.CancelBtnText = "취소";

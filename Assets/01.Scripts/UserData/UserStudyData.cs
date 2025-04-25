@@ -57,12 +57,22 @@ public class UserStudyData : IUserData
             {
                 if (itemData is Dictionary<string, object> itemDataDict)
                 {
-                    StudyItemData studyItemData = new StudyItemData
+                    StudyItemData studyItemData = new StudyItemData();
+
+                    if (itemDataDict.TryGetValue("Id", out var idValue) && idValue != null)
                     {
-                        Id = Convert.ToInt32(itemDataDict["Id"]),
-                        Name = itemDataDict["Name"].ToString(),
-                        Check = (bool) itemDataDict["Check"]
-                    };
+                        studyItemData.Id = Convert.ToInt32(idValue);
+                    }
+
+                    if (itemDataDict.TryGetValue("Name", out var nameValue) && nameValue is string name)
+                    {
+                        studyItemData.Name = name;
+                    }
+
+                    if (itemDataDict.TryGetValue("Check", out var checkValue) && checkValue is bool check)
+                    {
+                        studyItemData.Check = check;
+                    }
                     
                     StudyItemDataList.Add(studyItemData);
                 }

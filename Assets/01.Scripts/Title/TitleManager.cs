@@ -18,7 +18,7 @@ namespace Title
         [Header("TITLE")]
         public GameObject titleGo;
         public Slider loadingSlider;
-        public TextMeshProUGUI loadingText;
+        // public TextMeshProUGUI loadingText;
     
         private AsyncOperation async;
 
@@ -128,13 +128,13 @@ namespace Title
             async.allowSceneActivation = false;
 
             loadingSlider.value = 0.5f;
-            loadingText.text = ((int)loadingSlider.value * 100).ToString();
+            //loadingText.text = ((int)loadingSlider.value * 100).ToString();
             yield return new WaitForSeconds(0.5f);
 
             while (!async.isDone)
             {
                 loadingSlider.value = async.progress < 0.5f ? 0.5f : async.progress;
-                loadingText.text = $"{(int)(loadingSlider.value * 100)}%";
+                //loadingText.text = $"{(int)(loadingSlider.value * 100)}%";
 
                 if (async.progress >= 0.9f)
                 {
