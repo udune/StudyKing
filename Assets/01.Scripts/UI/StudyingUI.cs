@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using Gpm.Ui;
 using TMPro;
 using UnityEngine;
@@ -116,7 +117,10 @@ public class StudyingUI : BaseUI
     public void OnClickFinishStudyItem()
     {
         var userTimeData = UserDataManager.Instance.GetUserData<UserTimeData>();
-        if (userTimeData == null)
+        var userHistoryData = UserDataManager.Instance.GetUserData<UserHistoryData>();
+        var userStudyData = UserDataManager.Instance.GetUserData<UserStudyData>();
+        
+        if (userTimeData == null || userHistoryData == null || userStudyData == null)
         {
             Logger.Log($"{GetType()}::UserData is null");
             return;
@@ -124,8 +128,49 @@ public class StudyingUI : BaseUI
 
         userTimeData.Time += (long) elapsedTime;
         userTimeData.SaveData();
-        UIManager.Instance.EnableTimeUI(true);
+
+        DateTime dateNow = DateTime.UtcNow.AddHours(9);
+        string today = dateNow.ToString("yyyy-MM-dd");
+        var todayItem = userHistoryData.HistoryItemDataList.Find(x => x.Date.Equals(today));
+        if (todayItem == null)
+        {
+            todayItem = new HistoryItemData()
+            {
+                Date = today,
+                SubjectList = new List<string>()
+            };
+            userHistoryData.HistoryItemDataList.Add(todayItem);
+        }
         
+        foreach (var studyItemData in userStudyData.StudyItemDataList)
+        {
+            if (!todayItem.SubjectList.Contains(studyItemData.Name))
+            {
+                todayItem.SubjectList.Add(studyItemData.Name);
+            }
+        }
+        
+        DateTime threeMonthAgo = dateNow.AddMonths(-3);
+        userHistoryData.HistoryItemDataList.RemoveAll(item =>
+        {
+            if (DateTime.TryParse(item.Date, out DateTime date))
+            {
+                return date < threeMonthAgo;
+            }
+
+            return false;
+        });
+        
+        userHistoryData.HistoryItemDataList.Sort((a, b) =>
+        {
+            DateTime.TryParse(a.Date, out DateTime aDate);
+            DateTime.TryParse(b.Date, out DateTime bDate);
+            return bDate.CompareTo(aDate);
+        });
+        
+        userHistoryData.SaveData();
+        
+        UIManager.Instance.EnableTimeUI(true);
         UIManager.Instance.CloseAllOpenUI();
     }
 }

@@ -49,9 +49,9 @@ public class UserStudyData : IUserData
         FirebaseManager.Instance.SaveUserData<UserStudyData>(ConvertToFirestore());
     }
 
-    private void ConvertToData(Dictionary<string, object> dict)
+    private void ConvertToData(Dictionary<string, object> firestoreDict)
     {
-        if (dict.TryGetValue("StudyItemDataList", out object obj) && obj is List<object> studyItemDataList)
+        if (firestoreDict.TryGetValue("StudyItemDataList", out object obj) && obj is List<object> studyItemDataList)
         {
             foreach (var itemData in studyItemDataList)
             {
