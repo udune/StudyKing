@@ -41,7 +41,7 @@ public class UserTimeData : IUserData
 
     private void ConvertToData(Dictionary<string, object> firestoreDict)
     {
-        if (firestoreDict.TryGetValue("Time", out var timeValue) && timeValue is long time)
+        if (firestoreDict.TryGetValue("Time", out var obj) && obj is long time)
         {
             Time = time;
         }

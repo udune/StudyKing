@@ -8,7 +8,7 @@ using Logger = Common.Logger;
 public class TimeUI : MonoBehaviour
 {
     public TextMeshProUGUI timeText;
-    private static readonly StringBuilder sb = new StringBuilder();
+    private StringBuilder sb = new StringBuilder();
 
     public void SetValue()
     {

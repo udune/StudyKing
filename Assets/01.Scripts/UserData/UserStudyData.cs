@@ -51,7 +51,7 @@ public class UserStudyData : IUserData
 
     private void ConvertToData(Dictionary<string, object> firestoreDict)
     {
-        if (firestoreDict.TryGetValue("StudyItemDataList", out object obj) && obj is List<object> studyItemDataList)
+        if (firestoreDict.TryGetValue("StudyItemDataList", out var obj) && obj is List<object> studyItemDataList)
         {
             foreach (var itemData in studyItemDataList)
             {

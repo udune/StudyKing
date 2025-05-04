@@ -7,12 +7,6 @@ public class LobbyController : MonoBehaviour
     {
         UIManager.Instance.EnableTimeUI(true);
         UIManager.Instance.EnableTabUI(true);
-        SetMyPot();
-    }
-
-    public void SetMyPot()
-    {
-        
     }
 
     public void OnClickStudyBtn()

@@ -80,6 +80,29 @@ public class StudyingItemSlot : InfiniteScrollItem
                 return;
             }
             
+            var userSubjectTimeData = UserDataManager.Instance.GetUserData<UserSubjectTimeData>();
+            if (userSubjectTimeData == null)
+            {
+                Logger.Log($"{GetType()}::UserSubjectTimeData is null");
+                return;
+            }
+
+            DateTime now = DateTime.UtcNow;
+            TimeSpan elapsedTime = now - studyingUI.startTime;
+            long elapsedSeconds = (long) elapsedTime.TotalSeconds;
+
+            var subject = userSubjectTimeData.SubjectTimeItemDataList.FirstOrDefault(x => x.Name.Equals(data.Name));
+            if (subject == null)
+            {
+                subject = new SubjectTimeItemData { Name = data.Name, Time = 0 };
+                userSubjectTimeData.SubjectTimeItemDataList.Add(subject);
+            }
+            
+            subject.Time += elapsedSeconds;
+            userSubjectTimeData.SaveData();
+
+            studyingUI.startTime = now;
+            
             if (studyingUI.CheckCompleted())
             {
                 LobbyManager.Instance.Pause();

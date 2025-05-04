@@ -1,11 +1,22 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class PauseUI : BaseUI
 {
+    private DateTime pauseStartTime;
+    
+    private void OnEnable()
+    {
+        pauseStartTime = DateTime.UtcNow;
+    }
+
     public void OnClickResume()
     {
+        var studyingUI = UIManager.Instance.GetActiveUI<StudyingUI>() as StudyingUI;
+        studyingUI?.ResumeSubjectTimer(pauseStartTime);
+        
         LobbyManager.Instance.Resume();
         CloseUI();
     }

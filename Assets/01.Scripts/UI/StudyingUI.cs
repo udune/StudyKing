@@ -12,8 +12,10 @@ public class StudyingUI : BaseUI
     public InfiniteScroll studyingScrollList;
     public TextMeshProUGUI time;
     public Button completeBtn;
-    private float elapsedTime;
     private Coroutine timerCoroutine;
+    
+    private float elapsedTime;
+    public DateTime startTime;
 
     private void OnApplicationFocus(bool focus)
     {
@@ -33,6 +35,7 @@ public class StudyingUI : BaseUI
     {
         base.Setting(data);
 
+        startTime = DateTime.UtcNow;
         elapsedTime = 0.0f;
         LobbyManager.Instance.IsPaused = false;
         LobbyManager.Instance.IsComplete = false;
@@ -84,6 +87,12 @@ public class StudyingUI : BaseUI
         }
     }
 
+    public void ResumeSubjectTimer(DateTime paused)
+    {
+        TimeSpan elapsedPaused = DateTime.UtcNow - paused;
+        startTime = startTime.Add(elapsedPaused);
+    }
+
     private void UpdateCompleteButton()
     {
         completeBtn.interactable = LobbyManager.Instance.IsComplete;
@@ -117,10 +126,11 @@ public class StudyingUI : BaseUI
     public void OnClickFinishStudyItem()
     {
         var userTimeData = UserDataManager.Instance.GetUserData<UserTimeData>();
+        var userDailyTimeData = UserDataManager.Instance.GetUserData<UserDailyTimeData>();
         var userHistoryData = UserDataManager.Instance.GetUserData<UserHistoryData>();
         var userStudyData = UserDataManager.Instance.GetUserData<UserStudyData>();
         
-        if (userTimeData == null || userHistoryData == null || userStudyData == null)
+        if (userTimeData == null || userDailyTimeData == null || userHistoryData == null || userStudyData == null)
         {
             Logger.Log($"{GetType()}::UserData is null");
             return;
@@ -131,6 +141,7 @@ public class StudyingUI : BaseUI
 
         DateTime dateNow = DateTime.UtcNow.AddHours(9);
         string today = dateNow.ToString("yyyy-MM-dd");
+        
         var todayItem = userHistoryData.HistoryItemDataList.Find(x => x.Date.Equals(today));
         if (todayItem == null)
         {
@@ -169,6 +180,26 @@ public class StudyingUI : BaseUI
         });
         
         userHistoryData.SaveData();
+        
+        var dailyItem = userDailyTimeData.DailyTimeItemDataList.Find(x => x.Date.Equals(today));
+        if (dailyItem == null)
+        {
+            dailyItem = new DailyTimeItemData()
+            {
+                Date = today,
+                Time = 0
+            };
+            userDailyTimeData.DailyTimeItemDataList.Add(dailyItem);
+        }
+        
+        dailyItem.Time += (long) elapsedTime;
+        userDailyTimeData.SaveData();
+        
+        Dictionary<string, object> parameters = new Dictionary<string, object>()
+        {
+            { "time", userTimeData.Time.ToString() }
+        };
+        FirebaseManager.Instance.LogCustomEvent("study_clear", parameters);
         
         UIManager.Instance.EnableTimeUI(true);
         UIManager.Instance.CloseAllOpenUI();

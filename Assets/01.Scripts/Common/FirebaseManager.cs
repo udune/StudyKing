@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Firebase;
+using Firebase.Analytics;
 using Firebase.Auth;
 using Firebase.Extensions;
 using Firebase.Firestore;
@@ -30,6 +31,9 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>
     private const string UNITY_EDITOR_USER_ID = "9HyPrbDAf4Q1eLMhp9LVkxptBlx1";
     private FirebaseFirestore database;
     private bool isFirestoreInit = false;
+    
+    // Analytics
+    private bool isAnalyticsInit = true;
 
     public bool HasSignedWithGoogle { get; private set; }
     public bool HasSignedWithApple { get; private set; }
@@ -44,7 +48,7 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>
 
     public bool IsInit()
     {
-        return isRemoteConfigInit && isAuthInit && isFirestoreInit;
+        return isRemoteConfigInit && isAuthInit && isFirestoreInit && isAnalyticsInit;
     }
 
     private void LoadData()
@@ -72,6 +76,7 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>
                 InitRemoteConfig();
                 InitAuth();
                 InitFirestore();
+                InitAnalytics();
             }
             else
             {
@@ -272,6 +277,16 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>
             auth.SignOut();
             Logger.Log($"{GetType()}::User signed out successfully.");
         }
+        
+#if UNITY_EDITOR
+        Logger.Log($"{GetType()}::User Signed out or disconnected");
+        firebaseUser = null;
+        HasSignedWithGoogle = false;
+        HasSignedWithApple = false;
+        SaveData();
+        UIManager.Instance.CloseAllOpenUI();
+        SceneLoader.Instance.LoadScene(SceneType.Title);
+#endif
     }
 
     private void ShowLoginFailUI()
@@ -363,4 +378,34 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>
         });
     }
     #endregion
+    
+    #region ANALYTICS
+
+    private void InitAnalytics()
+    {
+        FirebaseAnalytics.SetAnalyticsCollectionEnabled(true);
+        isAnalyticsInit = true;
+    }
+
+    public void LogCustomEvent(string eventName, Dictionary<string, object> parameters)
+    {
+        List<Parameter> firebaseParameters = new List<Parameter>();
+        foreach (var param in parameters)
+        {
+            firebaseParameters.Add(new Parameter(param.Key, param.Value.ToString()));
+        }
+        
+        FirebaseAnalytics.LogEvent(eventName, firebaseParameters.ToArray());
+    }
+    #endregion
+
+    protected override void Dispose()
+    {
+        base.Dispose();
+
+        if (auth != null)
+        {
+            auth.StateChanged -= OnAuthStateChanged;
+        }
+    }
 }
