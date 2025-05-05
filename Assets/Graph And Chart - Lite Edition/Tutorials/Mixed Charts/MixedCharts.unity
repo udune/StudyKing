@@ -93,7 +93,8 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 0}
+  m_LightingDataAsset: {fileID: 112000000, guid: 389f814797bc72543a3bdec2f2446991,
+    type: 2}
   m_LightingSettings: {fileID: 4890085278179872738, guid: 5360f7db00dae114dad8d5bb2ae7c7b9,
     type: 2}
 --- !u!196 &4
@@ -249,7 +250,7 @@ MonoBehaviour:
     automaticMinValue: 0
     minValue: 0
   transitionTimeBetaFeature: -1
-  heightRatio: 181.17807
+  heightRatio: 790.1235
   totalWidth: 348.19
   totalDepth: 0
   fitToContainer: 1
@@ -1518,8 +1519,8 @@ MonoBehaviour:
       m_Calls: []
   horizontalPanning: 0
   verticalPanning: 0
-  heightRatio: 303.75
-  widthRatio: 583.75006
+  heightRatio: 2360
+  widthRatio: 1040
   PointClicked:
     m_PersistentCalls:
       m_Calls: []

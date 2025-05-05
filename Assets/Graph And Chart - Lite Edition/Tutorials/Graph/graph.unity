@@ -93,7 +93,8 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 20201, guid: 0000000000000000f000000000000000, type: 0}
+  m_LightingDataAsset: {fileID: 112000000, guid: 1a3cd8d61fc2b8d438afc0276ede1754,
+    type: 2}
   m_LightingSettings: {fileID: 4890085278179872738, guid: 4015425554a26b84c92b98e9523db2c7,
     type: 2}
 --- !u!196 &4
@@ -295,9 +296,6 @@ GameObject:
   m_Component:
   - component: {fileID: 844402615}
   - component: {fileID: 844402621}
-  - component: {fileID: 844402620}
-  - component: {fileID: 844402619}
-  - component: {fileID: 844402618}
   - component: {fileID: 844402617}
   - component: {fileID: 844402616}
   m_Layer: 5
@@ -351,10 +349,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5eb3e26fd06b41d4baa022120f5cd617, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  textPrefab: {fileID: 114000011523374616, guid: 7c86db16ee4151f4d9ed59479b2fdfbf,
+  textPrefab: {fileID: 114000014259531626, guid: 25ea031bfc10c7342ab5bcb344090e13,
     type: 3}
   textFormat:
-    prefix: 
+    prefix: <?category>
     suffix: 
     customFormat: 
   fontSize: 14
@@ -363,165 +361,8 @@ MonoBehaviour:
   location:
     Breadth: 0
     Depth: 0
-  alignment: 0
+  alignment: 1
   fractionDigits: 0
---- !u!114 &844402618
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 844402614}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c09bf2e39f5ebfa409a492a80a326b3a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Sensitivity: 10
---- !u!114 &844402619
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 844402614}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 08395b16192f9114e8ad4953e48f90bd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  SimpleView: 1
-  format: 0
-  withEdges2: 1
-  depth:
-    Automatic: 0
-    Value: 0
-  mainDivisions:
-    messure: 0
-    unitsPerDivision: 0
-    total: 3
-    material: {fileID: 2100000, guid: 387acf3cc0524344980e92fa3f38dfd1, type: 2}
-    materialTiling:
-      EnableTiling: 1
-      TileFactor: 11.52
-    markBackLength:
-      Automatic: 1
-      Value: 0.5
-    markLength:
-      Automatic: 1
-      Value: 0.5
-    markDepth:
-      Automatic: 1
-      Value: 0.5
-    markThickness: 3
-    textPrefab: {fileID: 0}
-    textPrefix: 
-    textSuffix: 
-    fractionDigits: 2
-    fontSize: 12
-    fontSharpness: 3
-    textDepth: 0
-    textSeperation: -13.17
-    alignment: 1
-  subDivisions:
-    messure: 0
-    unitsPerDivision: 0
-    total: 3
-    material: {fileID: 2100000, guid: 387acf3cc0524344980e92fa3f38dfd1, type: 2}
-    materialTiling:
-      EnableTiling: 1
-      TileFactor: 11.52
-    markBackLength:
-      Automatic: 1
-      Value: 0.5
-    markLength:
-      Automatic: 1
-      Value: 0.5
-    markDepth:
-      Automatic: 1
-      Value: 0.5
-    markThickness: 3
-    textPrefab: {fileID: 0}
-    textPrefix: 
-    textSuffix: 
-    fractionDigits: 2
-    fontSize: 12
-    fontSharpness: 3
-    textDepth: 0
-    textSeperation: -13.17
-    alignment: 1
---- !u!114 &844402620
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 844402614}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7598682dc3bb9174d9546fe226cab95a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  SimpleView: 1
-  format: 0
-  withEdges2: 1
-  depth:
-    Automatic: 0
-    Value: 0
-  mainDivisions:
-    messure: 0
-    unitsPerDivision: 0
-    total: 3
-    material: {fileID: 2100000, guid: 387acf3cc0524344980e92fa3f38dfd1, type: 2}
-    materialTiling:
-      EnableTiling: 1
-      TileFactor: 10
-    markBackLength:
-      Automatic: 1
-      Value: 0.5
-    markLength:
-      Automatic: 1
-      Value: 0.5
-    markDepth:
-      Automatic: 1
-      Value: 0.5
-    markThickness: 3
-    textPrefab: {fileID: 0}
-    textPrefix: 
-    textSuffix: 
-    fractionDigits: 2
-    fontSize: 12
-    fontSharpness: 3
-    textDepth: 0
-    textSeperation: -31.51
-    alignment: 1
-  subDivisions:
-    messure: 0
-    unitsPerDivision: 0
-    total: 3
-    material: {fileID: 2100000, guid: 387acf3cc0524344980e92fa3f38dfd1, type: 2}
-    materialTiling:
-      EnableTiling: 1
-      TileFactor: 10
-    markBackLength:
-      Automatic: 1
-      Value: 0.5
-    markLength:
-      Automatic: 1
-      Value: 0.5
-    markDepth:
-      Automatic: 1
-      Value: 0.5
-    markThickness: 3
-    textPrefab: {fileID: 0}
-    textPrefix: 
-    textSuffix: 
-    fractionDigits: 2
-    fontSize: 12
-    fontSharpness: 3
-    textDepth: 0
-    textSeperation: -31.51
-    alignment: 1
 --- !u!114 &844402621
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -551,9 +392,9 @@ MonoBehaviour:
   MousePan:
     m_PersistentCalls:
       m_Calls: []
-  horizontalPanning: 1
+  horizontalPanning: 0
   verticalPanning: 0
-  heightRatio: 298.6
+  heightRatio: 333.48
   widthRatio: 600
   PointClicked:
     m_PersistentCalls:
@@ -575,28 +416,6 @@ MonoBehaviour:
     verticalViewSize: 10
     verticalViewOrigin: 0
     mSerializedData:
-    - Name: Player 1
-      InitialData: []
-      IsBezierCurve: 0
-      SegmentsPerCurve: 10
-      Depth: 0
-      LineHoverPrefab: {fileID: 11494010, guid: 87cd6d8b7ca9527449e32ecefc4015c5,
-        type: 3}
-      PointHoverPrefab: {fileID: 11475216, guid: 57ee497f5c86d764fa20628075109b20,
-        type: 3}
-      MaskPoints: 0
-      Material: {fileID: 2100000, guid: 17705335a6baae7449e02ba5755f88ea, type: 2}
-      LineTiling:
-        EnableTiling: 0
-        TileFactor: 45.5
-      InnerFill: {fileID: 2100000, guid: b8ab27c4271a3e64d8491c967d324fd0, type: 2}
-      LineThickness: 2.5799999237060547
-      StetchFill: 0
-      DotPrefab: {fileID: 0}
-      PointMaterial: {fileID: 2100000, guid: fa0b3a0e33fedd249b4527b6027ba69e, type: 2}
-      PointSize: 6.619999885559082
-      ViewOrder: 0
-      AllowNonFunctionsBeta: 0
     - Name: Player 2
       InitialData: []
       IsBezierCurve: 0
@@ -617,7 +436,51 @@ MonoBehaviour:
       DotPrefab: {fileID: 0}
       PointMaterial: {fileID: 2100000, guid: fa0b3a0e33fedd249b4527b6027ba69e, type: 2}
       PointSize: 6
+      ViewOrder: 0
+      AllowNonFunctionsBeta: 0
+    - Name: a
+      InitialData: []
+      IsBezierCurve: 0
+      SegmentsPerCurve: 10
+      Depth: 0
+      LineHoverPrefab: {fileID: 11494010, guid: 03f590f99c8285244a7299bf1058a4fb,
+        type: 3}
+      PointHoverPrefab: {fileID: 11475216, guid: 57ee497f5c86d764fa20628075109b20,
+        type: 3}
+      MaskPoints: 0
+      Material: {fileID: 2100000, guid: 17705335a6baae7449e02ba5755f88ea, type: 2}
+      LineTiling:
+        EnableTiling: 0
+        TileFactor: 45.5
+      InnerFill: {fileID: 2100000, guid: 249108b1a0be0c8488d35a2e5266f04d, type: 2}
+      LineThickness: 2.5799999237060547
+      StetchFill: 0
+      DotPrefab: {fileID: 0}
+      PointMaterial: {fileID: 2100000, guid: fa0b3a0e33fedd249b4527b6027ba69e, type: 2}
+      PointSize: 6
       ViewOrder: 1
+      AllowNonFunctionsBeta: 0
+    - Name: as
+      InitialData: []
+      IsBezierCurve: 0
+      SegmentsPerCurve: 10
+      Depth: 0
+      LineHoverPrefab: {fileID: 11494010, guid: 03f590f99c8285244a7299bf1058a4fb,
+        type: 3}
+      PointHoverPrefab: {fileID: 11475216, guid: 57ee497f5c86d764fa20628075109b20,
+        type: 3}
+      MaskPoints: 0
+      Material: {fileID: 2100000, guid: 17705335a6baae7449e02ba5755f88ea, type: 2}
+      LineTiling:
+        EnableTiling: 0
+        TileFactor: 45.5
+      InnerFill: {fileID: 2100000, guid: 249108b1a0be0c8488d35a2e5266f04d, type: 2}
+      LineThickness: 2.5799999237060547
+      StetchFill: 0
+      DotPrefab: {fileID: 0}
+      PointMaterial: {fileID: 2100000, guid: fa0b3a0e33fedd249b4527b6027ba69e, type: 2}
+      PointSize: 6
+      ViewOrder: 2
       AllowNonFunctionsBeta: 0
   LineClicked:
     m_PersistentCalls:
@@ -846,7 +709,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1490729741
 RectTransform:
   m_ObjectHideFlags: 0

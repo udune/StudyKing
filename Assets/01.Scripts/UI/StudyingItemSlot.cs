@@ -105,6 +105,7 @@ public class StudyingItemSlot : InfiniteScrollItem
             
             if (studyingUI.CheckCompleted())
             {
+                DateTime pauseStartTime = DateTime.UtcNow;
                 LobbyManager.Instance.Pause();
                 
                 var modal = new ModalUIData();
@@ -122,6 +123,7 @@ public class StudyingItemSlot : InfiniteScrollItem
                 };
                 modal.CANCELAction = () =>
                 {
+                    studyingUI.ResumeSubjectTimer(pauseStartTime);
                     LobbyManager.Instance.Resume();
                     check.isOn = false;
                 };

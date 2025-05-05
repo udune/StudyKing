@@ -121,7 +121,7 @@ namespace ChartAndGraph
         }
         public string Format(string data,string category,string group)
         {
-            string tmp = ValidString(Prefix) + data + ValidString(Suffix);
+            string tmp = ValidString(Prefix) + ValidString(Suffix);
             return FormatKeywords(tmp, category, group);
         }
 

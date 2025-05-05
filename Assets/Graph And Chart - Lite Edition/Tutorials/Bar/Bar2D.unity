@@ -93,7 +93,8 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 0}
+  m_LightingDataAsset: {fileID: 112000000, guid: 64a1288b85b918e41b65492b41bfaf36,
+    type: 2}
   m_LightingSettings: {fileID: 4890085278179872738, guid: c2db239cc54c4ae46b8bf203fa72b8cb,
     type: 2}
 --- !u!196 &4
@@ -131,10 +132,6 @@ GameObject:
   - component: {fileID: 336153647}
   - component: {fileID: 336153648}
   - component: {fileID: 336153654}
-  - component: {fileID: 336153653}
-  - component: {fileID: 336153652}
-  - component: {fileID: 336153651}
-  - component: {fileID: 336153650}
   - component: {fileID: 336153649}
   m_Layer: 5
   m_Name: BarCanvasMultiple
@@ -161,7 +158,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: -160, y: -160}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &336153648
 MonoBehaviour:
@@ -198,60 +195,72 @@ MonoBehaviour:
       m_Calls: []
   Data:
     mCategories:
-    - Name: Player 1
+    - Name: "\uC6D4"
       Materials:
         Normal: {fileID: 2100000, guid: 1f9e60d530535f94d95be566c4085e9e, type: 2}
         Hover: {r: 0.9558824, g: 0.9558824, b: 0.9558824, a: 1}
         Selected: {r: 1, g: 1, b: 1, a: 1}
-    - Name: Player 2
+    - Name: "\uD654"
       Materials:
         Normal: {fileID: 2100000, guid: c6a484c3764ff1844bff51f0d4874973, type: 2}
         Hover: {r: 0.9529412, g: 0.9529412, b: 0.9529412, a: 1}
         Selected: {r: 1, g: 1, b: 1, a: 1}
-    - Name: Player 3
+    - Name: "\uC218"
+      Materials:
+        Normal: {fileID: 2100000, guid: 1a6185b0a5845ed44ae78c6570343ed9, type: 2}
+        Hover: {r: 0.9529412, g: 0.9529412, b: 0.9529412, a: 1}
+        Selected: {r: 1, g: 1, b: 1, a: 1}
+    - Name: "\uBAA9"
+      Materials:
+        Normal: {fileID: 2100000, guid: 7d54afbc1c4c3184192e84ca9f7f3a76, type: 2}
+        Hover: {r: 0.9529412, g: 0.9529412, b: 0.9529412, a: 1}
+        Selected: {r: 1, g: 1, b: 1, a: 1}
+    - Name: "\uAE08"
+      Materials:
+        Normal: {fileID: 2100000, guid: 1f9e60d530535f94d95be566c4085e9e, type: 2}
+        Hover: {r: 0.9529412, g: 0.9529412, b: 0.9529412, a: 1}
+        Selected: {r: 1, g: 1, b: 1, a: 1}
+    - Name: "\uD1A0"
+      Materials:
+        Normal: {fileID: 2100000, guid: c6a484c3764ff1844bff51f0d4874973, type: 2}
+        Hover: {r: 0.9529412, g: 0.9529412, b: 0.9529412, a: 1}
+        Selected: {r: 1, g: 1, b: 1, a: 1}
+    - Name: "\uC77C"
       Materials:
         Normal: {fileID: 2100000, guid: 1a6185b0a5845ed44ae78c6570343ed9, type: 2}
         Hover: {r: 0.9529412, g: 0.9529412, b: 0.9529412, a: 1}
         Selected: {r: 1, g: 1, b: 1, a: 1}
     mGroups:
-    - Value 1
-    - Value 2
     - Value 3
     mData:
-    - GroupName: Value 1
-      ColumnName: Player 1
-      Amount: 1
-    - GroupName: Value 1
-      ColumnName: Player 2
-      Amount: 1
-    - GroupName: Value 1
-      ColumnName: Player 3
-      Amount: 1
-    - GroupName: Value 2
-      ColumnName: Player 1
-      Amount: 1
-    - GroupName: Value 2
-      ColumnName: Player 2
-      Amount: 1
-    - GroupName: Value 2
-      ColumnName: Player 3
+    - GroupName: Value 3
+      ColumnName: "\uC6D4"
       Amount: 1
     - GroupName: Value 3
-      ColumnName: Player 1
+      ColumnName: "\uD654"
       Amount: 1
     - GroupName: Value 3
-      ColumnName: Player 2
-      Amount: 1
+      ColumnName: "\uC218"
+      Amount: 4
     - GroupName: Value 3
-      ColumnName: Player 3
+      ColumnName: "\uBAA9"
+      Amount: 5
+    - GroupName: Value 3
+      ColumnName: "\uAE08"
+      Amount: 3
+    - GroupName: Value 3
+      ColumnName: "\uD1A0"
+      Amount: 2
+    - GroupName: Value 3
+      ColumnName: "\uC77C"
       Amount: 4
     automaticMaxValue: 1
     maxValue: 20
     automaticMinValue: 0
     minValue: 0
   transitionTimeBetaFeature: -1
-  heightRatio: 226.2
-  totalWidth: 348.19
+  heightRatio: 150
+  totalWidth: 170
   totalDepth: 0
   fitToContainer: 0
   fitMargin:
@@ -261,10 +270,10 @@ MonoBehaviour:
     bottom: 0
   barPrefab: {fileID: 222000010169192002, guid: e0e962d45efcf3648931eb569595e722,
     type: 3}
-  axisSeperation: 20
-  barSeperation: 27.46
-  groupSeperation: 114.95
-  barSize: 23.37
+  axisSeperation: 0
+  barSeperation: 25
+  groupSeperation: 0
+  barSize: 20
   barFitDirection: 0
   barFitType: 1
   barFitAlign: 2
@@ -280,203 +289,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0adffba478642274dbb910f69c3e6e71, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &336153650
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 336153646}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7598682dc3bb9174d9546fe226cab95a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  SimpleView: 1
-  format: 0
-  withEdges2: 1
-  depth:
-    Automatic: 0
-    Value: 0
-  mainDivisions:
-    messure: 0
-    unitsPerDivision: 0
-    total: 3
-    material: {fileID: 2100000, guid: efebb8411b3539a4299fc48246fd2aff, type: 2}
-    materialTiling:
-      EnableTiling: 0
-      TileFactor: 5
-    markBackLength:
-      Automatic: 1
-      Value: 0.5
-    markLength:
-      Automatic: 1
-      Value: 0.5
-    markDepth:
-      Automatic: 1
-      Value: 0.5
-    markThickness: 3
-    textPrefab: {fileID: 114000014259531626, guid: 25ea031bfc10c7342ab5bcb344090e13,
-      type: 3}
-    textPrefix: 
-    textSuffix: 
-    fractionDigits: 2
-    fontSize: 12
-    fontSharpness: 3
-    textDepth: 0
-    textSeperation: -21.98
-    alignment: 1
-  subDivisions:
-    messure: 0
-    unitsPerDivision: 0
-    total: 3
-    material: {fileID: 2100000, guid: efebb8411b3539a4299fc48246fd2aff, type: 2}
-    materialTiling:
-      EnableTiling: 0
-      TileFactor: 5
-    markBackLength:
-      Automatic: 1
-      Value: 0.5
-    markLength:
-      Automatic: 1
-      Value: 0.5
-    markDepth:
-      Automatic: 1
-      Value: 0.5
-    markThickness: 1
-    textPrefab: {fileID: 114000014259531626, guid: 25ea031bfc10c7342ab5bcb344090e13,
-      type: 3}
-    textPrefix: 
-    textSuffix: 
-    fractionDigits: 2
-    fontSize: 12
-    fontSharpness: 3
-    textDepth: 0
-    textSeperation: -21.98
-    alignment: 1
---- !u!114 &336153651
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 336153646}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 08395b16192f9114e8ad4953e48f90bd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  SimpleView: 1
-  format: 0
-  withEdges2: 1
-  depth:
-    Automatic: 0
-    Value: 0
-  mainDivisions:
-    messure: 0
-    unitsPerDivision: 0
-    total: 3
-    material: {fileID: 0}
-    materialTiling:
-      EnableTiling: 0
-      TileFactor: 100
-    markBackLength:
-      Automatic: 1
-      Value: 0.5
-    markLength:
-      Automatic: 1
-      Value: 0.5
-    markDepth:
-      Automatic: 1
-      Value: 0.5
-    markThickness: 0.83
-    textPrefab: {fileID: 0}
-    textPrefix: 
-    textSuffix: 
-    fractionDigits: 2
-    fontSize: 12
-    fontSharpness: 3
-    textDepth: 0
-    textSeperation: 0
-    alignment: 1
-  subDivisions:
-    messure: 0
-    unitsPerDivision: 0
-    total: 3
-    material: {fileID: 0}
-    materialTiling:
-      EnableTiling: 0
-      TileFactor: 100
-    markBackLength:
-      Automatic: 1
-      Value: 0.5
-    markLength:
-      Automatic: 1
-      Value: 0.5
-    markDepth:
-      Automatic: 1
-      Value: 0.5
-    markThickness: 0.83
-    textPrefab: {fileID: 0}
-    textPrefix: 
-    textSuffix: 
-    fractionDigits: 2
-    fontSize: 12
-    fontSharpness: 3
-    textDepth: 0
-    textSeperation: 0
-    alignment: 1
---- !u!114 &336153652
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 336153646}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 683c1c28d013cce4c9128c952dbdca81, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  textPrefab: {fileID: 114000014259531626, guid: 25ea031bfc10c7342ab5bcb344090e13,
-    type: 3}
-  textFormat:
-    prefix: 
-    suffix: 
-    customFormat: 
-  fontSize: 4
-  fontSharpness: 3
-  seperation: -9.78
-  location:
-    Breadth: 0
-    Depth: 0
-  alignment: 1
-  visibleLabels: 0
---- !u!114 &336153653
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 336153646}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8a5935733d0eb5b48ba1db228c83f0f0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  textPrefab: {fileID: 114000014259531626, guid: 25ea031bfc10c7342ab5bcb344090e13,
-    type: 3}
-  textFormat:
-    prefix: 
-    suffix: 
-    customFormat: 
-  fontSize: 15
-  fontSharpness: 3
-  seperation: 19.39
-  location:
-    Breadth: 0
-    Depth: -25.2
-  alignment: 0
 --- !u!114 &336153654
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -489,19 +301,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5eb3e26fd06b41d4baa022120f5cd617, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  textPrefab: {fileID: 114000011523374616, guid: e686e7c904b1d4b44a8eae8475c67797,
+  textPrefab: {fileID: 114000014259531626, guid: 25ea031bfc10c7342ab5bcb344090e13,
     type: 3}
   textFormat:
-    prefix: 
+    prefix: <?category>
     suffix: 
     customFormat: 
-  fontSize: 14
+  fontSize: 12
   fontSharpness: 3
-  seperation: -18
+  seperation: 0
   location:
     Breadth: 0
     Depth: 0
-  alignment: 0
+  alignment: 1
   fractionDigits: 0
 --- !u!1 &546447374
 GameObject:
@@ -779,7 +591,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1000012050335254, guid: 44c162440cb5f1842bcb040f8fb66783, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 114000011953285840, guid: 44c162440cb5f1842bcb040f8fb66783,
         type: 3}
@@ -880,12 +692,12 @@ PrefabInstance:
     - target: {fileID: 224000013311149932, guid: 44c162440cb5f1842bcb040f8fb66783,
         type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 74.9
+      value: 74.899994
       objectReference: {fileID: 0}
     - target: {fileID: 224000013311149932, guid: 44c162440cb5f1842bcb040f8fb66783,
         type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 40.8
+      value: 40.80005
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 114000012253675810, guid: 44c162440cb5f1842bcb040f8fb66783, type: 3}
@@ -1019,6 +831,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1226075348}
     m_Modifications:
+    - target: {fileID: 1000011775621472, guid: 149c576c056be1345807a3dc94e006b2, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 114000010483641462, guid: 149c576c056be1345807a3dc94e006b2,
         type: 3}
       propertyPath: BarChart.Array.size
@@ -1117,7 +933,7 @@ PrefabInstance:
     - target: {fileID: 224000012685174106, guid: 149c576c056be1345807a3dc94e006b2,
         type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 33.20001
+      value: 33.19995
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

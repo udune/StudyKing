@@ -93,7 +93,8 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 0}
+  m_LightingDataAsset: {fileID: 112000000, guid: ffd023b0acbf45946b9f49180a2a53c9,
+    type: 2}
   m_LightingSettings: {fileID: 4890085278179872738, guid: febfb46c541c2c742a45e55b0e3707e5,
     type: 2}
 --- !u!196 &4
@@ -351,9 +352,6 @@ GameObject:
   m_Component:
   - component: {fileID: 483293486}
   - component: {fileID: 483293487}
-  - component: {fileID: 483293488}
-  - component: {fileID: 483293489}
-  - component: {fileID: 483293490}
   - component: {fileID: 483293492}
   m_Layer: 5
   m_Name: GraphChart
@@ -379,8 +377,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 75, y: 0}
-  m_SizeDelta: {x: -250, y: -100}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &483293487
 MonoBehaviour:
@@ -429,8 +427,8 @@ MonoBehaviour:
     automaticVerticalViewGap: 0
     automaticVerticallView: 1
     automaticcHorizontaViewGap: 0
-    automaticHorizontalView: 0
-    horizontalViewSize: 3
+    automaticHorizontalView: 1
+    horizontalViewSize: 10
     horizontalViewOrigin: 0
     verticalViewSize: 10
     verticalViewOrigin: 0
@@ -438,9 +436,35 @@ MonoBehaviour:
     - Name: Player 1
       InitialData:
       - {x: 0, y: 0}
-      - {x: 1, y: 2}
-      - {x: 2, y: 1}
+      - {x: 0.1, y: 2}
+      - {x: 0.2, y: 1}
       - {x: 3, y: 4}
+      - {x: 4, y: 3}
+      - {x: 5, y: 3}
+      - {x: 6, y: 3}
+      - {x: 7, y: 3}
+      - {x: 8, y: 4}
+      - {x: 9, y: 3}
+      - {x: 10, y: 3}
+      - {x: 11, y: 3}
+      - {x: 12, y: 3}
+      - {x: 13, y: 3}
+      - {x: 2, y: 3}
+      - {x: 2, y: 4}
+      - {x: 2, y: 3}
+      - {x: 2, y: 3}
+      - {x: 2, y: 3}
+      - {x: 2, y: 3}
+      - {x: 2, y: 3}
+      - {x: 2, y: 3}
+      - {x: 2, y: 3}
+      - {x: 2, y: 3}
+      - {x: 2, y: 3}
+      - {x: 2, y: 3}
+      - {x: 2, y: 3}
+      - {x: 2, y: 3}
+      - {x: 2, y: 3}
+      - {x: 2, y: 3}
       IsBezierCurve: 0
       SegmentsPerCurve: 10
       Depth: 0
@@ -454,11 +478,11 @@ MonoBehaviour:
         EnableTiling: 0
         TileFactor: 45.5
       InnerFill: {fileID: 2100000, guid: b8ab27c4271a3e64d8491c967d324fd0, type: 2}
-      LineThickness: 2.5799999237060547
+      LineThickness: 2
       StetchFill: 0
       DotPrefab: {fileID: 0}
       PointMaterial: {fileID: 2100000, guid: fa0b3a0e33fedd249b4527b6027ba69e, type: 2}
-      PointSize: 6.619999885559082
+      PointSize: 20
       ViewOrder: 0
       AllowNonFunctionsBeta: 0
   LineClicked:
@@ -474,163 +498,6 @@ MonoBehaviour:
     top: 0
     right: 0
     bottom: 0
---- !u!114 &483293488
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 483293485}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7598682dc3bb9174d9546fe226cab95a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  SimpleView: 1
-  format: 0
-  withEdges2: 1
-  depth:
-    Automatic: 0
-    Value: 0
-  mainDivisions:
-    messure: 0
-    unitsPerDivision: 0
-    total: 3
-    material: {fileID: 2100000, guid: 387acf3cc0524344980e92fa3f38dfd1, type: 2}
-    materialTiling:
-      EnableTiling: 1
-      TileFactor: 10
-    markBackLength:
-      Automatic: 1
-      Value: 0.5
-    markLength:
-      Automatic: 1
-      Value: 0.5
-    markDepth:
-      Automatic: 1
-      Value: 0.5
-    markThickness: 3
-    textPrefab: {fileID: 0}
-    textPrefix: 
-    textSuffix: 
-    fractionDigits: 2
-    fontSize: 12
-    fontSharpness: 3
-    textDepth: 0
-    textSeperation: -31.51
-    alignment: 1
-  subDivisions:
-    messure: 0
-    unitsPerDivision: 0
-    total: 3
-    material: {fileID: 2100000, guid: 387acf3cc0524344980e92fa3f38dfd1, type: 2}
-    materialTiling:
-      EnableTiling: 1
-      TileFactor: 10
-    markBackLength:
-      Automatic: 1
-      Value: 0.5
-    markLength:
-      Automatic: 1
-      Value: 0.5
-    markDepth:
-      Automatic: 1
-      Value: 0.5
-    markThickness: 3
-    textPrefab: {fileID: 0}
-    textPrefix: 
-    textSuffix: 
-    fractionDigits: 2
-    fontSize: 12
-    fontSharpness: 3
-    textDepth: 0
-    textSeperation: -31.51
-    alignment: 1
---- !u!114 &483293489
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 483293485}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 08395b16192f9114e8ad4953e48f90bd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  SimpleView: 1
-  format: 0
-  withEdges2: 1
-  depth:
-    Automatic: 0
-    Value: 0
-  mainDivisions:
-    messure: 0
-    unitsPerDivision: 0
-    total: 3
-    material: {fileID: 2100000, guid: 387acf3cc0524344980e92fa3f38dfd1, type: 2}
-    materialTiling:
-      EnableTiling: 1
-      TileFactor: 11.52
-    markBackLength:
-      Automatic: 1
-      Value: 0.5
-    markLength:
-      Automatic: 1
-      Value: 0.5
-    markDepth:
-      Automatic: 1
-      Value: 0.5
-    markThickness: 3
-    textPrefab: {fileID: 0}
-    textPrefix: 
-    textSuffix: 
-    fractionDigits: 2
-    fontSize: 12
-    fontSharpness: 3
-    textDepth: 0
-    textSeperation: -13.17
-    alignment: 1
-  subDivisions:
-    messure: 0
-    unitsPerDivision: 0
-    total: 3
-    material: {fileID: 2100000, guid: 387acf3cc0524344980e92fa3f38dfd1, type: 2}
-    materialTiling:
-      EnableTiling: 1
-      TileFactor: 11.52
-    markBackLength:
-      Automatic: 1
-      Value: 0.5
-    markLength:
-      Automatic: 1
-      Value: 0.5
-    markDepth:
-      Automatic: 1
-      Value: 0.5
-    markThickness: 3
-    textPrefab: {fileID: 0}
-    textPrefix: 
-    textSuffix: 
-    fractionDigits: 2
-    fontSize: 12
-    fontSharpness: 3
-    textDepth: 0
-    textSeperation: -13.17
-    alignment: 1
---- !u!114 &483293490
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 483293485}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c09bf2e39f5ebfa409a492a80a326b3a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Sensitivity: 10
 --- !u!114 &483293492
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -932,6 +799,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1226075348}
     m_Modifications:
+    - target: {fileID: 1000012050335254, guid: 44c162440cb5f1842bcb040f8fb66783, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 114000010632634250, guid: 44c162440cb5f1842bcb040f8fb66783,
         type: 3}
       propertyPath: m_Enabled
@@ -1159,6 +1030,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1226075348}
     m_Modifications:
+    - target: {fileID: 1000011775621472, guid: 149c576c056be1345807a3dc94e006b2, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 114000010483641462, guid: 149c576c056be1345807a3dc94e006b2,
         type: 3}
       propertyPath: GraphChart.Array.size

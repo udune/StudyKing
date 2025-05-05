@@ -93,7 +93,8 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 0}
+  m_LightingDataAsset: {fileID: 112000000, guid: c2a21cf2454f3b0488c3102f0389a2d0,
+    type: 2}
   m_LightingSettings: {fileID: 4890085278179872738, guid: 02ec11bc174e7134f99c28aae7b4a2a6,
     type: 2}
 --- !u!196 &4
@@ -906,12 +907,12 @@ PrefabInstance:
     - target: {fileID: 224000013311149932, guid: 44c162440cb5f1842bcb040f8fb66783,
         type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 74.9
+      value: 74.899994
       objectReference: {fileID: 0}
     - target: {fileID: 224000013311149932, guid: 44c162440cb5f1842bcb040f8fb66783,
         type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 40.8
+      value: 40.80005
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
