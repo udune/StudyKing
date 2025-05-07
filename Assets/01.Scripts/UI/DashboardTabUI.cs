@@ -6,10 +6,40 @@ using System.Text;
 using ChartAndGraph;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Networking;
 using Logger = Common.Logger;
+
+[Serializable]
+public class OpenAIResponse
+{
+    public Choice[] choices;
+}
+
+[Serializable]
+public class Choice
+{
+    public Message message;
+}
+
+[Serializable]
+public class Message
+{
+    public string role;
+    public string content;
+}
+
+[Serializable]
+public class OpenAIRequest
+{
+    public string model = "gpt-3.5-turbo";
+    public List<Message> messages;
+    public int max_tokens = 100;
+    public float temperature = 0.7f;
+}
 
 public class DashboardTabUI : BaseUI
 {
+    [SerializeField] private TMP_Text aiText;
     [SerializeField] private TMP_Text totalTime;
     [SerializeField] private TMP_Text weeklyTotalTime;
     [SerializeField] private TMP_Text subjectTime;
@@ -27,11 +57,83 @@ public class DashboardTabUI : BaseUI
     [SerializeField] private Material[] pieChartMaterials;
     [SerializeField] private Material barChartMaterial;
     
+    private const string OPENAI_URL = "https://api.openai.com/v1/chat/completions";
+    
     private void OnEnable()
     {
         SetTotalTime();
         SetWeeklyTime();
         SetSubjectTime();
+        
+        RequestStudyAdvice();
+    }
+
+    private void RequestStudyAdvice()
+    {
+        UserLastAdviceData userLastAdviceData = UserDataManager.Instance.GetUserData<UserLastAdviceData>();
+        if (userLastAdviceData == null)
+        {
+            Logger.Log($"{GetType()}::UserLastAdviceData is null");
+            return;
+        }
+
+        if (userLastAdviceData.Date.Equals(DateTime.UtcNow.AddHours(9).Date.ToString("yyyy-MM-dd")))
+        {
+            aiText.text = userLastAdviceData.Advice;
+            return;
+        }
+
+        string message = "다음은 한 사용자의 공부 기록입니다" +
+                         $"- 총 공부 시간: {totalTime.text}" +
+                         $"- 이번 주 공부 시간: {weeklyTotalTime.text}" +
+                         $"- 과목별 공부 시간: {subjectTime.text}" +
+                         "- 최근 7일간 요일별 공부 시간: " +
+                         $"- 월: {last7Days["월"]}, 화: {last7Days["화"]}, 수: {last7Days["수"]}, 목: {last7Days["목"]}, 금: {last7Days["금"]}, 토: {last7Days["토"]}, 일: {last7Days["일"]}" +
+                         "이 데이터를 바탕으로 사용자가 앞으로 어떤 방식으로 공부를 하면 좋을지 조언해 주세요. " +
+                         "80자 이내로 한국어로 간단하게 응원 및 조언 메시지로 작성해 주세요.";
+        
+        StartCoroutine(RequestOpenAI(message, userLastAdviceData));
+    }
+
+    private IEnumerator RequestOpenAI(string message, UserLastAdviceData userLastAdviceData)
+    {
+        var requestData = new OpenAIRequest()
+        {
+            messages = new List<Message>
+            {
+                new Message { role = "user", content = message }
+            }
+        };
+        
+        string jsonData = JsonUtility.ToJson(requestData);
+        
+        var uwr = new UnityWebRequest(OPENAI_URL, "POST");
+        byte[] raw = Encoding.UTF8.GetBytes(jsonData);
+        uwr.uploadHandler = new UploadHandlerRaw(raw);
+        uwr.downloadHandler = new DownloadHandlerBuffer();
+        uwr.SetRequestHeader("Content-Type", "application/json");
+        uwr.SetRequestHeader("Authorization", $"Bearer {FirebaseManager.Instance.GetOpenAIKey()}");
+        
+        yield return uwr.SendWebRequest();
+
+        if (uwr.error != null)
+        {
+            Logger.Log($"{GetType()}::OpenAI request failed: {uwr.result} {uwr.error}");
+        }
+        else if (uwr.result.Equals(UnityWebRequest.Result.Success))
+        {
+            Logger.Log($"{GetType()}::OpenAI request succeeded");
+            
+            var response = JsonUtility.FromJson<OpenAIResponse>(uwr.downloadHandler.text);
+            string advice = response.choices[0].message.content;
+            Logger.Log($"{GetType()}::OpenAI request response: {advice}");
+            
+            aiText.text = advice;
+            
+            userLastAdviceData.Date = DateTime.UtcNow.AddHours(9).Date.ToString("yyyy-MM-dd");
+            userLastAdviceData.Advice = advice;
+            userLastAdviceData.SaveData();
+        }
     }
 
     private void SetTotalTime()

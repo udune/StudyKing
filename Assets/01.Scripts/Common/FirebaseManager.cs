@@ -112,6 +112,7 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>
         
         remoteConfigDic.Add("dev_app_version", string.Empty);
         remoteConfigDic.Add("real_app_version", string.Empty);
+        remoteConfigDic.Add("openai_apikey", string.Empty);
         
         remoteConfig.SetDefaultsAsync(remoteConfigDic).ContinueWithOnMainThread(task =>
         {
@@ -125,6 +126,7 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>
                         {
                             remoteConfigDic["dev_app_version"] = remoteConfig.GetValue("dev_app_version").StringValue;
                             remoteConfigDic["real_app_version"] = remoteConfig.GetValue("real_app_version").StringValue;
+                            remoteConfigDic["openai_apikey"] = remoteConfig.GetValue("openai_apikey").StringValue;
                             isRemoteConfigInit = true;
                         }
                     });
@@ -146,6 +148,16 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>
             return value.ToString();
         }
 #endif
+        return string.Empty;
+    }
+
+    public string GetOpenAIKey()
+    {
+        if (remoteConfigDic.TryGetValue("openai_apikey", out var value))
+        {
+            return value.ToString();
+        }
+
         return string.Empty;
     }
     

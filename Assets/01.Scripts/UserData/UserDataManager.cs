@@ -18,6 +18,7 @@ public class UserDataManager : SingletonBehaviour<UserDataManager>
         UserDataList.Add(new UserSettingData());
         UserDataList.Add(new UserStudyData());
         UserDataList.Add(new UserHistoryData());
+        UserDataList.Add(new UserLastAdviceData());
     }
 
     public void InitializeUserData()
