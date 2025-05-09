@@ -67,6 +67,10 @@ public class TabUI : MonoBehaviour
         modal.Title = string.Empty;
         modal.Desc = "업데이트 준비중";
         modal.OkBtnText = "확인";
+        modal.OKAction = () =>
+        {
+            toggles[2].SetIsOnWithoutNotify(true);
+        };
         UIManager.Instance.OpenUI<ModalUI>(modal);
         
         // var data = new BaseUIData();

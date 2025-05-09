@@ -68,13 +68,14 @@ namespace Title
                 yield return null;
             }
 
+#if !UNITY_EDITOR
             UserDataManager.Instance.LoadUserData();
 
             while (!UserDataManager.Instance.IsUserDataLoaded())
             {
                 yield return null;
             }
-
+#endif
             yield return StartCoroutine(LoadLobbyCoroutine());
         }
 

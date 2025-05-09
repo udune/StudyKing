@@ -61,11 +61,13 @@ public class DashboardTabUI : BaseUI
     
     private void OnEnable()
     {
+#if !UNITY_EDITOR
         SetTotalTime();
         SetWeeklyTime();
         SetSubjectTime();
         
         RequestStudyAdvice();
+#endif
     }
 
     private void RequestStudyAdvice()
@@ -90,7 +92,7 @@ public class DashboardTabUI : BaseUI
                          "- 최근 7일간 요일별 공부 시간: " +
                          $"- 월: {last7Days["월"]}, 화: {last7Days["화"]}, 수: {last7Days["수"]}, 목: {last7Days["목"]}, 금: {last7Days["금"]}, 토: {last7Days["토"]}, 일: {last7Days["일"]}" +
                          "이 데이터를 바탕으로 사용자가 앞으로 어떤 방식으로 공부를 하면 좋을지 조언해 주세요. " +
-                         "80자 이내로 한국어로 간단하게 응원 및 조언 메시지로 작성해 주세요.";
+                         "50자 이내로 한국어로 간단하게 응원 및 조언 메시지로 작성해 주세요.";
         
         StartCoroutine(RequestOpenAI(message, userLastAdviceData));
     }

@@ -10,7 +10,9 @@ public class HistoryTabUI : BaseUI
     {
         base.Setting(data);
 
+#if !UNITY_EDITOR
         Setting();
+#endif
     }
 
     private void Setting()
