@@ -71,15 +71,15 @@ public class StudyingItemSlot : InfiniteScrollItem
         userStudyData.SaveData();
         LobbyManager.Instance.IsComplete = false;
 
+        var studyingUI = UIManager.Instance.GetActiveUI<StudyingUI>() as StudyingUI;
+        if (studyingUI == null)
+        {
+            Logger.Log($"{GetType()}::studyingUI is null");
+            return;
+        }
+        
         if (isChecked)
         {
-            var studyingUI = UIManager.Instance.GetActiveUI<StudyingUI>() as StudyingUI;
-            if (studyingUI == null)
-            {
-                Logger.Log($"{GetType()}::studyingUI is null");
-                return;
-            }
-            
             var userSubjectTimeData = UserDataManager.Instance.GetUserData<UserSubjectTimeData>();
             if (userSubjectTimeData == null)
             {
@@ -130,6 +130,10 @@ public class StudyingItemSlot : InfiniteScrollItem
             
                 UIManager.Instance.OpenUI<ModalUI>(modal);
             }
+        }
+        else
+        {
+            studyingUI.startTime = DateTime.UtcNow;
         }
     }
 

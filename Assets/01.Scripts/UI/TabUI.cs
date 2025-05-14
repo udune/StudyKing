@@ -62,19 +62,19 @@ public class TabUI : MonoBehaviour
     {
         Logger.Log($"{GetType()}::OnClickItemTabBtn");
         
-        var modal = new ModalUIData();
-        modal.Type = ModalType.OK;
-        modal.Title = string.Empty;
-        modal.Desc = "업데이트 준비중";
-        modal.OkBtnText = "확인";
-        modal.OKAction = () =>
-        {
-            toggles[2].SetIsOnWithoutNotify(true);
-        };
-        UIManager.Instance.OpenUI<ModalUI>(modal);
+        // var modal = new ModalUIData();
+        // modal.Type = ModalType.OK;
+        // modal.Title = string.Empty;
+        // modal.Desc = "업데이트 준비중";
+        // modal.OkBtnText = "확인";
+        // modal.OKAction = () =>
+        // {
+        //     toggles[2].SetIsOnWithoutNotify(true);
+        // };
+        // UIManager.Instance.OpenUI<ModalUI>(modal);
         
-        // var data = new BaseUIData();
-        // UIManager.Instance.OpenUI<ItemTabUI>(data);
+        var data = new BaseUIData();
+        UIManager.Instance.OpenUI<ItemTabUI>(data);
     }
     
     private void OnClickHistoryTabBtn()
