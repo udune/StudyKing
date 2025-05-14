@@ -49,6 +49,8 @@ public class UserDailyTimeData : IUserData
         if (firestoreDict.TryGetValue("DailyTimeItemDataList", out var obj) &&
             obj is List<object> dailyTimeItemDataList)
         {
+            DailyTimeItemDataList.Clear();
+            
             foreach (var itemData in dailyTimeItemDataList)
             {
                 if (itemData is Dictionary<string, object> itemDataDict)

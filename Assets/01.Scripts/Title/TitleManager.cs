@@ -49,6 +49,17 @@ namespace Title
 
             if (!CheckThirdPartyServiceInit())
             {
+                var modal = new ModalUIData();
+                modal.Type = ModalType.OK;
+                modal.Title = "네트워크 오류";
+                modal.Desc = "Firebase 초기화에 실패했습니다.\n앱을 다시 실행합니다.";
+                modal.OkBtnText = "다시 시도";
+                modal.OKAction = () =>
+                {
+                    SceneLoader.Instance.LoadScene(SceneType.Title);
+                };
+                UIManager.Instance.OpenUI<ModalUI>(modal);
+                
                 yield break;
             }
 

@@ -50,6 +50,8 @@ public class UserHistoryData : IUserData
     {
         if (firestoreDict.TryGetValue("HistoryItemDataList", out var obj) && obj is List<object> historyItemDataList)
         {
+            HistoryItemDataList.Clear();
+            
             foreach (var itemData in historyItemDataList)
             {
                 if (itemData is Dictionary<string, object> itemDataDict)

@@ -53,6 +53,8 @@ public class UserStudyData : IUserData
     {
         if (firestoreDict.TryGetValue("StudyItemDataList", out var obj) && obj is List<object> studyItemDataList)
         {
+            StudyItemDataList.Clear();
+            
             foreach (var itemData in studyItemDataList)
             {
                 if (itemData is Dictionary<string, object> itemDataDict)

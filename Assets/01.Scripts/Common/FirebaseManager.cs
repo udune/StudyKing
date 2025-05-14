@@ -66,23 +66,31 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>
 
     private IEnumerator InitFirebaseServiceCoroutine()
     {
-        FirebaseApp.CheckAndFixDependenciesAsync().ContinueWithOnMainThread(task =>
+        var checkTask = FirebaseApp.CheckAndFixDependenciesAsync();
+
+        while (!checkTask.IsCompleted)
+            yield return null;
+
+        if (checkTask.IsFaulted || checkTask.IsCanceled)
         {
-            var dependencyStatus = task.Result;
-            if (dependencyStatus == DependencyStatus.Available)
-            {
-                Logger.Log($"{GetType()}::FirebaseApp initialization success.");
-                app = FirebaseApp.DefaultInstance;
-                InitRemoteConfig();
-                InitAuth();
-                InitFirestore();
-                InitAnalytics();
-            }
-            else
-            {
-                Logger.LogError($"{GetType()}::FirebaseApp initialization failed. Dependency : {dependencyStatus}");
-            }
-        });
+            Logger.LogError($"{GetType()}::FirebaseService could not be resolved.");
+            yield break;
+        }
+        
+        var dependencyStatus = checkTask.Result;
+
+        if (dependencyStatus != DependencyStatus.Available)
+        {
+            Logger.LogError($"{GetType()}::FirebaseService dependency check failed.");
+            yield break;
+        }
+        
+        Logger.Log($"{GetType()}::FirebaseApp initialization success.");
+        app = FirebaseApp.DefaultInstance;
+        InitRemoteConfig();
+        InitAuth();
+        InitFirestore();
+        InitAnalytics();
 
         var elapsedTime = 0.0f;
         while (elapsedTime < GlobalDefine.THIRD_PARTY_SERVICE_INIT_TIME)

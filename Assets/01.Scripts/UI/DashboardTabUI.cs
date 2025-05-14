@@ -33,7 +33,7 @@ public class OpenAIRequest
 {
     public string model = "gpt-3.5-turbo";
     public List<Message> messages;
-    public int max_tokens = 100;
+    public int max_tokens = 200;
     public float temperature = 0.7f;
 }
 
@@ -90,9 +90,9 @@ public class DashboardTabUI : BaseUI
                          $"- 이번 주 공부 시간: {weeklyTotalTime.text}" +
                          $"- 과목별 공부 시간: {subjectTime.text}" +
                          "- 최근 7일간 요일별 공부 시간: " +
-                         $"- 월: {last7Days["월"]}, 화: {last7Days["화"]}, 수: {last7Days["수"]}, 목: {last7Days["목"]}, 금: {last7Days["금"]}, 토: {last7Days["토"]}, 일: {last7Days["일"]}" +
+                         $"- 월: {last7Days["Mon"]}, 화: {last7Days["Tue"]}, 수: {last7Days["Wed"]}, 목: {last7Days["Thu"]}, 금: {last7Days["Fri"]}, 토: {last7Days["Sat"]}, 일: {last7Days["Sun"]}" +
                          "이 데이터를 바탕으로 사용자가 앞으로 어떤 방식으로 공부를 하면 좋을지 조언해 주세요. " +
-                         "60자 이내로 한국어로 간단하게 응원 및 조언 메시지로 작성해 주세요. 이모티콘, 특수문자, 기호는 없어도 되요.";
+                         "100자 이내로 한국어로 간단하게 응원 및 조언 메시지로 작성해 주세요. 이모티콘, 특수문자, 기호는 없어도 되요.";
         
         StartCoroutine(RequestOpenAI(message, userLastAdviceData));
     }
@@ -120,6 +120,7 @@ public class DashboardTabUI : BaseUI
 
         if (uwr.error != null)
         {
+            aiText.text = "오늘의 학습 방향 추천을 불러오지 못했어요.";
             Logger.Log($"{GetType()}::OpenAI request failed: {uwr.result} {uwr.error}");
         }
         else if (uwr.result.Equals(UnityWebRequest.Result.Success))
@@ -175,7 +176,7 @@ public class DashboardTabUI : BaseUI
             }
         }
         this.weeklyTotalTime.text = CalculateTimeFormat(weeklyTotalTime);
-
+        
         barChart.DataSource.ClearCategories();
         for (int i = 6; i >= 0; i--)
         {
@@ -185,8 +186,11 @@ public class DashboardTabUI : BaseUI
             
             DailyTimeItemData data = userDailyTimeData.DailyTimeItemDataList.Find(x => x.Date.Equals(date));
             last7Days[label] = data?.Time ?? 0;
-            
-            barChart.DataSource.AddCategory(label, chartDynamicMaterial);
+
+            if (!barChart.DataSource.HasCategory(label))
+            {
+                barChart.DataSource.AddCategory(label, chartDynamicMaterial);   
+            }
             barChart.DataSource.SetValue(label, "weekly", last7Days[label]);
             barChart.DataSource.SetMaterial(label, barChartMaterial);
         }
@@ -199,8 +203,11 @@ public class DashboardTabUI : BaseUI
             
             DailyTimeItemData data = userDailyTimeData.DailyTimeItemDataList.Find(x => x.Date.Equals(date));
             last30Days[label] = data?.Time ?? 0;
-            
-            graphChart.DataSource.AddPointToCategory("monthly", 30-i, last30Days[label]);
+
+            if (!graphChart.DataSource.HasCategory("monthly"))
+            {
+                graphChart.DataSource.AddPointToCategory("monthly", 30-i, last30Days[label]);   
+            }
         }
         
     }
@@ -226,9 +233,13 @@ public class DashboardTabUI : BaseUI
         subjectTime.text = sb_subject.ToString();
 
         pieChart.DataSource.Clear();
-        for (int i = 0; i < 3; i++)
+        int count = Mathf.Min(3, topSubjects.Count);
+        for (int i = 0; i < count; i++)
         {
-            pieChart.DataSource.AddCategory(topSubjects[i].Name, chartDynamicMaterial, 1, 1, 1);
+            if (!pieChart.DataSource.HasCategory(topSubjects[i].Name))
+            {
+                pieChart.DataSource.AddCategory(topSubjects[i].Name, chartDynamicMaterial, 1, 1, 1);    
+            }
             pieChart.DataSource.SetValue(topSubjects[i].Name, topSubjects[i].Time);
             pieChart.DataSource.SetMaterial(topSubjects[i].Name, pieChartMaterials[i]);
         }
