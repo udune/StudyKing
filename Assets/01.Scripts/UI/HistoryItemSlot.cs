@@ -1,32 +1,15 @@
 using Gpm.Ui;
 using TMPro;
-using Logger = Common.Logger;
+using UnityEngine;
 
-public class HistoryItemSlotData : InfiniteScrollData
+public class HistoryItemSlot : MonoBehaviour
 {
-    public string Date;
-    public string Subjects;
-}
-
-public class HistoryItemSlot : InfiniteScrollItem
-{
-    private HistoryItemSlotData historyItemSlotData;
-
     public TMP_Text date;
     public TMP_Text subjects;
 
-    public override void UpdateData(InfiniteScrollData data)
+    public void UpdateData(string date, string subjects)
     {
-        base.UpdateData(data);
-        
-        historyItemSlotData = data as HistoryItemSlotData;
-        if (historyItemSlotData == null)
-        {
-            Logger.Log($"{GetType()}::historyItemSlotData is invalid");
-            return;
-        }
-        
-        date.text = historyItemSlotData.Date;
-        subjects.text = historyItemSlotData.Subjects;
+        this.date.text = date;
+        this.subjects.text = subjects;
     }
 }

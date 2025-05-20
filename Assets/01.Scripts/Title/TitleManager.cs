@@ -47,17 +47,16 @@ namespace Title
             logoAnim.gameObject.SetActive(false);
             titleGo.SetActive(true);
 
-            if (!CheckThirdPartyServiceInit())
+            yield return WaitForFirebaseInit();
+            
+            if (!FirebaseManager.Instance.IsInit())
             {
                 var modal = new ModalUIData();
                 modal.Type = ModalType.OK;
                 modal.Title = "네트워크 오류";
-                modal.Desc = "Firebase 초기화에 실패했습니다.\n앱을 다시 실행합니다.";
+                modal.Desc = "네트워크 초기화에 실패했습니다.\n앱을 종료합니다.";
                 modal.OkBtnText = "다시 시도";
-                modal.OKAction = () =>
-                {
-                    SceneLoader.Instance.LoadScene(SceneType.Title);
-                };
+                modal.OKAction = Application.Quit;
                 UIManager.Instance.OpenUI<ModalUI>(modal);
                 
                 yield break;
@@ -90,9 +89,22 @@ namespace Title
             yield return StartCoroutine(LoadLobbyCoroutine());
         }
 
-        private bool CheckThirdPartyServiceInit()
+        private IEnumerator WaitForFirebaseInit()
         {
-            return FirebaseManager.Instance.IsInit();
+            float elapsedTime = 0;
+            float timeout = 10.0f;
+
+            while (!FirebaseManager.Instance.IsInit())
+            {
+                if (elapsedTime > timeout)
+                {
+                    Logger.LogError($"{GetType()}::FirebaseInit failed");
+                    yield break;
+                }
+                
+                elapsedTime += Time.deltaTime;
+                yield return null;
+            }
         }
 
         private bool ValidateAppVersion()

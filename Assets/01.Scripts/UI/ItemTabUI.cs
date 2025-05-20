@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using Logger = Common.Logger;
 
 [Serializable]
 public class InventoryItem
@@ -19,8 +20,10 @@ public class ItemTabUI : BaseUI
     [SerializeField] GameObject itemPrefab;
     [SerializeField] Transform content;
 
-    private void OnEnable()
+    public override void Setting(BaseUIData data)
     {
+        base.Setting(data);
+        
         PlayerCustom.Instance.character.GetComponent<ObjRotator>().enabled = true;
         
         if (content.childCount.Equals(0))
@@ -28,18 +31,28 @@ public class ItemTabUI : BaseUI
             foreach (var item in inventoryItemList)
             {
                 var go = Instantiate(itemPrefab, content);
-                go.transform.Find("Icon").GetComponent<Image>().sprite = Resources.Load<Sprite>($"Texture/{item.name}");
+                var thisItem = item;
+                
+                go.transform.Find("Icon").GetComponent<Image>().sprite = Resources.Load<Sprite>($"Texture/{thisItem.name}");
+                go.GetComponent<Button>().onClick.RemoveAllListeners();
                 go.GetComponent<Button>().onClick.AddListener(() =>
                 {
-                    if (OnClickItem(item))
+                    try
                     {
-                        PlayerCustom.Instance.Equip(item.name);
-                        go.transform.Find("outline").GetComponent<Image>().color = new Color(125/255f, 128/255f, 118/255f, 1f);
+                        if (OnClickItem(thisItem))
+                        {
+                            PlayerCustom.Instance.Equip(thisItem.name);
+                            go.transform.Find("outline").GetComponent<Image>().color = new Color(125/255f, 128/255f, 118/255f, 1f);
+                        }
+                        else
+                        {
+                            PlayerCustom.Instance.UnEquip(thisItem.name);
+                            go.transform.Find("outline").GetComponent<Image>().color = new Color(208/255f, 214/255f, 197/255f, 1f);
+                        }
                     }
-                    else
+                    catch (Exception e)
                     {
-                        PlayerCustom.Instance.UnEquip(item.name);
-                        go.transform.Find("outline").GetComponent<Image>().color = new Color(208/255f, 214/255f, 197/255f, 1f);
+                        Logger.LogError($"{GetType()}:: Error in OnClickItem");
                     }
                 });
             }

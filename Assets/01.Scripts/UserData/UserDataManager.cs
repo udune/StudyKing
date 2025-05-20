@@ -12,6 +12,8 @@ public class UserDataManager : SingletonBehaviour<UserDataManager>
     {
         base.Init();
         
+        UserDataList.Clear();
+        
         UserDataList.Add(new UserTimeData());
         UserDataList.Add(new UserSubjectTimeData());
         UserDataList.Add(new UserDailyTimeData());

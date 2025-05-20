@@ -47,7 +47,25 @@ public class DashboardTabUI : BaseUI
     [SerializeField] private BarChart barChart;
     [SerializeField] private GraphChart graphChart;
     
-    Dictionary<string, long> last7Days = new Dictionary<string, long>();
+    [SerializeField] private GameObject aiEmptyText;
+    [SerializeField] private GameObject pieChartEmptyText;
+    [SerializeField] private GameObject barChartEmptyText;
+    [SerializeField] private GameObject graphChartEmptyText;
+    
+    [SerializeField] private GameObject pieChartContent;
+    [SerializeField] private GameObject barChartContent;
+    [SerializeField] private GameObject graphChartContent;
+    
+    Dictionary<string, long> last7Days = new Dictionary<string, long>()
+    {
+        { "월", 0 },
+        { "화", 0 },
+        { "수", 0 },
+        { "목", 0 },
+        { "금", 0 },
+        { "토", 0 },
+        { "일", 0 },
+    };
     Dictionary<string, long> last30Days = new Dictionary<string, long>();
     
     private StringBuilder sb = new StringBuilder();
@@ -59,8 +77,20 @@ public class DashboardTabUI : BaseUI
     
     private const string OPENAI_URL = "https://api.openai.com/v1/chat/completions";
     
-    private void OnEnable()
+    private readonly Dictionary<DayOfWeek, string> DayOfWeekKor = new Dictionary<DayOfWeek, string>
     {
+        { DayOfWeek.Monday, "월" },
+        { DayOfWeek.Tuesday, "화" },
+        { DayOfWeek.Wednesday, "수" },
+        { DayOfWeek.Thursday, "목" },
+        { DayOfWeek.Friday, "금" },
+        { DayOfWeek.Saturday, "토" },
+        { DayOfWeek.Sunday, "일" },
+    };
+    
+    public override void Setting(BaseUIData data)
+    {
+        base.Setting(data);
 #if !UNITY_EDITOR
         SetTotalTime();
         SetWeeklyTime();
@@ -76,8 +106,11 @@ public class DashboardTabUI : BaseUI
         if (userLastAdviceData == null)
         {
             Logger.Log($"{GetType()}::UserLastAdviceData is null");
+            aiEmptyText.SetActive(true);
             return;
         }
+        
+        aiEmptyText.SetActive(false);
 
         if (userLastAdviceData.Date.Equals(DateTime.UtcNow.AddHours(9).Date.ToString("yyyy-MM-dd")))
         {
@@ -90,9 +123,9 @@ public class DashboardTabUI : BaseUI
                          $"- 이번 주 공부 시간: {weeklyTotalTime.text}" +
                          $"- 과목별 공부 시간: {subjectTime.text}" +
                          "- 최근 7일간 요일별 공부 시간: " +
-                         $"- 월: {last7Days["Mon"]}, 화: {last7Days["Tue"]}, 수: {last7Days["Wed"]}, 목: {last7Days["Thu"]}, 금: {last7Days["Fri"]}, 토: {last7Days["Sat"]}, 일: {last7Days["Sun"]}" +
+                         $"- 월: {last7Days["월"]}, 화: {last7Days["화"]}, 수: {last7Days["수"]}, 목: {last7Days["목"]}, 금: {last7Days["금"]}, 토: {last7Days["토"]}, 일: {last7Days["일"]}" +
                          "이 데이터를 바탕으로 사용자가 앞으로 어떤 방식으로 공부를 하면 좋을지 조언해 주세요. " +
-                         "100자 이내로 한국어로 간단하게 응원 및 조언 메시지로 작성해 주세요. 이모티콘, 특수문자, 기호는 없어도 되요.";
+                         "80자 이내로 한국어로 간단하게 응원 및 조언 메시지로 작성해 주세요. 이모지, 이모티콘, 특수문자, 기호는 포함하지 말아줘요. 폰트가 깨져서 안 나와요.";
         
         StartCoroutine(RequestOpenAI(message, userLastAdviceData));
     }
@@ -157,8 +190,26 @@ public class DashboardTabUI : BaseUI
         if (userDailyTimeData == null)
         {
             Logger.Log($"{GetType()}::UserDailyTimeData is null");
+            barChartEmptyText.SetActive(true);
+            graphChartEmptyText.SetActive(true);
+            barChartContent.SetActive(false);
+            graphChartContent.SetActive(false);
             return;
         }
+
+        if (userDailyTimeData.DailyTimeItemDataList.Count.Equals(0))
+        {
+            barChartEmptyText.SetActive(true);
+            graphChartEmptyText.SetActive(true);
+            barChartContent.SetActive(false);
+            graphChartContent.SetActive(false);
+            return;
+        }
+        
+        barChartEmptyText.SetActive(false);
+        graphChartEmptyText.SetActive(false);
+        barChartContent.SetActive(true);
+        graphChartContent.SetActive(true);
         
         long weeklyTotalTime = 0;
         DateTime today = DateTime.UtcNow.AddHours(9).Date;
@@ -181,33 +232,27 @@ public class DashboardTabUI : BaseUI
         for (int i = 6; i >= 0; i--)
         {
             DateTime day = today.AddDays(-i);
-            string label = day.ToString("ddd");
+            string korDay = DayOfWeekKor[day.DayOfWeek];
             string date = day.ToString("yyyy-MM-dd");
             
             DailyTimeItemData data = userDailyTimeData.DailyTimeItemDataList.Find(x => x.Date.Equals(date));
-            last7Days[label] = data?.Time ?? 0;
-
-            if (!barChart.DataSource.HasCategory(label))
-            {
-                barChart.DataSource.AddCategory(label, chartDynamicMaterial);   
-            }
-            barChart.DataSource.SetValue(label, "weekly", last7Days[label]);
-            barChart.DataSource.SetMaterial(label, barChartMaterial);
+            last7Days[korDay] = data?.Time ?? 0;
+            
+            barChart.DataSource.AddCategory(korDay, chartDynamicMaterial);
+            barChart.DataSource.SetValue(korDay, "weekly", last7Days[korDay]);
+            barChart.DataSource.SetMaterial(korDay, barChartMaterial);
         }
         
         for (int i = 29; i >= 0; i--)
         {
-            DateTime day = today.AddDays(-i);
+            var day = today.AddDays(-i);
             string label = day.ToString("MM/dd");
             string date = day.ToString("yyyy-MM-dd");
             
             DailyTimeItemData data = userDailyTimeData.DailyTimeItemDataList.Find(x => x.Date.Equals(date));
             last30Days[label] = data?.Time ?? 0;
-
-            if (!graphChart.DataSource.HasCategory("monthly"))
-            {
-                graphChart.DataSource.AddPointToCategory("monthly", 30-i, last30Days[label]);   
-            }
+            
+            graphChart.DataSource.AddPointToCategory("monthly", 30-i, last30Days[label]);
         }
         
     }
@@ -218,8 +263,20 @@ public class DashboardTabUI : BaseUI
         if (userSubjectTimeData == null)
         {
             Logger.Log($"{GetType()}::UserData is null");
+            pieChartEmptyText.SetActive(true);
+            pieChartContent.SetActive(false);
             return;
         }
+
+        if (userSubjectTimeData.SubjectTimeItemDataList.Count.Equals(0))
+        {
+            pieChartEmptyText.SetActive(true);
+            pieChartContent.SetActive(false);
+            return;
+        }
+        
+        pieChartEmptyText.SetActive(false);
+        pieChartContent.SetActive(true);
 
         var topSubjects = userSubjectTimeData.SubjectTimeItemDataList
             .OrderByDescending(subject => subject.Time)
@@ -236,10 +293,7 @@ public class DashboardTabUI : BaseUI
         int count = Mathf.Min(3, topSubjects.Count);
         for (int i = 0; i < count; i++)
         {
-            if (!pieChart.DataSource.HasCategory(topSubjects[i].Name))
-            {
-                pieChart.DataSource.AddCategory(topSubjects[i].Name, chartDynamicMaterial, 1, 1, 1);    
-            }
+            pieChart.DataSource.AddCategory(topSubjects[i].Name, chartDynamicMaterial, 1, 1, 1);
             pieChart.DataSource.SetValue(topSubjects[i].Name, topSubjects[i].Time);
             pieChart.DataSource.SetMaterial(topSubjects[i].Name, pieChartMaterials[i]);
         }
