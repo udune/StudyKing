@@ -7,13 +7,15 @@ public class InventorySlot : MonoBehaviour
     
     public void Apply(InventoryItem item)
     {
-        icon.sprite = Resources.Load<Sprite>($"Texture/{item.name}");
+        icon.sprite = Resources.Load<Sprite>($"Texture/{item.id}");
         icon.color = new Color(1, 1, 1, 1);
+        GetComponent<Outline>().enabled = true;
     }
 
     public void Clear()
     {
         icon.sprite = null;
         icon.color = new Color(1, 1, 1, 0);
+        GetComponent<Outline>().enabled = false;
     }
 }

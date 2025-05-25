@@ -9,49 +9,49 @@ public class PlayerCustom : SingletonBehaviour<PlayerCustom>
     [SerializeField] Transform player;
     public Transform character;
     
-    public void Equip(string name)
+    public void Equip(string id)
     {
-        if (playerItemDict.ContainsKey(name) || characterItemDict.ContainsKey(name))
+        if (playerItemDict.ContainsKey(id) || characterItemDict.ContainsKey(id))
         {
             return;
         }
 
-        if (!cacheDict.ContainsKey(name))
+        if (!cacheDict.ContainsKey(id))
         {
-            GameObject obj = Resources.Load<GameObject>($"Item/{name}");
+            GameObject obj = Resources.Load<GameObject>($"Item/{id}");
             if (obj == null)
             {
                 return;
             }
 
-            cacheDict.Add(name, obj);
+            cacheDict.Add(id, obj);
         }
 
-        if (CheckItem(player, name, LayerMask.NameToLayer("Player"), out var playerItem))
+        if (CheckItem(player, id, LayerMask.NameToLayer("Player"), out var playerItem))
         {
             playerItem.SetActive(true);
-            playerItemDict.Add(name, playerItem);
+            playerItemDict.Add(id, playerItem);
         }
         
-        if (CheckItem(character, name, LayerMask.NameToLayer("Character"), out var characterItem))
+        if (CheckItem(character, id, LayerMask.NameToLayer("Character"), out var characterItem))
         {
             characterItem.SetActive(true);
-            characterItemDict.Add(name, characterItem);
+            characterItemDict.Add(id, characterItem);
         }
     }
 
-    public void UnEquip(string name)
+    public void UnEquip(string id)
     {
-        if (playerItemDict.TryGetValue(name, out var playerItem))
+        if (playerItemDict.TryGetValue(id, out var playerItem))
         {
             playerItem.SetActive(false);
-            playerItemDict.Remove(name);
+            playerItemDict.Remove(id);
         }
         
-        if (characterItemDict.TryGetValue(name, out var characterItem))
+        if (characterItemDict.TryGetValue(id, out var characterItem))
         {
             characterItem.SetActive(false);
-            characterItemDict.Remove(name);
+            characterItemDict.Remove(id);
         }
     }
 
@@ -69,10 +69,10 @@ public class PlayerCustom : SingletonBehaviour<PlayerCustom>
         }
     }
 
-    private bool CheckItem(Transform root, string name, int layer, out GameObject result)
+    private bool CheckItem(Transform root, string id, int layer, out GameObject result)
     {
         Transform itemParent = root.GetComponent<ItemTrn>().headAndBag;
-        Transform item = itemParent.Find(name);
+        Transform item = itemParent.Find(id);
 
         if (item != null)
         {
@@ -80,9 +80,9 @@ public class PlayerCustom : SingletonBehaviour<PlayerCustom>
             return true;
         }
 
-        GameObject newItem = Instantiate(cacheDict[name], itemParent);
+        GameObject newItem = Instantiate(cacheDict[id], itemParent);
         newItem.transform.localPosition = Vector3.zero;
-        newItem.name = name;
+        newItem.name = id;
         SetLayer(newItem, layer);
         result = newItem;
         return true;

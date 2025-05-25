@@ -363,7 +363,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4572435067088911240}
   m_Layer: 0
-  m_Name: hat
+  m_Name: hat01
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
