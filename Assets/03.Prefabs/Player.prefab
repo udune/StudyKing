@@ -662,7 +662,8 @@ MonoBehaviour:
   moveSpeed: 2
   turnSpeed: 10
   minIdleTime: 0
-  maxIdleTime: 10
+  maxIdleTime: 5
+  debugMode: 1
 --- !u!114 &9088234340170702417
 MonoBehaviour:
   m_ObjectHideFlags: 0
