@@ -31,10 +31,10 @@ public class Message
 [Serializable]
 public class OpenAIRequest
 {
-    public string model = "gpt-3.5-turbo";
+    public string model = Constants.OpenAI.MODEL;
     public List<Message> messages;
-    public int max_tokens = 200;
-    public float temperature = 0.7f;
+    public int max_tokens = Constants.OpenAI.MAX_TOKENS;
+    public float temperature = Constants.OpenAI.TEMPERATURE;
 }
 
 public class DashboardTabUI : BaseUI
@@ -75,7 +75,7 @@ public class DashboardTabUI : BaseUI
     [SerializeField] private Material[] pieChartMaterials;
     [SerializeField] private Material barChartMaterial;
     
-    private const string OPENAI_URL = "https://api.openai.com/v1/chat/completions";
+    private const string OPENAI_URL = Constants.OpenAI.API_URL;
     
     private readonly Dictionary<DayOfWeek, string> DayOfWeekKor = new Dictionary<DayOfWeek, string>
     {
@@ -125,7 +125,7 @@ public class DashboardTabUI : BaseUI
                          "- 최근 7일간 요일별 공부 시간: " +
                          $"- 월: {last7Days["월"]}, 화: {last7Days["화"]}, 수: {last7Days["수"]}, 목: {last7Days["목"]}, 금: {last7Days["금"]}, 토: {last7Days["토"]}, 일: {last7Days["일"]}" +
                          "이 데이터를 바탕으로 사용자가 앞으로 어떤 방식으로 공부를 하면 좋을지 조언해 주세요. " +
-                         "80자 이내로 한국어로 간단하게 응원 및 조언 메시지로 작성해 주세요. 이모지, 이모티콘, 특수문자, 기호는 포함하지 말아줘요. 폰트가 깨져서 안 나와요.";
+                         "80자 이내로 한국어로 간단하게 응원 및 조언 메시지로 작성해 주세요. 이모지 없이 텍스트를 생성해주세요.";
         
         StartCoroutine(RequestOpenAI(message, userLastAdviceData));
     }

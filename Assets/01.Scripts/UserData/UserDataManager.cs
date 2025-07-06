@@ -1,9 +1,10 @@
-using System.Collections;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
+using _01.Scripts.UserData;
+using Logger = Common.Logger;
 
-public class UserDataManager : SingletonBehaviour<UserDataManager>
+public class UserDataManager : SingletonBehaviour<UserDataManager>, IUserDataManager
 {
     public bool IsExistSaveData { get; private set; }
     public List<IUserData> UserDataList { get; private set; } = new List<IUserData>();
@@ -51,7 +52,20 @@ public class UserDataManager : SingletonBehaviour<UserDataManager>
 
     public T GetUserData<T>() where T : class, IUserData
     {
-        return UserDataList.OfType<T>().FirstOrDefault();
+        try
+        {
+            var result = UserDataList?.OfType<T>().FirstOrDefault();
+            if (result == null)
+            {
+                Logger.LogWarning($"{GetType()}:: UserData is not found");
+            }
+            return result;
+        }
+        catch (Exception e)
+        {
+            Logger.LogError($"{GetType()}:: Error in GetUserData");
+            return null;
+        }
     }
 
     public bool IsUserDataLoaded()

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Common;
 using Firebase;
 using Firebase.Analytics;
 using Firebase.Auth;
@@ -11,24 +12,23 @@ using Google;
 using UnityEngine;
 using Logger = Common.Logger;
 
-public class FirebaseManager : SingletonBehaviour<FirebaseManager>
+public class FirebaseManager : SingletonBehaviour<FirebaseManager>, IFirebaseManager
 {
-    private FirebaseApp app;
+    [Header("Configuration")]
+    [SerializeField] private float initTimeout = 10.0f;
     
     // Remote Config
     private FirebaseRemoteConfig remoteConfig;
     private bool isRemoteConfigInit;
-    private Dictionary<string, object> remoteConfigDic = new Dictionary<string, object>();
+    private readonly Dictionary<string, object> remoteConfigDic = new Dictionary<string, object>();
     
     // Auth
     private FirebaseAuth auth;
     private bool isAuthInit = false;
-    private const string GOOGLE_WEB_CLIENT_ID = "222061272404-27lp0ocv653h3jci5vitlp1qq97otq3p.apps.googleusercontent.com";
     private GoogleSignInConfiguration googleSignInConfiguration;
     private FirebaseUser firebaseUser;
     
     // Firestore
-    private const string UNITY_EDITOR_USER_ID = "9HyPrbDAf4Q1eLMhp9LVkxptBlx1";
     private FirebaseFirestore database;
     private bool isFirestoreInit = false;
     
@@ -37,6 +37,11 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>
 
     public bool HasSignedWithGoogle { get; private set; }
     public bool HasSignedWithApple { get; private set; }
+
+    public event Action OnInitialized;
+    public event Action<FirebaseUser> OnUserSignedIn;
+    public event Action OnUserSignedOut;
+    public event Action<string> OnSignInFailed;
 
     protected override void Init()
     {
@@ -53,19 +58,37 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>
 
     private void LoadData()
     {
-        HasSignedWithGoogle = PlayerPrefs.GetInt("HasSignedWithGoogle") == 1;
-        HasSignedWithApple = PlayerPrefs.GetInt("HasSignedWithApple") == 1;
+        try
+        {
+            HasSignedWithGoogle = PlayerPrefs.GetInt(Constants.PlayerPrefs.HAS_SIGNED_WITH_GOOGLE) == 1;
+            HasSignedWithApple = PlayerPrefs.GetInt(Constants.PlayerPrefs.HAS_SIGNED_WITH_APPLE) == 1;
+            Logger.Log($"{GetType()}::HasSignedWithGoogle: {HasSignedWithGoogle}");
+        }
+        catch (Exception e)
+        {
+            Logger.LogError($"{GetType()}::LoadData Exception: {e}");
+        }
     }
 
     private void SaveData()
     {
-        PlayerPrefs.SetInt("HasSignedWithGoogle", HasSignedWithGoogle ? 1 : 0);
-        PlayerPrefs.SetInt("HasSignedWithApple", HasSignedWithApple ? 1 : 0);
-        PlayerPrefs.Save();
+        try
+        {
+            PlayerPrefs.SetInt(Constants.PlayerPrefs.HAS_SIGNED_WITH_GOOGLE, HasSignedWithGoogle ? 1 : 0);
+            PlayerPrefs.SetInt(Constants.PlayerPrefs.HAS_SIGNED_WITH_APPLE, HasSignedWithApple ? 1 : 0);
+            PlayerPrefs.Save();
+            Logger.Log($"{GetType()}::SaveData Success");
+        }
+        catch (Exception e)
+        {
+            Logger.LogError($"{GetType()}::SaveData Exception: {e}");
+        }
     }
 
     private IEnumerator InitFirebaseServiceCoroutine()
     {
+        Logger.Log($"{GetType()}::FirebaseApp initialization start.");
+        
         var checkTask = FirebaseApp.CheckAndFixDependenciesAsync();
 
         while (!checkTask.IsCompleted)
@@ -78,7 +101,6 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>
         }
         
         var dependencyStatus = checkTask.Result;
-
         if (dependencyStatus != DependencyStatus.Available)
         {
             Logger.LogError($"{GetType()}::FirebaseService dependency check failed.");
@@ -86,18 +108,16 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>
         }
         
         Logger.Log($"{GetType()}::FirebaseApp initialization success.");
-        app = FirebaseApp.DefaultInstance;
-        InitRemoteConfig();
-        InitAuth();
-        InitFirestore();
-        InitAnalytics();
 
+        yield return StartCoroutine(InitializeServicesCoroutine());
+        
         var elapsedTime = 0.0f;
-        while (elapsedTime < GlobalDefine.THIRD_PARTY_SERVICE_INIT_TIME)
+        while (elapsedTime < initTimeout)
         {
             if (IsInit())
             {
                 Logger.Log($"{GetType()}:: initialization success.");
+                OnInitialized?.Invoke();
                 yield break;
             }
 
@@ -106,67 +126,124 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>
         }
         Logger.LogError($"{GetType()}::FirebaseApp initialization failed.");
     }
+
+    private IEnumerator InitializeServicesCoroutine()
+    {
+        InitRemoteConfig();
+        InitAuth();
+        InitFirestore();
+        InitAnalytics();
+        
+        yield return new WaitForSeconds(0.1f);
+    }
     
     #region REMOTE_CONFIG
 
     private void InitRemoteConfig()
     {
-        remoteConfig = FirebaseRemoteConfig.DefaultInstance;
-        if (remoteConfig == null)
+        try
         {
-            Logger.LogError($"{GetType()}::FirebaseApp Initialization failed. FirebaseRemoteConfig is null.");
-            return;
-        }
-        
-        remoteConfigDic.Add("dev_app_version", string.Empty);
-        remoteConfigDic.Add("real_app_version", string.Empty);
-        remoteConfigDic.Add("openai_apikey", string.Empty);
-        
-        remoteConfig.SetDefaultsAsync(remoteConfigDic).ContinueWithOnMainThread(task =>
-        {
-            remoteConfig.FetchAsync(TimeSpan.Zero).ContinueWithOnMainThread(fetchTask =>
+            remoteConfig = FirebaseRemoteConfig.DefaultInstance;
+            if (remoteConfig == null)
             {
-                if (fetchTask.IsCompleted)
+                Logger.LogError($"{GetType()}::FirebaseApp Initialization failed. FirebaseRemoteConfig is null.");
+                return;
+            }
+
+            var defaults = new Dictionary<string, object>
+            {
+                { "dev_app_version", string.Empty },
+                { "real_app_version", string.Empty },
+                { "openai_apikey", string.Empty }
+            };
+
+            remoteConfig.SetDefaultsAsync(defaults).ContinueWithOnMainThread(task =>
+            {
+                if (task.IsCompletedSuccessfully)
                 {
-                    remoteConfig.ActivateAsync().ContinueWithOnMainThread(activateTask =>
-                    {
-                        if (activateTask.IsCompleted)
-                        {
-                            remoteConfigDic["dev_app_version"] = remoteConfig.GetValue("dev_app_version").StringValue;
-                            remoteConfigDic["real_app_version"] = remoteConfig.GetValue("real_app_version").StringValue;
-                            remoteConfigDic["openai_apikey"] = remoteConfig.GetValue("openai_apikey").StringValue;
-                            isRemoteConfigInit = true;
-                        }
-                    });
+                    FetchRemoteConfig();
+                }
+                else
+                {
+                    Logger.LogError($"{GetType()}::RemoteConfig SetDefaultsAsync failed");
                 }
             });
+        }
+        catch (Exception e)
+        {
+            Logger.LogError($"{GetType()}::RemoteConfig Exception: {e}");
+        }
+    }
+
+    private void FetchRemoteConfig()
+    {
+        remoteConfig.FetchAsync(TimeSpan.Zero).ContinueWithOnMainThread(fetchTask =>
+        {
+            if (fetchTask.IsCompletedSuccessfully)
+            {
+                remoteConfig.ActivateAsync().ContinueWithOnMainThread(activateTask =>
+                {
+                    if (activateTask.IsCompletedSuccessfully)
+                    {
+                        UpdateRemoteConfigValues();
+                        isRemoteConfigInit = true;
+                        Logger.Log($"{GetType()}::RemoteConfig ActivateAsync success");
+                    }
+                    else
+                    {
+                        Logger.LogError($"{GetType()}::RemoteConfig ActivateAsync failed");
+                    }
+                });
+            }
+            else
+            {
+                Logger.LogError($"{GetType()}::RemoteConfig FetchAsync failed");
+            }
         });
+    }
+
+    private void UpdateRemoteConfigValues()
+    {
+        try
+        {
+            remoteConfigDic["dev_app_version"] = remoteConfig.GetValue("dev_app_version").StringValue;
+            remoteConfigDic["real_app_version"] = remoteConfig.GetValue("real_app_version").StringValue;
+            remoteConfigDic["openai_apikey"] = remoteConfig.GetValue("openai_apikey").StringValue;
+        }
+        catch (Exception e)
+        {
+            Logger.LogError($"{GetType()}::UpdateRemoteConfigValues Exception: {e}");
+        }
     }
 
     public string GetAppVersion()
     {
+        try
+        {
 #if DEV_VER
-        if (remoteConfigDic.TryGetValue("dev_app_version", out var value))
-        {
-            return value.ToString();
-        }
+            return remoteConfigDic.TryGetValue("dev_app_version", out var value) ? value.ToString() : string.Empty;
 #else
-        if (remoteConfigDic.TryGetValue("real_app_version", out var value))
-        {
-            return value.ToString();
-        }
+            return remoteConfigDic.TryGetValue("real_app_version", out var value) ? value.ToString() : string.Empty;
 #endif
-        return string.Empty;
+        }
+        catch (Exception e)
+        {
+            Logger.LogError($"{GetType()}::GetAppVersion Exception: {e}");
+            return string.Empty;
+        }
     }
 
     public string GetOpenAIKey()
     {
-        if (remoteConfigDic.TryGetValue("openai_apikey", out var value))
+        try
         {
-            return value.ToString();
+            return remoteConfigDic.TryGetValue("openai_apikey", out var value) ? value.ToString() : string.Empty;
         }
-
-        return string.Empty;
+        catch (Exception e)
+        {
+            Logger.LogError($"{GetType()}::GetOpenAIKey Exception: {e}");
+            return string.Empty;
+        }
     }
     
     #endregion
@@ -175,22 +252,68 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>
 
     private void InitAuth()
     {
-        auth = FirebaseAuth.DefaultInstance;
-        if (auth == null)
+        try
         {
-            Logger.LogError($"{GetType()}::FirebaseApp Initialization failed. FirebaseAuth is null.");
-            return;
+            auth = FirebaseAuth.DefaultInstance;
+            if (auth == null)
+            {
+                Logger.LogError($"{GetType()}::FirebaseApp Initialization failed. FirebaseAuth is null.");
+                return;
+            }
+
+            auth.StateChanged += OnAuthStateChanged;
+            googleSignInConfiguration = new GoogleSignInConfiguration()
+            {
+                WebClientId = Constants.Firebase.GOOGLE_WEB_CLIENT_ID,
+                RequestIdToken = true
+            };
+        
+            isAuthInit = true;
+            Logger.Log($"{GetType()}::FirebaseAuth Initialization success");
+
+            HandleAutoSignIn();
+        }
+        catch (Exception e)
+        {
+            Logger.LogError($"{GetType()}::FirebaseAuth Exception: {e}");
+        }
+    }
+
+    private void OnAuthStateChanged(object sender, EventArgs eventArgs)
+    {
+        try
+        {
+            if (SceneLoader.Instance.GetCurrentScene() == SceneType.Title)
+            {
+                return;
+            }
+
+            if (auth?.CurrentUser == null)
+            {
+                Logger.Log($"{GetType()}::User Signed out or disconnected");
+                HandleSignOut();
+            }
+        }
+        catch (Exception e)
+        {
+            Logger.LogError($"{GetType()}::OnAuthStateChanged Exception: {e}");
         }
 
-        auth.StateChanged += OnAuthStateChanged;
-        googleSignInConfiguration = new GoogleSignInConfiguration()
-        {
-            WebClientId = GOOGLE_WEB_CLIENT_ID,
-            RequestIdToken = true
-        };
-        
-        isAuthInit = true;
 
+        if (auth != null && auth.CurrentUser == null)
+        {
+            Logger.Log($"{GetType()}::User Signed out or disconnected");
+            firebaseUser = null;
+            HasSignedWithGoogle = false;
+            HasSignedWithApple = false;
+            SaveData();
+            UIManager.Instance.CloseAllOpenUI();
+            SceneLoader.Instance.LoadScene(SceneType.Title);
+        }
+    }
+
+    private void HandleAutoSignIn()
+    {
         if (auth.CurrentUser == null)
         {
             if (HasSignedWithGoogle)
@@ -205,26 +328,21 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>
         else
         {
             firebaseUser = auth.CurrentUser;
+            OnUserSignedIn?.Invoke(firebaseUser);
         }
     }
 
-    private void OnAuthStateChanged(object sender, EventArgs eventArgs)
+    private void HandleSignOut()
     {
-        if (SceneLoader.Instance.GetCurrentScene() == SceneType.Title)
-        {
-            return;
-        }
-
-        if (auth != null && auth.CurrentUser == null)
-        {
-            Logger.Log($"{GetType()}::User Signed out or disconnected");
-            firebaseUser = null;
-            HasSignedWithGoogle = false;
-            HasSignedWithApple = false;
-            SaveData();
-            UIManager.Instance.CloseAllOpenUI();
-            SceneLoader.Instance.LoadScene(SceneType.Title);
-        }
+        firebaseUser = null;
+        HasSignedWithGoogle = false;
+        HasSignedWithApple = false;
+        SaveData();
+        
+        OnUserSignedOut?.Invoke();
+        
+        UIManager.Instance.CloseAllOpenUI();
+        SceneLoader.Instance.LoadScene(SceneType.Title);
     }
 
     public bool IsSignedIn()
@@ -238,98 +356,140 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>
 
     public void SignInWithGoogle()
     {
-        GoogleSignIn.Configuration = googleSignInConfiguration;
-        GoogleSignIn.DefaultInstance.SignIn().ContinueWithOnMainThread(task =>
+        if (!isAuthInit || googleSignInConfiguration == null)
         {
-            if (task.IsCanceled || task.IsFaulted)
+            Logger.LogError($"{GetType()}::Auth or GoogleSignInConfiguration is null. SignInWithGoogle failed.");
+            ShowLoginFailUI();
+            return;
+        }
+
+        try
+        {
+            GoogleSignIn.Configuration = googleSignInConfiguration;
+            GoogleSignIn.DefaultInstance.SignIn().ContinueWithOnMainThread(task =>
             {
                 if (task.IsCanceled)
                 {
                     Logger.LogError($"{GetType()}::SignInWithGoogle was Canceled");
-                }
-                else if (task.IsFaulted)
-                {
-                    Logger.LogError($"{GetType()}::SignInWithGoogle was Faulted: {task.Exception}");
-                }
-                
-                ShowLoginFailUI();
-                return;
-            }
-
-            GoogleSignInUser googleUser = task.Result;
-            Credential credential = GoogleAuthProvider.GetCredential(googleUser.IdToken, null);
-            auth.SignInWithCredentialAsync(credential).ContinueWithOnMainThread(task =>
-            {
-                if (task.IsCanceled || task.IsFaulted)
-                {
-                    if (task.IsCanceled)
-                    {
-                        Logger.LogError($"{GetType()}::SignInWithGoogle was Canceled");
-                    }
-                    else if (task.IsFaulted)
-                    {
-                        Logger.LogError($"{GetType()}::SignInWithGoogle was Faulted: {task.Exception}");
-                    }
-
-                    ShowLoginFailUI();
                     return;
                 }
                 
-                firebaseUser = task.Result;
-                Logger.Log($"{GetType()}::User signed in successfully. {firebaseUser.DisplayName} ({firebaseUser.UserId})");
+                if (task.IsFaulted)
+                {
+                    Logger.LogError($"{GetType()}::SignInWithGoogle was Faulted: {task.Exception}");
+                    ShowLoginFailUI("Google 로그인 실패");
+                    OnSignInFailed?.Invoke("Google sign-in failed");
+                    return;
+                }
 
-                HasSignedWithGoogle = true;
-                HasSignedWithApple = true;
-                SaveData();
+                var googleUser = task.Result;
+                if (googleUser == null)
+                {
+                    Logger.LogError($"{GetType()}::SignInWithGoogle was null");
+                    ShowLoginFailUI("Google 사용자 정보 오류");
+                    return;
+                }
+                
+                var credential = GoogleAuthProvider.GetCredential(googleUser.IdToken, null);
+                SignInWithCredential(credential, true, false);
             });
-        });
+        }
+        catch (Exception e)
+        {
+            Logger.LogError($"{GetType()}::SignInWithGoogle Exception: {e}");
+            ShowLoginFailUI("Google 로그인 오류");
+        }
     }
 
     public void SignInWithApple()
     {
-        
+        // TODO: Apple Sign-In 구현
+        Logger.Log($"{GetType()}::SignInWithApple");
+    }
+
+    private void SignInWithCredential(Credential credential, bool isGoogle, bool isApple)
+    {
+        auth.SignInWithCredentialAsync(credential).ContinueWithOnMainThread(task =>
+        {
+            if (task.IsCanceled || task.IsFaulted)
+            {
+                var errorMessage = task.IsCanceled ? "로그인이 취소되었습니다." : $"로그인 실패 : {task.Exception}";
+                Logger.LogError($"{GetType()}::SignInWithCredential was Canceled: {errorMessage}");
+                ShowLoginFailUI(errorMessage);
+                OnSignInFailed?.Invoke(errorMessage);
+                return;
+            }
+                
+            firebaseUser = task.Result;
+            if (firebaseUser != null)
+            {
+                Logger.Log($"{GetType()}::User signed in successfully. {firebaseUser.DisplayName} ({firebaseUser.UserId})");
+
+                HasSignedWithGoogle = isGoogle;
+                HasSignedWithApple = isApple;
+                SaveData();
+                
+                OnUserSignedIn?.Invoke(firebaseUser);
+            }
+        });
     }
 
     public void SignOut()
     {
-        if (firebaseUser != null)
+        try
         {
-            auth.SignOut();
-            Logger.Log($"{GetType()}::User signed out successfully.");
-        }
-        
+            if (firebaseUser != null)
+            {
+                auth.SignOut();
+                Logger.Log($"{GetType()}::User signed out successfully.");
+            }
+            
 #if UNITY_EDITOR
-        Logger.Log($"{GetType()}::User Signed out or disconnected");
-        firebaseUser = null;
-        HasSignedWithGoogle = false;
-        HasSignedWithApple = false;
-        SaveData();
-        UIManager.Instance.CloseAllOpenUI();
-        SceneLoader.Instance.LoadScene(SceneType.Title);
+            Logger.Log($"{GetType()}::User Signed out or disconnected");
+            firebaseUser = null;
+            HasSignedWithGoogle = false;
+            HasSignedWithApple = false;
+            SaveData();
+            UIManager.Instance.CloseAllOpenUI();
+            SceneLoader.Instance.LoadScene(SceneType.Title);
 #endif
+        }
+        catch (Exception e)
+        {
+            Logger.LogError($"{GetType()}::SignOut Exception: {e}");
+        }
     }
 
-    private void ShowLoginFailUI()
+    private void ShowLoginFailUI(string errorMessage = null)
     {
-        var modal = new ModalUIData();
-        modal.Type = ModalType.OK;
-        modal.Title = "오류";
-        modal.Desc = "로그인 실패";
-        modal.OkBtnText = "확인";
-        modal.OKAction = () =>
+        try
         {
-            var modal = new ModalUIData();
-            UIManager.Instance.OpenUI<AccountUI>(modal);
-        };
-        UIManager.Instance.OpenUI<ModalUI>(modal);
+            var modal = new ModalUIData
+            {
+                Type = ModalType.OK,
+                Title = "로그인 오류",
+                Desc = errorMessage ?? "로그인에 실패했습니다",
+                OkBtnText = "확인",
+                OKAction = () =>
+                {
+                    var modal = new ModalUIData();
+                    UIManager.Instance.OpenUI<AccountUI>(modal);
+                }
+            };
+            UIManager.Instance.OpenUI<ModalUI>(modal);
+        }
+        catch (Exception e)
+        {
+            Logger.LogError($"{GetType()}::ShowLoginFailUI Exception: {e}");
+        }
     }
     
     private string GetUserId()
     {
 #if UNITY_EDITOR
-        return UNITY_EDITOR_USER_ID;
+        return Constants.Firebase.UNITY_EDITOR_USER_ID;
 #else
-        return firebaseUser != null ? firebaseUser.UserId : string.Empty;
+        return firebaseUser?.UserId ?? string.Empty;
 #endif
     }
     
@@ -338,64 +498,127 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>
     #region FIRESTORE
     private void InitFirestore()
     {
-        database = FirebaseFirestore.DefaultInstance;
-        if (database == null)
+        try
         {
-            Logger.LogError($"FirebaseFirestore initialization failed. FirebaseFirestore is null");
-            return;
-        }
+            database = FirebaseFirestore.DefaultInstance;
+            if (database == null)
+            {
+                Logger.LogError($"FirebaseFirestore initialization failed. FirebaseFirestore is null");
+                return;
+            }
         
-        isFirestoreInit = true;
+            isFirestoreInit = true;
+            Logger.Log($"{GetType()}::FirebaseFirestore initialization success");
+        }
+        catch (Exception e)
+        {
+            Logger.LogError($"{GetType()}::FirebaseFirestore Exception: {e}");
+        }
     }
 
     public void LoadUserData<T>(Action onFinishLoad = null) where T : class, IUserData
     {
-        Type type = typeof(T);
-        database.Collection($"{type}").Document(GetUserId()).GetSnapshotAsync().ContinueWithOnMainThread<DocumentSnapshot>(task =>
+        if (!isFirestoreInit)
         {
-            if (task.IsCompleted)
-            {
-                IUserData userData = UserDataManager.Instance.GetUserData<T>();
-                DocumentSnapshot snapshot = task.Result;
-                if (snapshot.Exists)
-                {
-                    Logger.Log($"{GetType()}::{type} Loaded Successfully");
-                    
-                    Dictionary<string, object> userDataDict = snapshot.ToDictionary();
-                    userData.Setting(userDataDict);
-                }
-                else
-                {
-                    Logger.Log($"{GetType()}::{type} No Found. setting default data");
+            Logger.LogError($"{GetType()}::Firestore is not initialized");
+            onFinishLoad?.Invoke();
+            return;
+        }
+        
+        var userId = GetUserId();
+        if (string.IsNullOrEmpty(userId))
+        {
+            Logger.LogError($"{GetType()}::User ID is null or empty");
+            onFinishLoad?.Invoke();
+            return;
+        }
 
-                    userData.Initialize();
-                    userData.SaveData();
-                }
-                
-                onFinishLoad?.Invoke();
-            }
-            else
+        try
+        {
+            var type = typeof(T);
+            database.Collection($"{type}").Document(userId).GetSnapshotAsync().ContinueWithOnMainThread<DocumentSnapshot>(task =>
             {
-                Logger.LogError($"{GetType()}::{type} Loading Failed");
-            }
-        });
+                try
+                {
+                    if (task.IsCompletedSuccessfully)
+                    {
+                        var userData = UserDataManager.Instance.GetUserData<T>();
+                        if (userData == null)
+                        {
+                            Logger.LogError($"{GetType()}::UserData is null");
+                            onFinishLoad?.Invoke();
+                            return;
+                        }
+                        
+                        var snapshot = task.Result;
+                        if (snapshot != null && snapshot.Exists)
+                        {
+                            Logger.Log($"{GetType()}::{type} Loaded Successfully");
+                            var userDataDict = snapshot.ToDictionary();
+                            userData.Setting(userDataDict);
+                        }
+                        else
+                        {
+                            Logger.Log($"{GetType()}::{type} No Found. setting default data");
+                            userData.Initialize();
+                            userData.SaveData();
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    Logger.LogError($"{GetType()}::{type} Loading Failed: {e}");
+                }
+            });
+        }
+        catch (Exception e)
+        {
+            Logger.LogError($"{GetType()}::LoadUserData Exception: {e}");
+            onFinishLoad?.Invoke();
+        }
     }
 
     public void SaveUserData<T>(Dictionary<string, object> userDataDict) where T : class, IUserData
     {
-        Type type = typeof(T);
-        DocumentReference documentReference = database.Collection($"{type}").Document(GetUserId());
-        documentReference.SetAsync(userDataDict).ContinueWithOnMainThread(task =>
+        if (!isFirestoreInit)
         {
-            if (task.IsCompleted)
+            Logger.LogError($"{GetType()}::Firestore is not initialized");
+            return;
+        }
+
+        if (userDataDict == null)
+        {
+            Logger.LogError($"{GetType()}::userDataDict is null");
+            return;
+        }
+
+        var userId = GetUserId();
+        if (string.IsNullOrEmpty(userId))
+        {
+            Logger.LogError($"{GetType()}::User ID is null or empty");
+            return;
+        }
+
+        try
+        {
+            var type = typeof(T);
+            var documentReference = database.Collection($"{type}").Document(userId);
+            documentReference.SetAsync(userDataDict).ContinueWithOnMainThread(task =>
             {
-                Logger.Log($"{type} saved Successfully");
-            }
-            else
-            {
-                Logger.LogError($"{type} saving Failed");
-            }
-        });
+                if (task.IsCompletedSuccessfully)
+                {
+                    Logger.Log($"{type} saved Successfully");
+                }
+                else
+                {
+                    Logger.LogError($"{type} saving Failed");
+                }
+            });
+        }
+        catch (Exception e)
+        {
+            Logger.LogError($"{GetType()}::SaveUserData Exception: {e}");
+        }
     }
     #endregion
     
@@ -403,19 +626,53 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>
 
     private void InitAnalytics()
     {
-        FirebaseAnalytics.SetAnalyticsCollectionEnabled(true);
-        isAnalyticsInit = true;
+        try
+        {
+            FirebaseAnalytics.SetAnalyticsCollectionEnabled(true);
+            isAnalyticsInit = true;
+            Logger.Log($"{GetType()}::FirebaseAnalytics Initialization success");
+        }
+        catch (Exception e)
+        {
+            Logger.LogError($"{GetType()}::FirebaseAnalytics Exception: {e}");
+        }
     }
 
     public void LogCustomEvent(string eventName, Dictionary<string, object> parameters)
     {
-        List<Parameter> firebaseParameters = new List<Parameter>();
-        foreach (var param in parameters)
+        if (!isAnalyticsInit)
         {
-            firebaseParameters.Add(new Parameter(param.Key, param.Value.ToString()));
+            Logger.LogWarning($"{GetType()}::Analytics is not initialized");
+            return;
         }
-        
-        FirebaseAnalytics.LogEvent(eventName, firebaseParameters.ToArray());
+
+        if (string.IsNullOrEmpty(eventName))
+        {
+            Logger.LogError($"{GetType()}::Event name is null or empty");
+            return;
+        }
+
+        try
+        {
+            var firebaseParameters = new List<Parameter>();
+            if (parameters != null)
+            {
+                foreach (var param in parameters)
+                {
+                    if (param.Value != null)
+                    {
+                        firebaseParameters.Add(new Parameter(param.Key, param.Value.ToString()));
+                    }
+                }
+            }
+            
+            FirebaseAnalytics.LogEvent(eventName, firebaseParameters.ToArray());
+            Logger.Log($"{GetType()}::Custom event {eventName} logged");
+        }
+        catch (Exception e)
+        {
+            Logger.LogError($"{GetType()}::LogCustomEvent Exception: {e}");
+        }
     }
     #endregion
 
@@ -423,9 +680,21 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>
     {
         base.Dispose();
 
-        if (auth != null)
+        try
         {
-            auth.StateChanged -= OnAuthStateChanged;
+            if (auth != null)
+            {
+                auth.StateChanged -= OnAuthStateChanged;
+            }
+            
+            OnInitialized = null;
+            OnUserSignedIn = null;
+            OnUserSignedOut = null;
+            OnSignInFailed = null;
+        }
+        catch (Exception e)
+        {
+            Logger.LogError($"{GetType()}::Dispose Exception: {e}");
         }
     }
 }

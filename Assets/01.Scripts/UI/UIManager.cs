@@ -74,6 +74,11 @@ public class UIManager : SingletonBehaviour<UIManager>
 
     public void OpenUI<T>(BaseUIData data)
     {
+        if (data == null)
+        {
+            Logger.LogError($"{GetType()}::BaseUIData is null");
+        }
+        
         Type type = typeof(T);
         
         Logger.Log($"{GetType()}::OpenUI({type})");

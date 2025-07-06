@@ -111,8 +111,19 @@ public class StudyingUI : BaseUI
 
     private void OnDestroy()
     {
+        StopAllCoroutines();
+        
         if (LobbyManager.Instance != null)
             LobbyManager.Instance.OnCompleteChanged -= UpdateCompleteButton;
+    }
+    
+    private void OnDisable()
+    {
+        if (timerCoroutine != null)
+        {
+            StopCoroutine(timerCoroutine);
+            timerCoroutine = null;
+        }
     }
 
     public void OnClickPause()

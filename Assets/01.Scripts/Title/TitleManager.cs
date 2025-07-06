@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -47,7 +48,7 @@ namespace Title
             logoAnim.gameObject.SetActive(false);
             titleGo.SetActive(true);
 
-            yield return WaitForFirebaseInit();
+            yield return WaitForFirebaseInitAsync();
             
             if (!FirebaseManager.Instance.IsInit())
             {
@@ -89,22 +90,24 @@ namespace Title
             yield return StartCoroutine(LoadLobbyCoroutine());
         }
 
-        private IEnumerator WaitForFirebaseInit()
+        private async Task<bool> WaitForFirebaseInitAsync()
         {
-            float elapsedTime = 0;
-            float timeout = 10.0f;
+            const float timeout = 10.0f;
+            float elapsedTime = 0.0f;
 
-            while (!FirebaseManager.Instance.IsInit())
+            while (!FirebaseManager.Instance.IsInit() && elapsedTime < timeout)
             {
-                if (elapsedTime > timeout)
-                {
-                    Logger.LogError($"{GetType()}::FirebaseInit failed");
-                    yield break;
-                }
-                
-                elapsedTime += Time.deltaTime;
-                yield return null;
+                await Task.Delay(100);
+                elapsedTime += 0.1f;
             }
+
+            if (elapsedTime >= timeout)
+            {
+                Logger.LogError($"{GetType()}::Firebase Init Timeout");
+                return false;
+            }
+
+            return true;
         }
 
         private bool ValidateAppVersion()
@@ -125,7 +128,7 @@ namespace Title
                 modal.OKAction = () =>
                 {
                     #if UNITY_ANDROID
-                        Application.OpenURL(GlobalDefine.GOOGLE_PLAY_STORE);
+                        Application.OpenURL(Constants.GlobalDefine.GOOGLE_PLAY_STORE);
                     #elif UNITY_IOS
                         Application.OpenURL(GlobalDefine.APPLE_PLAY_STORE);
                     #endif

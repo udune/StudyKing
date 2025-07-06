@@ -21,7 +21,7 @@ public class UserSettingData : IUserData
     {
         Logger.Log($"{GetType()}::LoadData");
         
-        FirebaseManager.Instance.LoadUserData<UserTimeData>(() =>
+        FirebaseManager.Instance.LoadUserData<UserSettingData>(() =>
         {
             IsLoaded = true;
         });
@@ -31,7 +31,7 @@ public class UserSettingData : IUserData
     {
         Logger.Log($"{GetType()}::SaveData");
         
-        FirebaseManager.Instance.SaveUserData<UserTimeData>(ConvertToFirestore());
+        FirebaseManager.Instance.SaveUserData<UserSettingData>(ConvertToFirestore());
     }
     
     private void ConvertToData(Dictionary<string, object> firestoreDict)

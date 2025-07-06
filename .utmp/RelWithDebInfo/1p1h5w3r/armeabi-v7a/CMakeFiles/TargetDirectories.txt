@@ -1,5 +1,0 @@
-C:/Users/udune/Desktop/Unity/Projects/StudyKing/.utmp/RelWithDebInfo/1p1h5w3r/armeabi-v7a/CMakeFiles/edit_cache.dir
-C:/Users/udune/Desktop/Unity/Projects/StudyKing/.utmp/RelWithDebInfo/1p1h5w3r/armeabi-v7a/CMakeFiles/rebuild_cache.dir
-C:/Users/udune/Desktop/Unity/Projects/StudyKing/.utmp/RelWithDebInfo/1p1h5w3r/armeabi-v7a/FramePacing/CMakeFiles/swappywrapper.dir
-C:/Users/udune/Desktop/Unity/Projects/StudyKing/.utmp/RelWithDebInfo/1p1h5w3r/armeabi-v7a/FramePacing/CMakeFiles/edit_cache.dir
-C:/Users/udune/Desktop/Unity/Projects/StudyKing/.utmp/RelWithDebInfo/1p1h5w3r/armeabi-v7a/FramePacing/CMakeFiles/rebuild_cache.dir

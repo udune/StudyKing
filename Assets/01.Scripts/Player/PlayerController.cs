@@ -126,9 +126,11 @@ public class PlayerController : MonoBehaviour
 
     private void DestroyState()
     {
-        if (curState is Component comp)
+        if (curState is Component comp && comp != null)
         {
+            curState?.OnEnd();
             Destroy(comp);
+            curState = null;
         }
     }
 
@@ -189,5 +191,16 @@ public class PlayerController : MonoBehaviour
     public void SetIdleTime()
     {
         idleTime = Random.Range(minIdleTime, maxIdleTime);
+    }
+
+    private void OnDestroy()
+    {
+        if (updateRoutine != null)
+        {
+            StopCoroutine(updateRoutine);
+            updateRoutine = null;
+        }
+        
+        DestroyState();
     }
 }
