@@ -6,60 +6,374 @@ public class BaseUIData
 {
     public Action OnShow;
     public Action OnClose;
+
+    public BaseUIData()
+    {
+        OnShow = null;
+        OnClose = null;
+    }
+
+    public BaseUIData(Action onShow, Action onClose)
+    {
+        OnShow = onShow;
+        OnClose = onClose;
+    }
 }
 
 public class BaseUI : MonoBehaviour
 {
-    public Animation openAnimation;
+    [Header("UI 애니메이션")] 
+    [SerializeField] protected Animation openAnimation;
+    [SerializeField] protected Animation closeAnimation;
 
+    [Header("UI 설정")] 
+    // 배경 클릭 시 닫기
+    [SerializeField] protected bool closeOnBgClick = false;
+    // UI가 열릴 때 일시정지
+    [SerializeField] protected bool pauseGameWhenOpen = false;
+
+    // 초기화 완료
+    private bool isInit = false;
+    
+    // 현재 표시되고 있는지
+    private bool isShow = false;
+    
     private Action onShow;
     private Action onClose;
 
+    // 시간 스케일
+    private float originTimeScale = 1.0f;
+
     public virtual void Init(Transform anchor)
     {
+        if (isInit)
+        {
+            Logger.Log($"{GetType()}::Init is already init");
+            return;
+        }
+        
         Logger.Log($"{GetType()}::Init");
 
-        onShow = null;
-        onClose = null;
+        try
+        {
+            // 부모 설정
+            SetupParent(anchor);
 
-        transform.SetParent(anchor);
+            // RectTrn 설정
+            SetupRectTrn();
+
+            // 배경 클릭 이벤트 설정
+            SetupBgClickHandler();
+
+            OnInit();
+            
+            isInit = true;
+            Logger.Log($"{GetType()}::Init is done");
+        }
+        catch (Exception e)
+        {
+            Logger.LogError($"{GetType()}::Init is failed");
+            throw;
+        }
+    }
+
+    private void SetupParent(Transform anchor)
+    {
+        if (anchor == null)
+        {
+            Logger.Log($"{GetType()}::anchor is null");
+            return;
+        }
         
-        var rect = GetComponent<RectTransform>();
+        transform.SetParent(anchor, false);
+    }
+
+    private void SetupRectTrn()
+    {
+        RectTransform rect = GetComponent<RectTransform>();
+        if (rect == null)
+        {
+            Logger.Log($"{GetType()}::rect is null");
+            return;
+        }
+        
+        // 화면 전체를 덮도록 한다.
         rect.localPosition = Vector3.zero;
         rect.localScale = Vector3.one;
         rect.offsetMin = Vector2.zero;
         rect.offsetMax = Vector2.zero;
     }
 
+    private void SetupBgClickHandler()
+    {
+        if (!closeOnBgClick)
+        {
+            return;
+        }
+        
+        // TODO
+    }
+
     public virtual void Setting(BaseUIData data)
     {
-        Logger.Log($"{GetType()}::Setting");
+        if (data == null)
+        {
+            Logger.Log($"{GetType()}::data is null");
+            // 기본 데이터 생성
+            data = new BaseUIData();
+        }
         
-        onShow = data.OnShow;
-        onClose = data.OnClose;
+        Logger.Log($"{GetType()}::Setting");
+
+        try
+        {
+            onShow = data.OnShow;
+            onClose = data.OnClose;
+
+            OnSetting(data);
+            
+            Logger.Log($"{GetType()}::Setting is done");
+        }
+        catch (Exception e)
+        {
+            Logger.LogError($"{GetType()}::Setting is failed");
+            throw;
+        }
     }
 
     public virtual void ShowUI()
     {
-        if (openAnimation != null)
-            openAnimation.Play();
+        if (isShow)
+        {
+            Logger.Log($"{GetType()}::is already show");
+            return;
+        }
         
-        onShow?.Invoke();
-        onShow = null;
+        Logger.Log($"{GetType()}::ShowUI");
+
+        try
+        {
+            isShow = true;
+
+            PauseHandle(true);
+
+            PlayOpenAnim();
+
+            ExecCallback(onShow, "OnShow");
+
+            OnShow();
+            
+            Logger.Log($"{GetType()}::ShowUI is done");
+        }
+        catch (Exception e)
+        {
+            Logger.LogError($"{GetType()}::ShowUI is failed");
+            isShow = false;
+            throw;
+        }
     }
 
-    public virtual void CloseUI(bool isClose = false)
+    private void PauseHandle(bool isPause)
     {
-        if (!isClose)
-            onClose?.Invoke();
+        if (!pauseGameWhenOpen)
+        {
+            return;
+        }
+
+        if (isPause)
+        {
+            originTimeScale = Time.timeScale;
+            Time.timeScale = 0.0f;
+            Logger.Log($"{GetType()}::Pause");
+        }
+        else
+        {
+            Time.timeScale = originTimeScale;
+            Logger.Log($"{GetType()}::Resume");
+        }
+    }
+
+    private void PlayOpenAnim()
+    {
+        if (openAnimation != null && openAnimation.clip != null)
+        {
+            openAnimation.Play();
+            Logger.Log($"{GetType()}::PlayOpenAnim");
+        }
+    }
+
+    private void PlayCloseAnim()
+    {
+        if (closeAnimation != null && closeAnimation.clip != null)
+        {
+            closeAnimation.Play();
+            Logger.Log($"{GetType()}::PlayCloseAnim");
+        }
+    }
+
+    private void ExecCallback(Action callback, string methodName)
+    {
+        if (callback == null)
+        {
+            return;
+        }
+
+        try
+        {
+            callback.Invoke();
+            Logger.Log($"{GetType()}::{methodName} is done");
+        }
+        catch (Exception e)
+        {
+            Logger.Log($"{GetType()}::{methodName} is failed");
+            throw;
+        }
+    }
+    
+    public virtual void CloseUI(bool isForceClose = false)
+    {
+        if (!isShow && !isForceClose)
+        {
+            Logger.Log($"{GetType()}::is already close");
+            return;
+        }
         
+        Logger.Log($"{GetType()}::CloseUI");
+
+        try
+        {
+            isShow = false;
+
+            // 강제 닫기가 아닌 경우에만
+            if (!isForceClose)
+            {
+                ExecCallback(onClose, "OnClose");
+            }
+
+            // 일시정지 해제
+            PauseHandle(false);
+
+            // 닫기 애니메이션
+            PlayCloseAnim();
+
+            OnClose();
+
+            // UIManager가 있을 경우에 닫기 알림
+            if (UIManager.Instance != null)
+            {
+                UIManager.Instance.CloseUI(this);
+            }
+            else
+            {
+                Logger.Log($"{GetType()}::UIManager is null");
+                gameObject.SetActive(false);
+            }
+        }
+        catch (Exception e)
+        {
+            Logger.LogError($"{GetType()}::CloseUI is failed");
+            throw;
+        }
+        finally
+        {
+            // 메모리 누수 방지
+            ClearCallbacks();
+        }
+    }
+
+    private void ClearCallbacks()
+    {
+        onShow = null;
         onClose = null;
-        
-        UIManager.Instance.CloseUI(this);
     }
 
     public virtual void OnClickClose()
     {
+        Logger.Log($"{GetType()}::OnClickClose");
         CloseUI();
+    }
+
+    protected virtual void Update()
+    {
+        // 뒤로 가기 키 감지(안드로이드)
+        if (Input.GetKeyDown(KeyCode.Escape) && isShow)
+        {
+            OnBackKeyPressed();
+        }
+    }
+
+    protected virtual void OnBackKeyPressed()
+    {
+        Logger.Log($"{GetType()}::OnBackKeyPressed");
+        CloseUI();
+    }
+    
+    #region Virtual
+    // UI 초기화 시 호출
+    protected virtual void OnInit()
+    {
+        // 상속받는 클래스에서 구현
+    }
+
+    // UI 설정 시 호출
+    protected virtual void OnSetting(BaseUIData data)
+    {
+        // 상속받는 클래스에서 구현
+    }
+
+    // UI 표시 시 호출
+    protected virtual void OnShow()
+    {
+        // 상속받는 클래스에서 구현
+    }
+
+    // UI 닫기 시 호출
+    protected virtual void OnClose()
+    {
+        // 상속받는 클래스에서 구현
+    }
+    #endregion
+    
+    #region Util
+    // UI가 초기화되었는가.
+    public bool IsInit => isInit;
+    
+    // UI가 현재 표시되고 있는가.
+    public bool IsShow => isShow;
+
+    // UI를 강제로 표시 상태로 변경
+    public void SetShowState(bool show)
+    {
+        isShow = show;
+        Logger.Log($"{GetType()}::SetShowState {show}");
+    }
+
+    // UI 배경 클릭 닫기 변경
+    public void SetCloseBgClick(bool enabled)
+    {
+        closeOnBgClick = enabled;
+        Logger.Log($"{GetType()}::SetCloseBgClick {enabled}");
+    }
+
+    // UI 일시정지 설정 변경
+    public void SetPauseWhenOpen(bool enabled)
+    {
+        pauseGameWhenOpen = enabled;
+        Logger.Log($"{GetType()}::SetPauseWhenOpen {enabled}");
+    }
+    #endregion
+
+    // UI 파괴 시 호출
+    // 메모리 누수 방지
+    protected virtual void OnDestroy()
+    {
+        if (pauseGameWhenOpen && Time.timeScale == 0f)
+        {
+            Time.timeScale = originTimeScale;
+        }
+        
+        ClearCallbacks();
+        
+        Logger.Log($"{GetType()}::OnDestroy");
     }
 }
