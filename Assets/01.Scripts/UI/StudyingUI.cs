@@ -212,7 +212,7 @@ public class StudyingUI : BaseUI
         };
         FirebaseManager.Instance.LogCustomEvent("study_clear", parameters);
         
-        UIManager.Instance.EnableTimeUI(true);
+        UIManager.Instance.SetTimeUIVisible(true);
         UIManager.Instance.CloseAllOpenUI();
     }
 }

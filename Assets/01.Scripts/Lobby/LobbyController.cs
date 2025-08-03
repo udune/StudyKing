@@ -5,8 +5,8 @@ public class LobbyController : MonoBehaviour
 {
     public void Init()
     {
-        UIManager.Instance.EnableTimeUI(true);
-        UIManager.Instance.EnableTabUI(true);
+        UIManager.Instance.SetTimeUIVisible(true);
+        UIManager.Instance.SetTabUIVisible(true);
     }
 
     public void OnClickStudyBtn()

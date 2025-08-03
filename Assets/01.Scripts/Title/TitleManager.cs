@@ -33,8 +33,8 @@ namespace Title
 
         private void Start()
         {
-            UIManager.Instance.EnableTimeUI(false);
-            UIManager.Instance.EnableTabUI(false);
+            UIManager.Instance.SetTimeUIVisible(false);
+            UIManager.Instance.SetTabUIVisible(false);
             
             StartCoroutine(LoadingCo());
         }
