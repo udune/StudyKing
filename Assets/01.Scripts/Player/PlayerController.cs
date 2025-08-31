@@ -567,7 +567,7 @@ public class PlayerController : MonoBehaviour
         }
         catch (Exception e)
         {
-            Logger.LogError($"{GetType()}:: Error in OnDestroy");
+            Logger.LogError($"{GetType()}:: Error in OnDestroy {e.Message}");
         }
     }
 
