@@ -16,7 +16,7 @@ public class ItemTabUI : BaseUI
 {
     [SerializeField] List<InventorySlot> slotList = new List<InventorySlot>();
     [SerializeField] List<InventoryItem> inventoryItemList = new List<InventoryItem>();
-    List<InventoryItem> equippedItemList = new List<InventoryItem>();
+    private readonly List<InventoryItem> _equippedItemList = new List<InventoryItem>();
 
     [SerializeField] GameObject itemPrefab;
     [SerializeField] Transform content;
@@ -49,7 +49,7 @@ public class ItemTabUI : BaseUI
                             go.transform.Find("outline").GetComponent<Image>().color = new Color(229/255f, 235/255f, 214/255f, 1f);
                         }
                     }
-                    catch (Exception e)
+                    catch (Exception)
                     {
                         Logger.LogError($"{GetType()}:: Error in OnClickItem");
                     }
@@ -73,10 +73,10 @@ public class ItemTabUI : BaseUI
             var item = inventoryItemList.Find(x => x.id.Equals(equippedId));
             if (item != null)
             {
-                if (equippedItemList.Contains(item))
+                if (_equippedItemList.Contains(item))
                     return;
                 
-                equippedItemList.Add(item);
+                _equippedItemList.Add(item);
                 PlayerCustom.Instance.Equip(item.id);
             }
         }
@@ -90,7 +90,7 @@ public class ItemTabUI : BaseUI
         if (userInventoryData == null)
             return;
         
-        userInventoryData.EquippedItemIdList = equippedItemList.Select(x => x.id).ToList();
+        userInventoryData.EquippedItemIdList = _equippedItemList.Select(x => x.id).ToList();
         userInventoryData.SaveData();
     }
 
@@ -101,19 +101,19 @@ public class ItemTabUI : BaseUI
 
     private bool OnClickItem(InventoryItem item)
     {
-        if (equippedItemList.Contains(item))
+        if (_equippedItemList.Contains(item))
         {
-            equippedItemList.Remove(item);
+            _equippedItemList.Remove(item);
             SortSlots();
             return false;
         }
         
-        if (equippedItemList.Count >= slotList.Count)
+        if (_equippedItemList.Count >= slotList.Count)
         {
             return false;
         }
             
-        equippedItemList.Add(item);
+        _equippedItemList.Add(item);
         SortSlots();
         return true;
     }
@@ -122,13 +122,13 @@ public class ItemTabUI : BaseUI
     {
         for (int i = 0; i < slotList.Count; i++)
         {
-            if (i < equippedItemList.Count)
+            if (i < _equippedItemList.Count)
             {
-                slotList[i].Apply(equippedItemList[i]);
+                slotList[i].ApplyItem(_equippedItemList[i]);
             }
             else
             {
-                slotList[i].Clear();
+                slotList[i].ClearSlot();
             }
         }
     }
