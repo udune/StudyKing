@@ -93,36 +93,36 @@ public class TabUI : MonoBehaviour
         Logger.Log($"{GetType()}::아이템 탭을 엽니다");
         
         // UI 데이터를 만듭니다
-        var uiData = new BaseUIData();
-        
-        // UI가 열릴 때 캐릭터 회전을 활성화합니다
-        uiData.OnShow = () =>
+        var uiData = new BaseUIData
         {
-            if (PlayerCustom.Instance?.character != null)
+            // UI가 열릴 때 캐릭터 회전을 활성화합니다
+            OnShow = () =>
             {
-                var rotator = PlayerCustom.Instance.character.GetComponent<ObjRotator>();
-                if (rotator != null)
+                if (PlayerCustom.Instance?.character != null)
                 {
-                    rotator.enabled = true;
-                    Logger.Log($"{GetType()}::캐릭터 회전 기능을 활성화했습니다");
+                    var rotator = PlayerCustom.Instance.character.GetComponent<ObjRotator>();
+                    if (rotator != null)
+                    {
+                        rotator.enabled = true;
+                        Logger.Log($"{GetType()}::캐릭터 회전 기능을 활성화했습니다");
+                    }
+                }
+            },
+            // UI가 닫힐 때 캐릭터 회전을 비활성화합니다
+            OnClose = () =>
+            {
+                if (PlayerCustom.Instance?.character != null)
+                {
+                    var rotator = PlayerCustom.Instance.character.GetComponent<ObjRotator>();
+                    if (rotator != null)
+                    {
+                        rotator.enabled = false;
+                        Logger.Log($"{GetType()}::캐릭터 회전 기능을 비활성화했습니다");
+                    }
                 }
             }
         };
-        
-        // UI가 닫힐 때 캐릭터 회전을 비활성화합니다
-        uiData.OnClose = () =>
-        {
-            if (PlayerCustom.Instance?.character != null)
-            {
-                var rotator = PlayerCustom.Instance.character.GetComponent<ObjRotator>();
-                if (rotator != null)
-                {
-                    rotator.enabled = false;
-                    Logger.Log($"{GetType()}::캐릭터 회전 기능을 비활성화했습니다");
-                }
-            }
-        };
-        
+
         // 아이템 탭 UI를 엽니다
         UIManager.Instance.OpenUI<ItemTabUI>(uiData);
     }

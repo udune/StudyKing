@@ -62,14 +62,14 @@ public class StudyingItemSlot : InfiniteScrollItem
                 return;
             }
 
-            var data = userStudyData.StudyItemDataList.FirstOrDefault(x => x.Id == id);
+            var data = userStudyData.StudyItemDataList.FirstOrDefault(x => x.id == id);
             if (data == null)
             {
                 Logger.Log($"{GetType()}::this data does not exist in StudyItemSlot");
                 return;
             }
 
-            data.Check = isChecked;
+            data.check = isChecked;
             userStudyData.SaveData();
             LobbyManager.Instance.IsComplete = false;
 
@@ -93,10 +93,10 @@ public class StudyingItemSlot : InfiniteScrollItem
                 var elapsedTime = now - studyingUI.startTime;
                 var elapsedSeconds = (long)elapsedTime.TotalSeconds;
 
-                var subject = userSubjectTimeData.SubjectTimeItemDataList.FirstOrDefault(x => x.Name.Equals(data.Name));
+                var subject = userSubjectTimeData.SubjectTimeItemDataList.FirstOrDefault(x => x.Name.Equals(data.name));
                 if (subject == null)
                 {
-                    subject = new SubjectTimeItemData { Name = data.Name, Time = 0 };
+                    subject = new SubjectTimeItemData { Name = data.name, Time = 0 };
                     userSubjectTimeData.SubjectTimeItemDataList.Add(subject);
                 }
 
@@ -118,7 +118,7 @@ public class StudyingItemSlot : InfiniteScrollItem
                     modal.CancelBtnText = "취소";
                     modal.OKAction = () =>
                     {
-                        data.Check = true;
+                        data.check = true;
                         userStudyData.SaveData();
 
                         LobbyManager.Instance.IsComplete = true;

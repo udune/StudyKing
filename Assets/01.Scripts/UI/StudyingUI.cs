@@ -48,9 +48,9 @@ public class StudyingUI : BaseUI
             foreach (var itemData in userStudyData.StudyItemDataList)
             {
                 var itemSlotData = new StudyingItemSlotData();
-                itemSlotData.Id = itemData.Id;
-                itemSlotData.Name = itemData.Name;
-                itemSlotData.Check = itemData.Check = false;
+                itemSlotData.Id = itemData.id;
+                itemSlotData.Name = itemData.name;
+                itemSlotData.Check = itemData.check = false;
                 studyingScrollList.InsertData(itemSlotData);
             }
 
@@ -103,7 +103,7 @@ public class StudyingUI : BaseUI
         var userStudyData = UserDataManager.Instance.GetUserData<UserStudyData>();
         if (userStudyData != null)
         {
-            return userStudyData.StudyItemDataList.TrueForAll(item => item.Check);
+            return userStudyData.StudyItemDataList.TrueForAll(item => item.check);
         }
 
         return false;
@@ -166,9 +166,9 @@ public class StudyingUI : BaseUI
         
         foreach (var studyItemData in userStudyData.StudyItemDataList)
         {
-            if (!todayItem.SubjectList.Contains(studyItemData.Name))
+            if (!todayItem.SubjectList.Contains(studyItemData.name))
             {
-                todayItem.SubjectList.Add(studyItemData.Name);
+                todayItem.SubjectList.Add(studyItemData.name);
             }
         }
         

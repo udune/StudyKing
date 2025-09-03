@@ -95,12 +95,12 @@ public class CustomBarChart : BaseChart
 
             if (valueLabel != null)
             {
-                Text label_text = valueLabel.GetComponent<Text>();
-                if (label_text != null)
+                Text labelText = valueLabel.GetComponent<Text>();
+                if (labelText != null)
                 {
-                    label_text.color = gridColor;
-                    label_text.alignment = TextAnchor.MiddleCenter;
-                    label_text.fontSize = 10;
+                    labelText.color = gridColor;
+                    labelText.alignment = TextAnchor.MiddleCenter;
+                    labelText.fontSize = 10;
                 }
             }
         }
@@ -109,7 +109,7 @@ public class CustomBarChart : BaseChart
     }
 
     // 막대를 생성한다.
-    private GameObject CreateBar(string label, float value, float width, float height, float xPos, float yPos,
+    private void CreateBar(string label, float value, float width, float height, float xPos, float yPos,
         Color color)
     {
         GameObject bar = new GameObject($"Bar_{label}");
@@ -129,11 +129,11 @@ public class CustomBarChart : BaseChart
 
             if (bottomLabel != null)
             {
-                Text label_text = bottomLabel.GetComponent<Text>();
-                if (label_text != null)
+                Text labelText = bottomLabel.GetComponent<Text>();
+                if (labelText != null)
                 {
-                    label_text.alignment = TextAnchor.MiddleCenter;
-                    label_text.fontSize = labelFontSize;
+                    labelText.alignment = TextAnchor.MiddleCenter;
+                    labelText.fontSize = labelFontSize;
                 }
             }
             
@@ -144,18 +144,16 @@ public class CustomBarChart : BaseChart
 
                 if (valueLabel != null)
                 {
-                    Text label_text = valueLabel.GetComponent<Text>();
-                    if (label_text != null)
+                    Text labelText = valueLabel.GetComponent<Text>();
+                    if (labelText != null)
                     {
-                        label_text.alignment = TextAnchor.MiddleCenter;
-                        label_text.fontSize = labelFontSize - 2;
-                        label_text.color = Color.black;
+                        labelText.alignment = TextAnchor.MiddleCenter;
+                        labelText.fontSize = labelFontSize - 2;
+                        labelText.color = Color.black;
                     }
                 }
             }
         }
-
-        return bar;
     }
     
     // 막대 너비 비율을 설정한다.
