@@ -322,7 +322,7 @@ public class StudyUI : BaseUI
         {
             var modalData = new ModalUIData
             {
-                Type = ModalType.OK,
+                Type = ModalType.Ok,
                 Title = title,
                 Desc = message,
                 OkBtnText = "확인"
@@ -345,7 +345,7 @@ public class StudyUI : BaseUI
         {
             var modalData = new ModalUIData
             {
-                Type = ModalType.OK,
+                Type = ModalType.Ok,
                 Title = title,
                 Desc = message,
                 OkBtnText = "확인"

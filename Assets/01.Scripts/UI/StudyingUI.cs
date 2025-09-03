@@ -12,10 +12,10 @@ public class StudyingUI : BaseUI
     public InfiniteScroll studyingScrollList;
     public TextMeshProUGUI time;
     public Button completeBtn;
-    private Coroutine timerCoroutine;
+    private Coroutine _timerCoroutine;
     
-    private float elapsedTime;
-    public DateTime startTime;
+    private float _elapsedTime;
+    public DateTime StartTime;
 
     private void OnApplicationFocus(bool focus)
     {
@@ -35,8 +35,8 @@ public class StudyingUI : BaseUI
     {
         base.Setting(data);
 
-        startTime = DateTime.UtcNow;
-        elapsedTime = 0.0f;
+        StartTime = DateTime.UtcNow;
+        _elapsedTime = 0.0f;
         LobbyManager.Instance.IsPaused = false;
         LobbyManager.Instance.IsComplete = false;
         
@@ -47,10 +47,12 @@ public class StudyingUI : BaseUI
         {
             foreach (var itemData in userStudyData.StudyItemDataList)
             {
-                var itemSlotData = new StudyingItemSlotData();
-                itemSlotData.Id = itemData.id;
-                itemSlotData.Name = itemData.name;
-                itemSlotData.Check = itemData.check = false;
+                var itemSlotData = new StudyingItemSlotData
+                {
+                    Id = itemData.id,
+                    Name = itemData.name,
+                    Check = itemData.check = false
+                };
                 studyingScrollList.InsertData(itemSlotData);
             }
 
@@ -67,19 +69,19 @@ public class StudyingUI : BaseUI
 
     public void TimerStart()
     {
-        if (timerCoroutine != null)
-            StopCoroutine(timerCoroutine);
-        timerCoroutine = StartCoroutine(TimerRoutine());
+        if (_timerCoroutine != null)
+            StopCoroutine(_timerCoroutine);
+        _timerCoroutine = StartCoroutine(TimerRoutine());
     }
 
     private IEnumerator TimerRoutine()
     {
         while (!LobbyManager.Instance.IsPaused)
         {
-            elapsedTime += Time.deltaTime;
-            int hours = Mathf.FloorToInt(elapsedTime / 3600);
-            int minutes = Mathf.FloorToInt((elapsedTime % 3600) / 60);
-            int seconds = Mathf.FloorToInt(elapsedTime % 60);
+            _elapsedTime += Time.deltaTime;
+            int hours = Mathf.FloorToInt(_elapsedTime / 3600);
+            int minutes = Mathf.FloorToInt((_elapsedTime % 3600) / 60);
+            int seconds = Mathf.FloorToInt(_elapsedTime % 60);
 
             time.text = hours > 0 ? $"{hours:00}:{minutes:00}:{seconds:00}" : $"{minutes:00}:{seconds:00}";
 
@@ -87,10 +89,10 @@ public class StudyingUI : BaseUI
         }
     }
 
-    public void ResumeSubjectTimer(DateTime paused)
+    public void Resume(DateTime paused)
     {
         TimeSpan elapsedPaused = DateTime.UtcNow - paused;
-        startTime = startTime.Add(elapsedPaused);
+        StartTime = StartTime.Add(elapsedPaused);
     }
 
     private void UpdateCompleteButton()
@@ -109,7 +111,7 @@ public class StudyingUI : BaseUI
         return false;
     }
 
-    private void OnDestroy()
+    protected override void OnDestroy()
     {
         StopAllCoroutines();
         
@@ -119,10 +121,10 @@ public class StudyingUI : BaseUI
     
     private void OnDisable()
     {
-        if (timerCoroutine != null)
+        if (_timerCoroutine != null)
         {
-            StopCoroutine(timerCoroutine);
-            timerCoroutine = null;
+            StopCoroutine(_timerCoroutine);
+            _timerCoroutine = null;
         }
     }
 
@@ -147,7 +149,7 @@ public class StudyingUI : BaseUI
             return;
         }
 
-        userTimeData.Time += (long) elapsedTime;
+        userTimeData.Time += (long) _elapsedTime;
         userTimeData.SaveData();
 
         DateTime dateNow = DateTime.UtcNow.AddHours(9);
@@ -203,7 +205,7 @@ public class StudyingUI : BaseUI
             userDailyTimeData.DailyTimeItemDataList.Add(dailyItem);
         }
         
-        dailyItem.Time += (long) elapsedTime;
+        dailyItem.Time += (long) _elapsedTime;
         userDailyTimeData.SaveData();
         
         Dictionary<string, object> parameters = new Dictionary<string, object>()

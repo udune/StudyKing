@@ -466,11 +466,11 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>, IFirebaseMan
         {
             var modal = new ModalUIData
             {
-                Type = ModalType.OK,
+                Type = ModalType.Ok,
                 Title = "로그인 오류",
                 Desc = errorMessage ?? "로그인에 실패했습니다",
                 OkBtnText = "확인",
-                OKAction = () =>
+                OkAction = () =>
                 {
                     var modal = new ModalUIData();
                     UIManager.Instance.OpenUI<AccountUI>(modal);
