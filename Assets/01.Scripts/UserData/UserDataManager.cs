@@ -6,8 +6,8 @@ using Logger = Common.Logger;
 
 public class UserDataManager : SingletonBehaviour<UserDataManager>, IUserDataManager
 {
-    public bool IsExistSaveData { get; private set; }
-    public List<IUserData> UserDataList { get; private set; } = new List<IUserData>();
+    public bool IsExistSaveData { get; set; }
+    private List<IUserData> UserDataList { get; set; } = new List<IUserData>();
 
     protected override void Init()
     {
@@ -43,11 +43,15 @@ public class UserDataManager : SingletonBehaviour<UserDataManager>, IUserDataMan
 
     public void SaveUserData()
     {
-        bool error = false;
         foreach (var userData in UserDataList)
         {
             userData.SaveData();
         }
+    }
+    
+    public void SaveUserSettingData(UserSettingsData settingData)
+    {
+        settingData?.SaveData();
     }
 
     public T GetUserData<T>() where T : class, IUserData
@@ -61,7 +65,7 @@ public class UserDataManager : SingletonBehaviour<UserDataManager>, IUserDataMan
             }
             return result;
         }
-        catch (Exception e)
+        catch (Exception)
         {
             Logger.LogError($"{GetType()}:: Error in GetUserData");
             return null;
@@ -70,14 +74,16 @@ public class UserDataManager : SingletonBehaviour<UserDataManager>, IUserDataMan
 
     public bool IsUserDataLoaded()
     {
-        for (int i = 0; i < UserDataList.Count; i++)
+        foreach (var data in UserDataList)
         {
-            if (!UserDataList[i].IsLoaded)
+            if (!data.IsLoaded)
             {
                 return false;
             }
         }
-        
+
         return true;
     }
+    
+    public void ClearAllUserData() => UserDataList.Clear();
 }

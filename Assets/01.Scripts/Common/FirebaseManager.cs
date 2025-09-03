@@ -23,7 +23,7 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>, IFirebaseMan
     private readonly Dictionary<string, object> remoteConfigDic = new Dictionary<string, object>();
     
     // Auth
-    private FirebaseAuth auth;
+    public FirebaseAuth auth;
     private bool isAuthInit = false;
     private GoogleSignInConfiguration googleSignInConfiguration;
     private FirebaseUser firebaseUser;
