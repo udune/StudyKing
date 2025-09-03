@@ -30,7 +30,7 @@ public class LobbyManager : SingletonBehaviour<LobbyManager>
 
     private void Start()
     {
-        LobbyController = FindObjectOfType<LobbyController>();
+        LobbyController = FindAnyObjectByType<LobbyController>();
         if (LobbyController == null)
         {
             Logger.Log("LobbyController does not exist");
