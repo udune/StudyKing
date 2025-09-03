@@ -874,9 +874,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2668275750240315244}
-  - component: {fileID: 799599589746424529}
-  - component: {fileID: 4326008755592783201}
-  - component: {fileID: 5367312723035855191}
   m_Layer: 5
   m_Name: BarCanvasMultiple
   m_TagString: Untagged
@@ -904,161 +901,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &799599589746424529
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2472154879084427509}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: acb1d1c592b0c794d8bff6d0a590986e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  mPreviewObject: {fileID: 0}
-  OnRedraw:
-    m_PersistentCalls:
-      m_Calls: []
-  keepOrthoSize: 0
-  paperEffectText: 0
-  vRSpaceText: 0
-  vRSpaceScale: 0.1
-  maintainLabelSize: 0
-  viewType: 0
-  negativeBars: 0
-  stacked: 0
-  BarClicked:
-    m_PersistentCalls:
-      m_Calls: []
-  BarHovered:
-    m_PersistentCalls:
-      m_Calls: []
-  NonHovered:
-    m_PersistentCalls:
-      m_Calls: []
-  Data:
-    mCategories:
-    - Name: "\uC6D4"
-      Materials:
-        Normal: {fileID: 2100000, guid: c6a484c3764ff1844bff51f0d4874973, type: 2}
-        Hover: {r: 0.9558824, g: 0.9558824, b: 0.9558824, a: 1}
-        Selected: {r: 1, g: 1, b: 1, a: 1}
-    - Name: "\uD654"
-      Materials:
-        Normal: {fileID: 2100000, guid: c6a484c3764ff1844bff51f0d4874973, type: 2}
-        Hover: {r: 0.9529412, g: 0.9529412, b: 0.9529412, a: 1}
-        Selected: {r: 1, g: 1, b: 1, a: 1}
-    - Name: "\uC218"
-      Materials:
-        Normal: {fileID: 2100000, guid: c6a484c3764ff1844bff51f0d4874973, type: 2}
-        Hover: {r: 0.9529412, g: 0.9529412, b: 0.9529412, a: 1}
-        Selected: {r: 1, g: 1, b: 1, a: 1}
-    - Name: "\uBAA9"
-      Materials:
-        Normal: {fileID: 2100000, guid: c6a484c3764ff1844bff51f0d4874973, type: 2}
-        Hover: {r: 0.9529412, g: 0.9529412, b: 0.9529412, a: 1}
-        Selected: {r: 1, g: 1, b: 1, a: 1}
-    - Name: "\uAE08"
-      Materials:
-        Normal: {fileID: 2100000, guid: c6a484c3764ff1844bff51f0d4874973, type: 2}
-        Hover: {r: 0.9529412, g: 0.9529412, b: 0.9529412, a: 1}
-        Selected: {r: 1, g: 1, b: 1, a: 1}
-    - Name: "\uD1A0"
-      Materials:
-        Normal: {fileID: 2100000, guid: c6a484c3764ff1844bff51f0d4874973, type: 2}
-        Hover: {r: 0.9529412, g: 0.9529412, b: 0.9529412, a: 1}
-        Selected: {r: 1, g: 1, b: 1, a: 1}
-    - Name: "\uC77C"
-      Materials:
-        Normal: {fileID: 2100000, guid: c6a484c3764ff1844bff51f0d4874973, type: 2}
-        Hover: {r: 0.9529412, g: 0.9529412, b: 0.9529412, a: 1}
-        Selected: {r: 1, g: 1, b: 1, a: 1}
-    mGroups:
-    - weekly
-    mData:
-    - GroupName: weekly
-      ColumnName: "\uC6D4"
-      Amount: 1
-    - GroupName: weekly
-      ColumnName: "\uD654"
-      Amount: 2
-    - GroupName: weekly
-      ColumnName: "\uC218"
-      Amount: 3
-    - GroupName: weekly
-      ColumnName: "\uBAA9"
-      Amount: 4
-    - GroupName: weekly
-      ColumnName: "\uAE08"
-      Amount: 5
-    - GroupName: weekly
-      ColumnName: "\uD1A0"
-      Amount: 6
-    - GroupName: weekly
-      ColumnName: "\uC77C"
-      Amount: 7
-    automaticMaxValue: 1
-    maxValue: 20
-    automaticMinValue: 0
-    minValue: 0
-  transitionTimeBetaFeature: -1
-  heightRatio: 100
-  totalWidth: 260
-  totalDepth: 0
-  fitToContainer: 0
-  fitMargin:
-    left: 0
-    top: 0
-    right: 0
-    bottom: 0
-  barPrefab: {fileID: 222000010169192002, guid: e0e962d45efcf3648931eb569595e722,
-    type: 3}
-  axisSeperation: 0
-  barSeperation: 40
-  groupSeperation: 0
-  barSize: 20
-  barFitDirection: 0
-  barFitType: 1
-  barFitAlign: 1
---- !u!114 &4326008755592783201
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2472154879084427509}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5eb3e26fd06b41d4baa022120f5cd617, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  textPrefab: {fileID: 114000014259531626, guid: 25ea031bfc10c7342ab5bcb344090e13,
-    type: 3}
-  textFormat:
-    prefix: <?category>
-    suffix: 
-    customFormat: 
-  fontSize: 14
-  fontSharpness: 3
-  seperation: 0
-  location:
-    Breadth: 0
-    Depth: 0
-  alignment: 2
-  fractionDigits: 0
---- !u!114 &5367312723035855191
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2472154879084427509}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0adffba478642274dbb910f69c3e6e71, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &2486695231450359470
 GameObject:
   m_ObjectHideFlags: 0
@@ -1359,25 +1201,29 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   openAnimation: {fileID: 545199457340437207}
+  closeAnimation: {fileID: 0}
+  closeOnBgClick: 0
+  pauseGameWhenOpen: 0
   aiText: {fileID: 1549512078236883910}
-  totalTime: {fileID: 5817075559274961877}
+  totalTimeText: {fileID: 0}
   weeklyTotalTime: {fileID: 4422869231309864192}
   subjectTime: {fileID: 7895934297838326080}
-  pieChart: {fileID: 5689653766444003044}
-  barChart: {fileID: 799599589746424529}
-  graphChart: {fileID: 6042082075652411525}
+  pieChartContainer: {fileID: 0}
+  barChartContainer: {fileID: 0}
+  lineChartContainer: {fileID: 0}
   aiEmptyText: {fileID: 4676271349187278595}
   pieChartEmptyText: {fileID: 1274202360103610482}
   barChartEmptyText: {fileID: 2730127935232756218}
-  graphChartEmptyText: {fileID: 1903820223779550028}
+  lineChartEmptyText: {fileID: 0}
   pieChartContent: {fileID: 4247509994521936011}
   barChartContent: {fileID: 1048029631392292981}
-  graphChartContent: {fileID: 3343922818614680769}
-  pieChartMaterials:
-  - {fileID: 2100000, guid: e59275c8fcd2e1f4080d500df2449828, type: 2}
-  - {fileID: 2100000, guid: af83e29ae8bf16544996d8861d35b063, type: 2}
-  - {fileID: 2100000, guid: 37efe74b9b7cc82478aa5dddb34c0f63, type: 2}
-  barChartMaterial: {fileID: 2100000, guid: c6a484c3764ff1844bff51f0d4874973, type: 2}
+  lineChartContent: {fileID: 0}
+  chartColors:
+  - {r: 1, g: 0, b: 0, a: 1}
+  - {r: 0, g: 0, b: 1, a: 1}
+  - {r: 0, g: 1, b: 0, a: 1}
+  - {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  - {r: 0, g: 1, b: 1, a: 1}
 --- !u!111 &545199457340437207
 Animation:
   m_ObjectHideFlags: 0
@@ -3199,8 +3045,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3813242553802293747}
-  - component: {fileID: 5689653766444003044}
-  - component: {fileID: 8467297343788654792}
   m_Layer: 5
   m_Name: PieCanvas
   m_TagString: Untagged
@@ -3227,106 +3071,6 @@ RectTransform:
   m_AnchoredPosition: {x: 200, y: 50}
   m_SizeDelta: {x: -400, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &5689653766444003044
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7670253351802945975}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ad4d11f0b40946e4787e4581407e3b51, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  mPreviewObject: {fileID: 0}
-  OnRedraw:
-    m_PersistentCalls:
-      m_Calls: []
-  keepOrthoSize: 0
-  paperEffectText: 0
-  vRSpaceText: 0
-  vRSpaceScale: 0.1
-  maintainLabelSize: 0
-  PieClicked:
-    m_PersistentCalls:
-      m_Calls: []
-  PieHovered:
-    m_PersistentCalls:
-      m_Calls: []
-  NonHovered:
-    m_PersistentCalls:
-      m_Calls: []
-  meshSegements: 20
-  startAngle: 90
-  angleSpan: 360
-  spacingAngle: 0
-  radius: 150
-  torusRadius: 0
-  extrusion: 0
-  Data:
-    mCategories:
-    - Name: "\uC218\uD559"
-      Materials:
-        Normal: {fileID: 2100000, guid: e59275c8fcd2e1f4080d500df2449828, type: 2}
-        Hover: {r: 0, g: 0, b: 0, a: 0}
-        Selected: {r: 0, g: 0, b: 0, a: 0}
-      RadiusScale: 1
-      DepthScale: 1
-      DepthOffset: 1
-    - Name: "\uACFC\uD559"
-      Materials:
-        Normal: {fileID: 2100000, guid: af83e29ae8bf16544996d8861d35b063, type: 2}
-        Hover: {r: 0, g: 0, b: 0, a: 0}
-        Selected: {r: 0, g: 0, b: 0, a: 0}
-      RadiusScale: 1
-      DepthScale: 1
-      DepthOffset: 1
-    mGroups:
-    - Pie
-    mData:
-    - GroupName: Pie
-      ColumnName: "\uC218\uD559"
-      Amount: 10
-    - GroupName: Pie
-      ColumnName: "\uACFC\uD559"
-      Amount: 5
-  clockWise: 1
-  prefab: {fileID: 114000011816695716, guid: 174751ce50250cf4291f5c015fd4be43, type: 3}
-  lineThickness: 1
-  lineSpacing: 0
-  lineMaterial: {fileID: 0}
-  fitToContainer: 0
-  Container: {fileID: 0}
-  Title: {fileID: 0}
-  Info: {fileID: 0}
-  Image: {fileID: 0}
---- !u!114 &8467297343788654792
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7670253351802945975}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5eb3e26fd06b41d4baa022120f5cd617, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  textPrefab: {fileID: 114000014259531626, guid: 25ea031bfc10c7342ab5bcb344090e13,
-    type: 3}
-  textFormat:
-    prefix: <?category>
-    suffix: 
-    customFormat: 
-  fontSize: 40
-  fontSharpness: 1
-  seperation: 0
-  location:
-    Breadth: 0
-    Depth: 0
-  alignment: 2
-  fractionDigits: 0
 --- !u!1 &7745882288583945577
 GameObject:
   m_ObjectHideFlags: 0
@@ -3505,7 +3249,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1600128881732624279}
-  - component: {fileID: 6042082075652411525}
   m_Layer: 5
   m_Name: GraphChart
   m_TagString: Untagged
@@ -3533,92 +3276,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: -60, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &6042082075652411525
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8158983506114298606}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b652978617146ea49983ac4601def914, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  mPreviewObject: {fileID: 0}
-  OnRedraw:
-    m_PersistentCalls:
-      m_Calls: []
-  keepOrthoSize: 0
-  paperEffectText: 0
-  vRSpaceText: 0
-  vRSpaceScale: 0.1
-  maintainLabelSize: 0
-  autoScrollHorizontally: 1
-  horizontalScrolling: 0
-  autoScrollVertically: 1
-  verticalScrolling: 0
-  raycastTarget: 1
-  MousePan:
-    m_PersistentCalls:
-      m_Calls: []
-  horizontalPanning: 0
-  verticalPanning: 0
-  heightRatio: 220
-  widthRatio: 720
-  PointClicked:
-    m_PersistentCalls:
-      m_Calls: []
-  PointHovered:
-    m_PersistentCalls:
-      m_Calls: []
-  NonHovered:
-    m_PersistentCalls:
-      m_Calls: []
-  itemFormat: <?x>:<?y>
-  Data:
-    automaticVerticalViewGap: 0
-    automaticVerticallView: 1
-    automaticcHorizontaViewGap: 0
-    automaticHorizontalView: 1
-    horizontalViewSize: 10
-    horizontalViewOrigin: 0
-    verticalViewSize: 10
-    verticalViewOrigin: 0
-    mSerializedData:
-    - Name: monthly
-      InitialData: []
-      IsBezierCurve: 0
-      SegmentsPerCurve: 10
-      Depth: 0
-      LineHoverPrefab: {fileID: 0}
-      PointHoverPrefab: {fileID: 0}
-      MaskPoints: 0
-      Material: {fileID: 2100000, guid: 17705335a6baae7449e02ba5755f88ea, type: 2}
-      LineTiling:
-        EnableTiling: 0
-        TileFactor: 45.5
-      InnerFill: {fileID: 0}
-      LineThickness: 5
-      StetchFill: 0
-      DotPrefab: {fileID: 0}
-      PointMaterial: {fileID: 2100000, guid: fa0b3a0e33fedd249b4527b6027ba69e, type: 2}
-      PointSize: 20
-      ViewOrder: 0
-      AllowNonFunctionsBeta: 0
-  LineClicked:
-    m_PersistentCalls:
-      m_Calls: []
-  LineHovered:
-    m_PersistentCalls:
-      m_Calls: []
-  fitToContainer: 1
-  negativeFill: 0
-  fitMargin:
-    left: 0
-    top: 0
-    right: 0
-    bottom: 0
 --- !u!1 &8473521333602025574
 GameObject:
   m_ObjectHideFlags: 0
