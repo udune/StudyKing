@@ -1,80 +1,83 @@
 #if UNITY_EDITOR
 using System;
 using UnityEditor;
+using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
 using Logger = Common.Logger;
 
 public enum BuildType
 {
-    DEV,
-    TEST,
-    REAL
+    Dev,
+    Test,
+    Real
 }
 
 public class BuildManager : Editor
 {
-    public const string DEV_SCRIPTING_DEFINE_SYMBOLS = "DEV_VER";
-    public const string REAL_SCRIPTING_DEFINE_SYMBOLS = "";
+    private const string DevScriptingDefineSymbols = "DEV_VER";
+    private const string RealScriptingDefineSymbols = "";
 
-    private static BuildType BuildType = BuildType.DEV;
+    private static BuildType _buildType = BuildType.Dev;
     
     [MenuItem("Builds/Set AOS DEV Build Settings")]
-    public static void SetAOSDevBuildSettings()
+    public static void SetAosDevBuildSettings()
     {
         EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Android, BuildTarget.Android);
         EditorUserBuildSettings.buildAppBundle = false;
-        PlayerSettings.SetScriptingDefineSymbolsForGroup(BuildTargetGroup.Android, DEV_SCRIPTING_DEFINE_SYMBOLS);
+        PlayerSettings.SetScriptingDefineSymbols(NamedBuildTarget.Android, DevScriptingDefineSymbols);
         
-        BuildType = BuildType.DEV;
+        _buildType = BuildType.Dev;
     }
 
     [MenuItem("Builds/Set AOS TEST Build Settings")]
-    public static void SetAOSTestBuildSettings()
+    public static void SetAosTestBuildSettings()
     {
         EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Android, BuildTarget.Android);
         EditorUserBuildSettings.buildAppBundle = true;
-        PlayerSettings.SetScriptingDefineSymbolsForGroup(BuildTargetGroup.Android, DEV_SCRIPTING_DEFINE_SYMBOLS);
+        PlayerSettings.SetScriptingDefineSymbols(NamedBuildTarget.Android, DevScriptingDefineSymbols);
         
-        BuildType = BuildType.TEST;
+        _buildType = BuildType.Test;
     }
 
     [MenuItem("Builds/Set AOS REAL Build Settings")]
-    public static void SetAOSRealBuildSettings()
+    public static void SetAosRealBuildSettings()
     {
         EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Android, BuildTarget.Android);
         EditorUserBuildSettings.buildAppBundle = true;
-        PlayerSettings.SetScriptingDefineSymbolsForGroup(BuildTargetGroup.Android, REAL_SCRIPTING_DEFINE_SYMBOLS);
+        PlayerSettings.SetScriptingDefineSymbols(NamedBuildTarget.Android, RealScriptingDefineSymbols);
         
-        BuildType = BuildType.REAL;
+        _buildType = BuildType.Real;
     }
 
     [MenuItem("Builds/Start AOS Build")]
-    public static void StartAOSBuild()
+    public static void StartAosBuild()
     {
         PlayerSettings.Android.keystoreName = "Builds/AOS/minchankim.keystore";
         PlayerSettings.Android.keystorePass = "alscks3507";
         PlayerSettings.Android.keyaliasName = "minchankim";
         PlayerSettings.Android.keyaliasPass = "alscks3507";
         
-        BuildPlayerOptions buildPlayerOptions = new BuildPlayerOptions();
-        buildPlayerOptions.scenes = new[]
-        { 
-            "Assets/00.Scenes/Title.unity",
-            "Assets/00.Scenes/Lobby.unity",
+        BuildPlayerOptions buildPlayerOptions = new BuildPlayerOptions
+        {
+            scenes = new[]
+            { 
+                "Assets/00.Scenes/Title.unity",
+                "Assets/00.Scenes/Lobby.unity",
+            },
+            target = BuildTarget.Android
         };
-        buildPlayerOptions.target = BuildTarget.Android;
         string fileExtension = string.Empty;
         BuildOptions compressOption = BuildOptions.None;
 
-        switch (BuildType)
+        switch (_buildType)
         {
-            case BuildType.DEV:
+            case BuildType.Dev:
                 fileExtension = "apk";
                 compressOption = BuildOptions.CompressWithLz4;
                 break;
-            case BuildType.TEST:
-            case BuildType.REAL:
+            case BuildType.Test:
+            case BuildType.Real:
                 fileExtension = "aab";
                 compressOption = BuildOptions.CompressWithLz4HC;
                 break;
