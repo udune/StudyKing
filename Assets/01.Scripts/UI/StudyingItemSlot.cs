@@ -14,26 +14,26 @@ public class StudyingItemSlotData : InfiniteScrollData
 
 public class StudyingItemSlot : InfiniteScrollItem
 {
-    private StudyingItemSlotData studyingItemSlotData;
+    private StudyingItemSlotData _studyingItemSlotData;
 
     public int id;
-    public TMP_InputField name;
+    public TMP_InputField nameInput;
     public Toggle check;
 
     public override void UpdateData(InfiniteScrollData data)
     {
         base.UpdateData(data);
 
-        studyingItemSlotData = data as StudyingItemSlotData;
-        if (studyingItemSlotData == null)
+        _studyingItemSlotData = data as StudyingItemSlotData;
+        if (_studyingItemSlotData == null)
         {
             Logger.Log($"{GetType()}::studyingItemSlotData is invalid");
             return;
         }
 
-        id = studyingItemSlotData.Id;
-        name.text = studyingItemSlotData.Name;
-        check.isOn = studyingItemSlotData.Check;
+        id = _studyingItemSlotData.Id;
+        nameInput.text = _studyingItemSlotData.Name;
+        check.isOn = _studyingItemSlotData.Check;
 
         check.onValueChanged.RemoveAllListeners();
         check.onValueChanged.AddListener(OnClickCheck);
@@ -51,7 +51,7 @@ public class StudyingItemSlot : InfiniteScrollItem
         check.interactable = !isComplete;
     }
 
-    public void OnClickCheck(bool isChecked)
+    private void OnClickCheck(bool isChecked)
     {
         try
         {
@@ -90,7 +90,7 @@ public class StudyingItemSlot : InfiniteScrollItem
                 }
 
                 var now = DateTime.UtcNow;
-                var elapsedTime = now - studyingUI.startTime;
+                var elapsedTime = now - studyingUI.StartTime;
                 var elapsedSeconds = (long)elapsedTime.TotalSeconds;
 
                 var subject = userSubjectTimeData.SubjectTimeItemDataList.FirstOrDefault(x => x.Name.Equals(data.name));
@@ -103,31 +103,33 @@ public class StudyingItemSlot : InfiniteScrollItem
                 subject.Time += elapsedSeconds;
                 userSubjectTimeData.SaveData();
 
-                studyingUI.startTime = now;
+                studyingUI.StartTime = now;
 
                 if (studyingUI.CheckCompleted())
                 {
                     var pauseStartTime = DateTime.UtcNow;
                     LobbyManager.Instance.Pause();
 
-                    var modal = new ModalUIData();
-                    modal.Type = ModalType.OK_CANCEL;
-                    modal.Title = "정말 다 하셨어요?";
-                    modal.Desc = "공부 스케줄을 종료합니다.";
-                    modal.OkBtnText = "종료";
-                    modal.CancelBtnText = "취소";
-                    modal.OKAction = () =>
+                    var modal = new ModalUIData
                     {
-                        data.check = true;
-                        userStudyData.SaveData();
+                        Type = ModalType.OkCancel,
+                        Title = "정말 다 하셨어요?",
+                        Desc = "공부 스케줄을 종료합니다.",
+                        OkBtnText = "종료",
+                        CancelBtnText = "취소",
+                        OkAction = () =>
+                        {
+                            data.check = true;
+                            userStudyData.SaveData();
 
-                        LobbyManager.Instance.IsComplete = true;
-                    };
-                    modal.CANCELAction = () =>
-                    {
-                        studyingUI.ResumeSubjectTimer(pauseStartTime);
-                        LobbyManager.Instance.Resume();
-                        check.isOn = false;
+                            LobbyManager.Instance.IsComplete = true;
+                        },
+                        CancelAction = () =>
+                        {
+                            studyingUI.Resume(pauseStartTime);
+                            LobbyManager.Instance.Resume();
+                            check.isOn = false;
+                        }
                     };
 
                     UIManager.Instance.OpenUI<ModalUI>(modal);
@@ -135,7 +137,7 @@ public class StudyingItemSlot : InfiniteScrollItem
             }
             else
             {
-                studyingUI.startTime = DateTime.UtcNow;
+                studyingUI.StartTime = DateTime.UtcNow;
             }
         }
         catch (Exception e)
@@ -143,7 +145,7 @@ public class StudyingItemSlot : InfiniteScrollItem
             Logger.LogError($"{GetType()}::OnClickCheck error: {e.Message}");
             var model = new ModalUIData
             {
-                Type = ModalType.OK,
+                Type = ModalType.Ok,
                 Title = "오류",
                 Desc = "체크 처리 중 오류가 발생했습니다.",
                 OkBtnText = "확인"

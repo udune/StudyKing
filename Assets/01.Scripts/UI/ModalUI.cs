@@ -4,8 +4,8 @@ using UnityEngine.UI;
 
 public enum ModalType
 {
-    OK,
-    OK_CANCEL
+    Ok,
+    OkCancel
 }
 
 public class ModalUIData : BaseUIData
@@ -15,52 +15,55 @@ public class ModalUIData : BaseUIData
     public string Desc;
     public string OkBtnText;
     public string CancelBtnText;
-    public Action OKAction;
-    public Action CANCELAction;
+    public Action OkAction;
+    public Action CancelAction;
 }
 
 public class ModalUI : BaseUI
 {
-    public TextMeshProUGUI TitleText;
+    public TextMeshProUGUI titleText;
     public TextMeshProUGUI descText;
     public Button okBtn;
     public Button cancelBtn;
     public TextMeshProUGUI okBtnText;
     public TextMeshProUGUI cancelBtnText;
 
-    private ModalUIData modalUIData;
-    private Action OKAction;
-    private Action CANCELAction;
+    private ModalUIData _modalUIData;
+    private Action _okAction;
+    private Action _cancelAction;
 
     public override void Setting(BaseUIData data)
     {
         base.Setting(data);
         
-        modalUIData = data as ModalUIData;
-        
-        TitleText.text = modalUIData.Title;
-        descText.text = modalUIData.Desc;
-        okBtnText.text = modalUIData.OkBtnText;
-        cancelBtnText.text = modalUIData.CancelBtnText;
-        
-        OKAction = modalUIData.OKAction;
-        CANCELAction = modalUIData.CANCELAction;
-        
-        okBtn.gameObject.SetActive(true);
-        cancelBtn.gameObject.SetActive(modalUIData.Type == ModalType.OK_CANCEL);
+        _modalUIData = data as ModalUIData;
+
+        if (_modalUIData != null)
+        {
+            titleText.text = _modalUIData.Title;
+            descText.text = _modalUIData.Desc;
+            okBtnText.text = _modalUIData.OkBtnText;
+            cancelBtnText.text = _modalUIData.CancelBtnText;
+
+            _okAction = _modalUIData.OkAction;
+            _cancelAction = _modalUIData.CancelAction;
+
+            okBtn.gameObject.SetActive(true);
+            cancelBtn.gameObject.SetActive(_modalUIData.Type == ModalType.OkCancel);
+        }
     }
 
     public void OnClickOKBtn()
     {
-        OKAction?.Invoke();
-        OKAction = null;
+        _okAction?.Invoke();
+        _okAction = null;
         CloseUI();
     }
 
     public void OnClickCancelBtn()
     {
-        CANCELAction?.Invoke();
-        CANCELAction = null;
+        _cancelAction?.Invoke();
+        _cancelAction = null;
         CloseUI();
     }
 }

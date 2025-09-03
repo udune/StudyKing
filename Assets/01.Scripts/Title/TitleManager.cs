@@ -53,11 +53,11 @@ namespace Title
             if (!FirebaseManager.Instance.IsInit())
             {
                 var modal = new ModalUIData();
-                modal.Type = ModalType.OK;
+                modal.Type = ModalType.Ok;
                 modal.Title = "네트워크 오류";
                 modal.Desc = "네트워크 초기화에 실패했습니다.\n앱을 종료합니다.";
                 modal.OkBtnText = "다시 시도";
-                modal.OKAction = Application.Quit;
+                modal.OkAction = Application.Quit;
                 UIManager.Instance.OpenUI<ModalUI>(modal);
                 
                 yield break;
@@ -120,12 +120,12 @@ namespace Title
             else
             {
                 var modal = new ModalUIData();
-                modal.Type = ModalType.OK_CANCEL;
+                modal.Type = ModalType.OkCancel;
                 modal.Title = string.Empty;
                 modal.Desc = "앱 버전이 오래되었어요.<br>업데이트하시겠어요?";
                 modal.OkBtnText = "업데이트";
                 modal.CancelBtnText = "취소";
-                modal.OKAction = () =>
+                modal.OkAction = () =>
                 {
                     #if UNITY_ANDROID
                         Application.OpenURL(Constants.GlobalDefine.GOOGLE_PLAY_STORE);
@@ -133,7 +133,7 @@ namespace Title
                         Application.OpenURL(GlobalDefine.APPLE_PLAY_STORE);
                     #endif
                 };
-                modal.CANCELAction = () =>
+                modal.CancelAction = () =>
                 {
                     Application.Quit();
                 };
