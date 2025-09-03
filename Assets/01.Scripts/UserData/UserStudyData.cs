@@ -1,15 +1,13 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
 using Logger = Common.Logger;
 
 [Serializable]
 public class StudyItemData
 {
-    public int Id;
-    public string Name;
-    public bool Check;
+    public int id;
+    public string name;
+    public bool check;
 }
 
 public class UserStudyData : IUserData
@@ -22,8 +20,8 @@ public class UserStudyData : IUserData
     {
         Logger.Log($"{GetType()}::Initialize");
         
-        StudyItemDataList.Add(new StudyItemData { Id = 1, Name = "수학", Check = false });
-        StudyItemDataList.Add(new StudyItemData { Id = 2, Name = "영어", Check = false });
+        StudyItemDataList.Add(new StudyItemData { id = 1, name = "수학", check = false });
+        StudyItemDataList.Add(new StudyItemData { id = 2, name = "영어", check = false });
     }
 
     public void Setting(Dictionary<string, object> firestoreDict)
@@ -63,17 +61,17 @@ public class UserStudyData : IUserData
 
                     if (itemDataDict.TryGetValue("Id", out var idValue) && idValue != null)
                     {
-                        studyItemData.Id = Convert.ToInt32(idValue);
+                        studyItemData.id = Convert.ToInt32(idValue);
                     }
 
                     if (itemDataDict.TryGetValue("Name", out var nameValue) && nameValue is string name)
                     {
-                        studyItemData.Name = name;
+                        studyItemData.name = name;
                     }
 
                     if (itemDataDict.TryGetValue("Check", out var checkValue) && checkValue is bool check)
                     {
-                        studyItemData.Check = check;
+                        studyItemData.check = check;
                     }
                     
                     StudyItemDataList.Add(studyItemData);
@@ -90,9 +88,9 @@ public class UserStudyData : IUserData
         {
             var convertedDict = new Dictionary<string, object>()
             {
-                { "Id", itemData.Id },
-                { "Name", itemData.Name },
-                { "Check", itemData.Check },
+                { "Id", itemData.id },
+                { "Name", itemData.name },
+                { "Check", itemData.check },
             };
 
             convertedStudyItemDataList.Add(convertedDict);

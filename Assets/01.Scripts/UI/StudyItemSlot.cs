@@ -7,35 +7,36 @@ public class StudyItemSlotData : InfiniteScrollData
 {
     public int Id;
     public string Name;
+    public bool Check;
 }
 
 public class StudyItemSlot : InfiniteScrollItem
 {
-    private StudyItemSlotData studyItemSlotData;
+    private StudyItemSlotData _studyItemSlotData;
 
     public int id;
-    public TMP_InputField name;
+    public TMP_InputField nameInput;
 
     public override void UpdateData(InfiniteScrollData data)
     {
         base.UpdateData(data);
         
-        studyItemSlotData = data as StudyItemSlotData;
-        if (studyItemSlotData == null)
+        _studyItemSlotData = data as StudyItemSlotData;
+        if (_studyItemSlotData == null)
         {
             Logger.Log($"{GetType()}::studyItemSlotData is invalid");
             return;
         }
         
-        id = studyItemSlotData.Id;
-        name.text = studyItemSlotData.Name;
+        id = _studyItemSlotData.Id;
+        nameInput.text = _studyItemSlotData.Name;
         
-        name.onEndEdit.AddListener(OnInputEnd);
+        nameInput.onEndEdit.AddListener(OnInputEnd);
     }
 
-    public void OnInputEnd(string name)
+    private void OnInputEnd(string nameStr)
     {
-        Logger.Log($"{GetType()}::OnEndEdit(text={name})");
+        Logger.Log($"{GetType()}::OnEndEdit(text={nameStr})");
         var userStudyData = UserDataManager.Instance.GetUserData<UserStudyData>();
         if (userStudyData == null)
         {
@@ -44,7 +45,7 @@ public class StudyItemSlot : InfiniteScrollItem
         }
 
         var data = userStudyData.StudyItemDataList
-            .Where(x => x.Id == id)
+            .Where(x => x.id == id)
             .ToList()
             .FirstOrDefault();
         if (data == null)
@@ -53,7 +54,7 @@ public class StudyItemSlot : InfiniteScrollItem
             return;
         }
         
-        data.Name = name;
+        data.name = nameStr;
         userStudyData.SaveData();
     }
 
@@ -67,7 +68,7 @@ public class StudyItemSlot : InfiniteScrollItem
         }
 
         var data = userStudyData.StudyItemDataList
-            .Where(x => x.Id == id)
+            .Where(x => x.id == id)
             .ToList()
             .FirstOrDefault();
         if (data == null)
@@ -86,6 +87,6 @@ public class StudyItemSlot : InfiniteScrollItem
             return;
         }
 
-        studyUI.Refresh();
+        studyUI.RefreshFromExternal();
     }
 }

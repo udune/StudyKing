@@ -28,25 +28,25 @@ public class BaseUI : MonoBehaviour
 
     [Header("UI 설정")] 
     // 배경 클릭 시 닫기
-    [SerializeField] protected bool closeOnBgClick = false;
+    [SerializeField] protected bool closeOnBgClick;
     // UI가 열릴 때 일시정지
-    [SerializeField] protected bool pauseGameWhenOpen = false;
+    [SerializeField] protected bool pauseGameWhenOpen;
 
     // 초기화 완료
-    private bool isInit = false;
+    private bool _isInit;
     
     // 현재 표시되고 있는지
-    private bool isShow = false;
+    private bool _isShow;
     
-    private Action onShow;
-    private Action onClose;
+    private Action _onShow;
+    private Action _onClose;
 
     // 시간 스케일
-    private float originTimeScale = 1.0f;
+    private float _originTimeScale = 1.0f;
 
     public virtual void Init(Transform anchor)
     {
-        if (isInit)
+        if (_isInit)
         {
             Logger.Log($"{GetType()}::Init is already init");
             return;
@@ -67,10 +67,10 @@ public class BaseUI : MonoBehaviour
 
             OnInit();
             
-            isInit = true;
+            _isInit = true;
             Logger.Log($"{GetType()}::Init is done");
         }
-        catch (Exception e)
+        catch (Exception)
         {
             Logger.LogError($"{GetType()}::Init is failed");
             throw;
@@ -106,10 +106,7 @@ public class BaseUI : MonoBehaviour
 
     private void SetupBgClickHandler()
     {
-        if (!closeOnBgClick)
-        {
-            return;
-        }
+        if (!closeOnBgClick) { }
         
         // TODO
     }
@@ -127,14 +124,14 @@ public class BaseUI : MonoBehaviour
 
         try
         {
-            onShow = data.OnShow;
-            onClose = data.OnClose;
+            _onShow = data.OnShow;
+            _onClose = data.OnClose;
 
             OnSetting(data);
             
             Logger.Log($"{GetType()}::Setting is done");
         }
-        catch (Exception e)
+        catch (Exception)
         {
             Logger.LogError($"{GetType()}::Setting is failed");
             throw;
@@ -143,7 +140,7 @@ public class BaseUI : MonoBehaviour
 
     public virtual void ShowUI()
     {
-        if (isShow)
+        if (_isShow)
         {
             Logger.Log($"{GetType()}::is already show");
             return;
@@ -153,22 +150,22 @@ public class BaseUI : MonoBehaviour
 
         try
         {
-            isShow = true;
+            _isShow = true;
 
             PauseHandle(true);
 
             PlayOpenAnim();
 
-            ExecCallback(onShow, "OnShow");
+            ExecCallback(_onShow, "OnShow");
 
             OnShow();
             
             Logger.Log($"{GetType()}::ShowUI is done");
         }
-        catch (Exception e)
+        catch (Exception)
         {
             Logger.LogError($"{GetType()}::ShowUI is failed");
-            isShow = false;
+            _isShow = false;
             throw;
         }
     }
@@ -182,13 +179,13 @@ public class BaseUI : MonoBehaviour
 
         if (isPause)
         {
-            originTimeScale = Time.timeScale;
+            _originTimeScale = Time.timeScale;
             Time.timeScale = 0.0f;
             Logger.Log($"{GetType()}::Pause");
         }
         else
         {
-            Time.timeScale = originTimeScale;
+            Time.timeScale = _originTimeScale;
             Logger.Log($"{GetType()}::Resume");
         }
     }
@@ -223,7 +220,7 @@ public class BaseUI : MonoBehaviour
             callback.Invoke();
             Logger.Log($"{GetType()}::{methodName} is done");
         }
-        catch (Exception e)
+        catch (Exception)
         {
             Logger.Log($"{GetType()}::{methodName} is failed");
             throw;
@@ -232,7 +229,7 @@ public class BaseUI : MonoBehaviour
     
     public virtual void CloseUI(bool isForceClose = false)
     {
-        if (!isShow && !isForceClose)
+        if (!_isShow && !isForceClose)
         {
             Logger.Log($"{GetType()}::is already close");
             return;
@@ -242,12 +239,12 @@ public class BaseUI : MonoBehaviour
 
         try
         {
-            isShow = false;
+            _isShow = false;
 
             // 강제 닫기가 아닌 경우에만
             if (!isForceClose)
             {
-                ExecCallback(onClose, "OnClose");
+                ExecCallback(_onClose, "OnClose");
             }
 
             // 일시정지 해제
@@ -269,7 +266,7 @@ public class BaseUI : MonoBehaviour
                 gameObject.SetActive(false);
             }
         }
-        catch (Exception e)
+        catch (Exception)
         {
             Logger.LogError($"{GetType()}::CloseUI is failed");
             throw;
@@ -283,8 +280,8 @@ public class BaseUI : MonoBehaviour
 
     private void ClearCallbacks()
     {
-        onShow = null;
-        onClose = null;
+        _onShow = null;
+        _onClose = null;
     }
 
     public virtual void OnClickClose()
@@ -296,7 +293,7 @@ public class BaseUI : MonoBehaviour
     protected virtual void Update()
     {
         // 뒤로 가기 키 감지(안드로이드)
-        if (Input.GetKeyDown(KeyCode.Escape) && isShow)
+        if (Input.GetKeyDown(KeyCode.Escape) && _isShow)
         {
             OnBackKeyPressed();
         }
@@ -336,15 +333,15 @@ public class BaseUI : MonoBehaviour
     
     #region Util
     // UI가 초기화되었는가.
-    public bool IsInit => isInit;
+    public bool IsInit => _isInit;
     
     // UI가 현재 표시되고 있는가.
-    public bool IsShow => isShow;
+    public bool IsShow => _isShow;
 
     // UI를 강제로 표시 상태로 변경
     public void SetShowState(bool show)
     {
-        isShow = show;
+        _isShow = show;
         Logger.Log($"{GetType()}::SetShowState {show}");
     }
 
@@ -369,7 +366,7 @@ public class BaseUI : MonoBehaviour
     {
         if (pauseGameWhenOpen && Time.timeScale == 0f)
         {
-            Time.timeScale = originTimeScale;
+            Time.timeScale = _originTimeScale;
         }
         
         ClearCallbacks();

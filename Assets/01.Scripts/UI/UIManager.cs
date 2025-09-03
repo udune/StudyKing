@@ -7,9 +7,9 @@ public class UIManager : SingletonBehaviour<UIManager>
 {
     [Header("UI 컨테이너")]
     // 활성화된 UI들이 붙을 캔버스
-    [SerializeField] Transform UICanvasTrn;
+    [SerializeField] Transform uiCanvasTrn;
     // 비활성화된 UI들이 보관될 컨테이너
-    [SerializeField] Transform ClosedUITrn;
+    [SerializeField] Transform closedUITrn;
 
     [Header("고정 UI들")]
     // 시간 UI
@@ -18,13 +18,12 @@ public class UIManager : SingletonBehaviour<UIManager>
     [SerializeField] private TabUI tabUI;
     
     // 현재 가장 위에 UI
-    private BaseUI currentUI;
+    private BaseUI _currentUI;
     
     // UI 풀링 위한 딕셔너리
-    private Dictionary<Type, GameObject> openUIPool = new Dictionary<Type, GameObject>();
-    private Dictionary<Type, GameObject> closedUIPool = new Dictionary<Type, GameObject>();
+    private readonly Dictionary<Type, GameObject> _openUIPool = new Dictionary<Type, GameObject>();
+    private readonly Dictionary<Type, GameObject> _closedUIPool = new Dictionary<Type, GameObject>();
     
-    [Obsolete("Obsolete")]
     protected override void Init()
     {
         base.Init();
@@ -35,16 +34,15 @@ public class UIManager : SingletonBehaviour<UIManager>
         Logger.Log($"{GetType()}::UIManager 초기화 완료");
     }
 
-    [Obsolete("Obsolete")]
     private void InitComponents()
     {
         // UI 컨테이너들이 설정되지 않았다면 찾는다.
-        if (UICanvasTrn == null)
+        if (uiCanvasTrn == null)
         {
-            Canvas canvas = FindObjectOfType<Canvas>();
+            Canvas canvas = FindAnyObjectByType<Canvas>();
             if (canvas != null)
             {
-                UICanvasTrn = canvas.transform;
+                uiCanvasTrn = canvas.transform;
                 Logger.Log($"{GetType()}::UI 캔버스를 찾았다.");
             }
             else
@@ -56,7 +54,7 @@ public class UIManager : SingletonBehaviour<UIManager>
         // timeUI를 찾는다.
         if (timeUI == null)
         {
-            timeUI = FindObjectOfType<TimeUI>();
+            timeUI = FindAnyObjectByType<TimeUI>();
             if (timeUI == null)
             {
                 Logger.LogWarning($"{GetType()}::TimeUI를 찾을 수 없다.");
@@ -70,7 +68,7 @@ public class UIManager : SingletonBehaviour<UIManager>
         // TabUI를 찾는다.
         if (tabUI == null)
         {
-            tabUI = FindObjectOfType<TabUI>();
+            tabUI = FindAnyObjectByType<TabUI>();
             if (tabUI == null)
             {
                 Logger.LogWarning($"{GetType()}::TabUI를 찾을 수 없다.");
@@ -82,12 +80,12 @@ public class UIManager : SingletonBehaviour<UIManager>
         }
 
         // 닫힌 UI 컨테이너가 없다면 만들어준다.
-        if (ClosedUITrn == null)
+        if (closedUITrn == null)
         {
             GameObject closedUIContainer = new GameObject("ClosedUIContainer");
             closedUIContainer.transform.SetParent(transform);
             closedUIContainer.SetActive(false);
-            ClosedUITrn = closedUIContainer.transform;
+            closedUITrn = closedUIContainer.transform;
             Logger.Log($"{GetType()}::닫힌 UI 컨테이너를 자동으로 생성했습니다.");
         }
     }
@@ -126,20 +124,20 @@ public class UIManager : SingletonBehaviour<UIManager>
     private BaseUI GetUIFromPool<T>(out bool isAlreadyOpen) where T : BaseUI
     {
         Type type = typeof(T);
-        BaseUI ui = null;
+        BaseUI ui;
         isAlreadyOpen = false;
 
         // 열려있는 UI에서 확인
-        if (openUIPool.ContainsKey(type))
+        if (_openUIPool.TryGetValue(type, out var obj))
         {
-            ui = openUIPool[type].GetComponent<BaseUI>();
+            ui = obj.GetComponent<BaseUI>();
             isAlreadyOpen = true;
             Logger.Log($"{GetType()}::이미 열려있는 {type} UI를 반환합니다");
         } // 닫혀있는 UI에서 확인
-        else if (closedUIPool.ContainsKey(type))
+        else if (_closedUIPool.ContainsKey(type))
         {
-            ui = closedUIPool[type].GetComponent<BaseUI>();
-            closedUIPool.Remove(type);
+            ui = _closedUIPool[type].GetComponent<BaseUI>();
+            _closedUIPool.Remove(type);
             Logger.Log($"{GetType()}::풀에서 {type} UI를 가져왔습니다");
         }
         else // 새로 생성
@@ -178,9 +176,8 @@ public class UIManager : SingletonBehaviour<UIManager>
         }
         
         Logger.Log($"{GetType()}::OpenUI({type})");
-        
-        bool isAlreadyOpen;
-        var ui = GetUIFromPool<T>(out isAlreadyOpen);
+
+        var ui = GetUIFromPool<T>(out var isAlreadyOpen);
 
         if (ui == null)
         {
@@ -193,7 +190,7 @@ public class UIManager : SingletonBehaviour<UIManager>
             Logger.Log($"{type} is already open");
             // 맨 앞으로 보낸다.
             ui.transform.SetAsLastSibling();
-            currentUI = ui;
+            _currentUI = ui;
             return;
         }
 
@@ -206,7 +203,7 @@ public class UIManager : SingletonBehaviour<UIManager>
         try
         {
             // 초기화
-            ui.Init(UICanvasTrn);
+            ui.Init(uiCanvasTrn);
             // 맨 앞으로
             ui.transform.SetAsLastSibling();
             // 활성화
@@ -216,9 +213,9 @@ public class UIManager : SingletonBehaviour<UIManager>
             // 표시
             ui.ShowUI();
 
-            currentUI = ui;
+            _currentUI = ui;
 
-            openUIPool[type] = ui.gameObject;
+            _openUIPool[type] = ui.gameObject;
 
             Logger.Log($"{GetType()}::{type} UI 열기 완료");
         }
@@ -250,11 +247,11 @@ public class UIManager : SingletonBehaviour<UIManager>
             // 비활성화
             ui.gameObject.SetActive(false);
             // 열린 UI풀에서 제거
-            openUIPool.Remove(type);
+            _openUIPool.Remove(type);
             // 닫힌 UI풀에 추가
-            closedUIPool[type] = ui.gameObject;
+            _closedUIPool[type] = ui.gameObject;
             // 닫힌 UI 컨테이너로 이동
-            ui.transform.SetParent(ClosedUITrn);
+            ui.transform.SetParent(closedUITrn);
             // UI 업데이트
             UpdateCurrentUI();
             
@@ -268,32 +265,27 @@ public class UIManager : SingletonBehaviour<UIManager>
 
     private void UpdateCurrentUI()
     {
-        currentUI = null;
+        _currentUI = null;
 
-        if (UICanvasTrn.childCount > 0)
+        if (uiCanvasTrn.childCount > 0)
         {
             // 마지막이 현재 UI
-            Transform lastChild = UICanvasTrn.GetChild(UICanvasTrn.childCount - 1);
+            Transform lastChild = uiCanvasTrn.GetChild(uiCanvasTrn.childCount - 1);
             if (lastChild != null)
             {
-                currentUI = lastChild.GetComponent<BaseUI>();
+                _currentUI = lastChild.GetComponent<BaseUI>();
             }
         }
 
-        if (currentUI != null)
-        {
-            Logger.Log($"{GetType()}::현재 UI가 {currentUI.GetType()}로 변경되었습니다");
-        }
-        else
-        {
-            Logger.Log($"{GetType()}::현재 활성화된 UI가 없습니다");
-        }
+        Logger.Log(_currentUI != null
+            ? $"{GetType()}::현재 UI가 {_currentUI.GetType()}로 변경되었습니다"
+            : $"{GetType()}::현재 활성화된 UI가 없습니다");
     }
 
     public BaseUI GetActiveUI<T>() where T : BaseUI
     {
         Type type = typeof(T);
-        return openUIPool.ContainsKey(type) ? openUIPool[type].GetComponent<T>() : null;
+        return _openUIPool.TryGetValue(type, out var obj) ? obj.GetComponent<T>() : null;
     }
 
     // 모든 열린 UI 닫기
@@ -302,7 +294,7 @@ public class UIManager : SingletonBehaviour<UIManager>
         Logger.Log($"{GetType()}::CloseAllOpenUI()");
         
         var openUIs = new List<BaseUI>();
-        foreach (var go in openUIPool.Values)
+        foreach (var go in _openUIPool.Values)
         {
             if (go != null)
             {
@@ -337,11 +329,11 @@ public class UIManager : SingletonBehaviour<UIManager>
     }
 
     // UI 풀을 정리한다.
-    public void ClearUIPool()
+    private void ClearUIPool()
     {
         Logger.Log($"{GetType()}::ClearUIPool()");
 
-        foreach (var go in openUIPool.Values)
+        foreach (var go in _openUIPool.Values)
         {
             if (go != null)
             {
@@ -349,7 +341,7 @@ public class UIManager : SingletonBehaviour<UIManager>
             }
         }
         
-        closedUIPool.Clear();
+        _closedUIPool.Clear();
         Logger.Log($"{GetType()}::UI 풀 정리 완료");
     }
 
