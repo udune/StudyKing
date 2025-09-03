@@ -9,38 +9,40 @@ using Random = UnityEngine.Random;
 
 public class PlayerController : MonoBehaviour
 {
+    private static readonly int MoveSpeed = Animator.StringToHash("MoveSpeed");
+
     [Header("Movement Settings")]
     [SerializeField] private float moveSpeed = 2.0f;
     [SerializeField] private float turnSpeed = 10.0f;
     
     [Header("Idle Settings")]
     [Range(0.0f, 10.0f)]
-    [SerializeField] private float minIdleTime = 0.0f;
+    [SerializeField] private float minIdleTime;
     [Range(0.0f, 10.0f)]
     [SerializeField] private float maxIdleTime = 10.0f;
     
     [Header("Debug")]
-    [SerializeField] private bool debugMode = false;
+    [SerializeField] private bool debugMode;
 
-    private List<Transform> patrolPointList = new List<Transform>();
-    private List<Transform> wayPointList = new List<Transform>();
-    private List<int> wayPointIdxList = new List<int>();
-    private Transform targetWayPoint;
-    private int wayPointIdx;
+    private List<Transform> _patrolPointList = new List<Transform>();
+    [SerializeField] private List<Transform> wayPointList = new List<Transform>();
+    private readonly List<int> _wayPointIdxList = new List<int>();
+    private Transform _targetWayPoint;
+    private int _wayPointIdx;
     
-    private float idleTime;
-    private float elapsedTime;
+    private float _idleTime;
+    private float _elapsedTime;
     
-    private Animator animator;
-    private NavMeshAgent agent;
+    private Animator _animator;
+    private NavMeshAgent _agent;
 
-    private IPatrol curState;
-    private Coroutine updateRoutine;
-    private bool isInitialized = false;
+    private IPatrol _curState;
+    private Coroutine _updateRoutine;
+    private bool _isInitialized;
     
-    public bool IsMoving => agent != null && agent.velocity.magnitude > 0.1f;
-    public bool IsIdle => curState is PatrolIdle;
-    public Transform CurrentTarget => targetWayPoint;
+    public bool IsMoving => _agent != null && _agent.velocity.magnitude > 0.1f;
+    public bool IsIdle => _curState is PatrolIdle;
+    public Transform CurrentTarget => _targetWayPoint;
 
     public event Action<Vector3> OnDestinationReached;
     public event Action<IPatrol> OnStateChanged;
@@ -52,17 +54,17 @@ public class PlayerController : MonoBehaviour
             InitializeComponents();
             InitializePatrolPoints();
         }
-        catch (Exception e)
+        catch (Exception)
         {
             Logger.LogError($"{GetType()}:: Error in Awake");
         }
         
-        animator = GetComponent<Animator>();
-        agent = GetComponent<NavMeshAgent>();
-        agent.updateRotation = false;
+        _animator = GetComponent<Animator>();
+        _agent = GetComponent<NavMeshAgent>();
+        _agent.updateRotation = false;
 
-        patrolPointList = GameObject.Find("PatrolPoint")?.GetComponentsInChildren<Transform>().ToList();
-        patrolPointList?.RemoveAt(0);
+        _patrolPointList = GameObject.Find("PatrolPoint")?.GetComponentsInChildren<Transform>().ToList();
+        _patrolPointList?.RemoveAt(0);
     }
 
     private void Start()
@@ -73,12 +75,12 @@ public class PlayerController : MonoBehaviour
             {
                 GenerateWaypoints();
                 SetInitialPosition();
-                isInitialized = true;
+                _isInitialized = true;
                 ChangeState<PatrolIdle>();
 
                 if (debugMode)
                 {
-                    Logger.Log($"{GetType()}:: {patrolPointList.Count} PatrolPoint is found");
+                    Logger.Log($"{GetType()}:: {_patrolPointList.Count} PatrolPoint is found");
                 }
             }
             else
@@ -86,7 +88,7 @@ public class PlayerController : MonoBehaviour
                 Logger.LogError($"{GetType()}:: Setup is not valid");
             }
         }
-        catch (Exception e)
+        catch (Exception)
         {
             Logger.LogError($"{GetType()}:: Error in Start");
         }
@@ -94,21 +96,21 @@ public class PlayerController : MonoBehaviour
 
     private void InitializeComponents()
     {
-        animator = GetComponent<Animator>();
-        if (animator == null)
+        _animator = GetComponent<Animator>();
+        if (_animator == null)
         {
             Logger.LogError($"{GetType()}:: Animator is not found");
         }
         
-        agent = GetComponent<NavMeshAgent>();
-        if (agent == null)
+        _agent = GetComponent<NavMeshAgent>();
+        if (_agent == null)
         {
             Logger.LogError($"{GetType()}:: NavMeshAgent is not found");
             return;
         }
         
-        agent.updateRotation = false;
-        agent.speed = moveSpeed;
+        _agent.updateRotation = false;
+        _agent.speed = moveSpeed;
     }
     
     private void InitializePatrolPoints()
@@ -116,29 +118,29 @@ public class PlayerController : MonoBehaviour
         var patrolParent = GameObject.Find("PatrolPoint");
         if (patrolParent != null)
         {
-            patrolPointList = patrolParent.GetComponentsInChildren<Transform>().ToList();
-            patrolPointList?.RemoveAt(0);
+            _patrolPointList = patrolParent.GetComponentsInChildren<Transform>().ToList();
+            _patrolPointList?.RemoveAt(0);
 
             if (debugMode)
             {
-                Logger.Log($"{GetType()}:: {patrolPointList?.Count} PatrolPoint is found");
+                Logger.Log($"{GetType()}:: {_patrolPointList?.Count} PatrolPoint is found");
             }
             else
             {
-                Logger.LogWarning($"{GetType()}:: {patrolPointList?.Count} PatrolPoint is found");   
+                Logger.LogWarning($"{GetType()}:: {_patrolPointList?.Count} PatrolPoint is found");   
             }
         }
     }
 
     private bool ValidateSetup()
     {
-        if (agent == null)
+        if (_agent == null)
         {
             Logger.LogError($"{GetType()}:: NavMeshAgent is not found");
             return false;
         }
 
-        if (patrolPointList == null || patrolPointList.Count.Equals(0))
+        if (_patrolPointList == null || _patrolPointList.Count.Equals(0))
         {
             Logger.LogWarning($"{GetType()}:: PatrolPoint is not found");
             return false;
@@ -155,7 +157,7 @@ public class PlayerController : MonoBehaviour
     
     private void GenerateWaypoints()
     {
-        if (patrolPointList == null || patrolPointList.Count.Equals(0))
+        if (_patrolPointList == null || _patrolPointList.Count.Equals(0))
         {
             Logger.LogError($"{GetType()}:: PatrolPoint is not found");
             return;
@@ -163,8 +165,8 @@ public class PlayerController : MonoBehaviour
 
         try
         {
-            wayPointIdxList.Clear();
-            var availableIndices = Enumerable.Range(0, patrolPointList.Count).ToList();
+            _wayPointIdxList.Clear();
+            var availableIndices = Enumerable.Range(0, _patrolPointList.Count).ToList();
 
             for (int i = 0; i < availableIndices.Count; i++)
             {
@@ -172,14 +174,14 @@ public class PlayerController : MonoBehaviour
                 (availableIndices[i], availableIndices[randomIndex]) = (availableIndices[randomIndex], availableIndices[i]);
             }
             
-            wayPointIdxList.AddRange(availableIndices);
+            _wayPointIdxList.AddRange(availableIndices);
 
             wayPointList.Clear();
-            foreach (int idx in wayPointIdxList)
+            foreach (int idx in _wayPointIdxList)
             {
-                if (idx < patrolPointList.Count && patrolPointList[idx] != null)
+                if (idx < _patrolPointList.Count && _patrolPointList[idx] != null)
                 {
-                    wayPointList.Add(patrolPointList[idx]);
+                    wayPointList.Add(_patrolPointList[idx]);
                 }
             }
 
@@ -188,7 +190,7 @@ public class PlayerController : MonoBehaviour
                 Logger.Log($"{GetType()}:: {wayPointList.Count} WayPoint is generated");
             }
         }
-        catch (Exception e)
+        catch (Exception)
         {
             Logger.LogError($"{GetType()}:: Error in GenerateWaypoints");
         }
@@ -201,14 +203,14 @@ public class PlayerController : MonoBehaviour
             try
             {
                 transform.position = wayPointList[0].position;
-                wayPointIdx = 0;
+                _wayPointIdx = 0;
                 
                 if (debugMode)
                 {
                     Logger.Log($"{GetType()}:: Initial Position is set");
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 Logger.LogError($"{GetType()}:: Error in SetInitialPosition");
             }
@@ -217,35 +219,35 @@ public class PlayerController : MonoBehaviour
 
     public T ChangeState<T>() where T : Component, IPatrol
     {
-        if (!isInitialized)
+        if (!_isInitialized)
         {
             Logger.LogWarning($"{GetType()}:: PlayerController is not initialized");
             return null;
         }
 
-        if (curState is T)
+        if (_curState is T state)
         {
             if (debugMode)
             {
                 Logger.Log($"{GetType()}:: State is already {typeof(T).Name}");
             }
-            return (T) curState;
+            return state;
         }
 
         try
         {
-            curState?.OnEnd();
+            _curState?.OnEnd();
             StopUpdateLoop();
             DestroyCurrentState();
 
-            curState = AddState<T>();
-            if (curState != null)
+            _curState = AddState<T>();
+            if (_curState != null)
             {
-                curState.OnStart();
-                elapsedTime = 0f;
-                updateRoutine = StartCoroutine(StartUpdateLoop());
+                _curState.OnStart();
+                _elapsedTime = 0f;
+                _updateRoutine = StartCoroutine(StartUpdateLoop());
                 
-                OnStateChanged?.Invoke(curState);
+                OnStateChanged?.Invoke(_curState);
                 
                 if (debugMode)
                 {
@@ -253,9 +255,9 @@ public class PlayerController : MonoBehaviour
                 }
             }
             
-            return curState as T;
+            return _curState as T;
         }
-        catch (Exception e)
+        catch (Exception)
         {
             Logger.LogError($"{GetType()}:: Error in ChangeState");
             return null;
@@ -264,20 +266,20 @@ public class PlayerController : MonoBehaviour
 
     private IEnumerator StartUpdateLoop()
     {
-        while (curState != null && isInitialized)
+        while (_curState != null && _isInitialized)
         {
             try
             {
-                elapsedTime += Time.deltaTime;
-                curState?.OnUpdate(elapsedTime);
+                _elapsedTime += Time.deltaTime;
+                _curState?.OnUpdate(_elapsedTime);
                 
-                if (agent != null && agent.remainingDistance > 0.1f && agent.desiredVelocity != Vector3.zero)
+                if (_agent != null && _agent.remainingDistance > 0.1f && _agent.desiredVelocity != Vector3.zero)
                 {
-                    var targetRotation = Quaternion.LookRotation(agent.desiredVelocity);
-                    transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, elapsedTime * turnSpeed);
+                    var targetRotation = Quaternion.LookRotation(_agent.desiredVelocity);
+                    transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, _elapsedTime * turnSpeed);
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 Logger.LogError($"{GetType()}:: Error in StartUpdateLoop");
                 break;
@@ -289,23 +291,23 @@ public class PlayerController : MonoBehaviour
 
     private void StopUpdateLoop()
     {
-        if (updateRoutine != null)
+        if (_updateRoutine != null)
         {
-            StopCoroutine(updateRoutine);
-            updateRoutine = null;
+            StopCoroutine(_updateRoutine);
+            _updateRoutine = null;
         }
     }
 
     private void DestroyCurrentState()
     {
-        if (curState is Component comp && comp != null)
+        if (_curState is Component comp && comp != null)
         {
             try
             {
                 Destroy(comp);
-                curState = null;
+                _curState = null;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 Logger.LogError($"{GetType()}:: Error in DestroyCurrentState");
             }
@@ -319,7 +321,7 @@ public class PlayerController : MonoBehaviour
         {
             return gameObject.AddComponent<T>();
         }
-        catch (Exception e)
+        catch (Exception)
         {
             Logger.LogError($"{GetType()}:: Error in AddState");
             return null;
@@ -336,17 +338,17 @@ public class PlayerController : MonoBehaviour
 
         try
         {
-            targetWayPoint = wayPointList[wayPointIdx];
-            wayPointIdx = (wayPointIdx + 1) % wayPointList.Count;
+            _targetWayPoint = wayPointList[_wayPointIdx];
+            _wayPointIdx = (_wayPointIdx + 1) % wayPointList.Count;
             
             if (debugMode)
             {
-                Logger.Log($"{GetType()}:: Next WayPoint is {targetWayPoint.name}");
+                Logger.Log($"{GetType()}:: Next WayPoint is {_targetWayPoint.name}");
             }
             
-            return targetWayPoint;
+            return _targetWayPoint;
         }
-        catch (Exception e)
+        catch (Exception)
         {
             Logger.LogError($"{GetType()}:: Error in FindWayPoint");
             return null;
@@ -356,14 +358,14 @@ public class PlayerController : MonoBehaviour
     public bool SetDestination()
     {
         var nextWayPoint = FindWayPoint();
-        if (nextWayPoint == null || agent == null)
+        if (nextWayPoint == null || _agent == null)
         {
             return false;
         }
 
         try
         {
-            agent.SetDestination(nextWayPoint.position);
+            _agent.SetDestination(nextWayPoint.position);
             
             if (debugMode)
             {
@@ -372,7 +374,7 @@ public class PlayerController : MonoBehaviour
             
             return true;
         }
-        catch (Exception e)
+        catch (Exception)
         {
             Logger.LogError($"{GetType()}:: Error in SetDestination");
             return false;
@@ -383,14 +385,14 @@ public class PlayerController : MonoBehaviour
     {
         try
         {
-            if (animator != null)
+            if (_animator != null)
             {
-                animator.SetFloat("MoveSpeed", 0.0f);
+                _animator.SetFloat(MoveSpeed, 0.0f);
             }
 
-            if (agent != null)
+            if (_agent != null)
             {
-                agent.isStopped = true;
+                _agent.isStopped = true;
             }
 
             if (debugMode)
@@ -398,7 +400,7 @@ public class PlayerController : MonoBehaviour
                 Logger.Log($"{GetType()}:: Idle");
             }
         }
-        catch (Exception e)
+        catch (Exception)
         {
             Logger.LogError($"{GetType()}:: Error in Idle");
         }
@@ -408,14 +410,14 @@ public class PlayerController : MonoBehaviour
     {
         try
         {
-            if (agent != null)
+            if (_agent != null)
             {
-                agent.isStopped = false;
+                _agent.isStopped = false;
             }
 
-            if (animator != null)
+            if (_animator != null)
             {
-                animator.SetFloat("MoveSpeed", 0.4f);
+                _animator.SetFloat(MoveSpeed, 0.4f);
             }
             
             if (debugMode)
@@ -423,7 +425,7 @@ public class PlayerController : MonoBehaviour
                 Logger.Log($"{GetType()}:: Move");
             }
         }
-        catch (Exception e)
+        catch (Exception)
         {
             Logger.LogError($"{GetType()}:: Error in Move");
         }
@@ -431,24 +433,24 @@ public class PlayerController : MonoBehaviour
 
     public bool HasArrived()
     {
-        if (agent == null)
+        if (_agent == null)
         {
             return true;
         }
 
         try
         {
-            if (agent.pathPending)
+            if (_agent.pathPending)
             {
                 return false;
             }
 
-            if (agent.remainingDistance > agent.stoppingDistance)
+            if (_agent.remainingDistance > _agent.stoppingDistance)
             {
                 return false;
             }
             
-            bool arrived = !agent.hasPath || agent.velocity.sqrMagnitude < 0.1f;
+            bool arrived = !_agent.hasPath || _agent.velocity.sqrMagnitude < 0.1f;
             
             if (arrived)
             {
@@ -458,7 +460,7 @@ public class PlayerController : MonoBehaviour
             
             return arrived;
         }
-        catch (Exception e)
+        catch (Exception)
         {
             Logger.LogError($"{GetType()}:: Error in HasArrived");
             return true;
@@ -467,7 +469,7 @@ public class PlayerController : MonoBehaviour
 
     public bool HasFinishedIdle()
     {
-        bool finished = elapsedTime > idleTime;
+        bool finished = _elapsedTime > _idleTime;
         if (finished && debugMode)
         {
             Logger.Log($"{GetType()}:: Idle is finished");
@@ -480,9 +482,9 @@ public class PlayerController : MonoBehaviour
     {
         try
         {
-            if (agent != null)
+            if (_agent != null)
             {
-                agent.ResetPath();
+                _agent.ResetPath();
             }
             
             if (debugMode)
@@ -490,7 +492,7 @@ public class PlayerController : MonoBehaviour
                 Logger.Log($"{GetType()}:: Path is reset");
             }
         }
-        catch (Exception e)
+        catch (Exception)
         {
             Logger.LogError($"{GetType()}:: Error in ResetPath");
         }
@@ -500,17 +502,17 @@ public class PlayerController : MonoBehaviour
     {
         try
         {
-            idleTime = Random.Range(minIdleTime, maxIdleTime);
+            _idleTime = Random.Range(minIdleTime, maxIdleTime);
 
             if (debugMode)
             {
-                Logger.Log($"{GetType()}:: IdleTime is set to {idleTime}");
+                Logger.Log($"{GetType()}:: IdleTime is set to {_idleTime}");
             }
         }
-        catch (Exception e)
+        catch (Exception)
         {
             Logger.LogError($"{GetType()}:: Error in SetIdleTime");
-            idleTime = 2.0f;
+            _idleTime = 2.0f;
         }
     }
 
@@ -518,12 +520,12 @@ public class PlayerController : MonoBehaviour
     {
         try
         {
-            if (agent != null)
+            if (_agent != null)
             {
-                agent.isStopped = true;
+                _agent.isStopped = true;
             }
         }
-        catch (Exception e)
+        catch (Exception)
         {
             Logger.LogError($"{GetType()}:: Error in PauseMovement");
         }
@@ -533,12 +535,12 @@ public class PlayerController : MonoBehaviour
     {
         try
         {
-            if (agent != null && curState is PatrolMove)
+            if (_agent != null && _curState is PatrolMove)
             {
-                agent.isStopped = false;
+                _agent.isStopped = false;
             }
         }
-        catch (Exception e)
+        catch (Exception)
         {
             Logger.LogError($"{GetType()}:: Error in ResumeMovement");
         }
@@ -620,16 +622,16 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        if (targetWayPoint != null)
+        if (_targetWayPoint != null)
         {
             Gizmos.color = Color.red;
-            Gizmos.DrawWireSphere(targetWayPoint.position, 0.7f);
+            Gizmos.DrawWireSphere(_targetWayPoint.position, 0.7f);
         }
 
-        if (agent != null && agent.hasPath)
+        if (_agent != null && _agent.hasPath)
         {
             Gizmos.color = Color.green;
-            var path = agent.path.corners;
+            var path = _agent.path.corners;
             for (int i = 1; i < path.Length; i++)
             {
                 Gizmos.DrawLine(path[i - 1], path[i]);
