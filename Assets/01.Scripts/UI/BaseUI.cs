@@ -227,54 +227,36 @@ public class BaseUI : MonoBehaviour
         }
     }
     
-    public virtual void CloseUI(bool isForceClose = false)
+    public virtual void CloseUI(bool isForce = false)
     {
-        if (!_isShow && !isForceClose)
+        if (!_isShow && !isForce)
         {
-            Logger.Log($"{GetType()}::is already close");
+            Logger.Log($"{GetType()}::이미 닫혀있는 UI입니다");
             return;
         }
-        
+    
         Logger.Log($"{GetType()}::CloseUI");
 
         try
         {
             _isShow = false;
 
-            // 강제 닫기가 아닌 경우에만
-            if (!isForceClose)
-            {
-                ExecCallback(_onClose, "OnClose");
-            }
-
-            // 일시정지 해제
             PauseHandle(false);
 
-            // 닫기 애니메이션
             PlayCloseAnim();
 
-            OnClose();
+            ExecCallback(_onClose, "OnClose");
 
-            // UIManager가 있을 경우에 닫기 알림
-            if (UIManager.Instance != null)
-            {
-                UIManager.Instance.CloseUI(this);
-            }
-            else
-            {
-                Logger.Log($"{GetType()}::UIManager is null");
-                gameObject.SetActive(false);
-            }
+            OnClose();
+        
+            // UIManager에 UI 닫힘을 알림
+            UIManager.Instance?.OnUIClosed(this);
+        
+            Logger.Log($"{GetType()}::CloseUI 완료");
         }
-        catch (Exception)
+        catch (Exception e)
         {
-            Logger.LogError($"{GetType()}::CloseUI is failed");
-            throw;
-        }
-        finally
-        {
-            // 메모리 누수 방지
-            ClearCallbacks();
+            Logger.LogError($"{GetType()}::CloseUI 실패: {e.Message}");
         }
     }
 

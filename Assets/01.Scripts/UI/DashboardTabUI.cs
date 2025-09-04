@@ -6,7 +6,6 @@ using System.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
-using UnityEngine.UI;
 using Logger = Common.Logger;
 
 /// <summary>
@@ -37,33 +36,16 @@ public class DashboardTabUI : BaseUI
     [SerializeField] private GameObject barChartContent;     // 막대차트 실제 내용
     [SerializeField] private GameObject lineChartContent;    // 꺾은선차트 실제 내용
     
-    [Header("차트 색상 설정")]
-    [SerializeField] private Color[] chartColors = { Color.red, Color.blue, Color.green, Color.yellow, Color.cyan }; // 차트에 사용할 색상들
-    
-    // 날짜별 데이터를 저장하는 딕셔너리들
-    private readonly Dictionary<string, long> _last7Days = new Dictionary<string, long>()
-    {
-        { "월", 0 }, { "화", 0 }, { "수", 0 }, { "목", 0 }, { "금", 0 }, { "토", 0 }, { "일", 0 }
-    };
-    private readonly Dictionary<string, long> _last30Days = new Dictionary<string, long>();
-    
     // 텍스트를 만들 때 사용하는 StringBuilder (메모리 효율성을 위해)
     private readonly StringBuilder _sb = new StringBuilder();
     private readonly StringBuilder _sbSubject = new StringBuilder();
     
-    // 요일을 한국어로 변환하는 딕셔너리
-    private readonly Dictionary<DayOfWeek, string> _dayOfWeekKor = new Dictionary<DayOfWeek, string>
-    {
-        { DayOfWeek.Monday, "월" }, { DayOfWeek.Tuesday, "화" }, { DayOfWeek.Wednesday, "수" },
-        { DayOfWeek.Thursday, "목" }, { DayOfWeek.Friday, "금" }, { DayOfWeek.Saturday, "토" }, { DayOfWeek.Sunday, "일" }
-    };
-    
     /// <summary>
     /// UI가 열릴 때 호출되는 설정 함수
     /// </summary>
-    public override void Setting(BaseUIData data)
+    protected override void OnSetting(BaseUIData data)
     {
-        base.Setting(data);
+        base.OnSetting(data);
         
         // 모든 차트와 텍스트 데이터를 새로고침합니다
         RefreshAllData();
@@ -78,6 +60,7 @@ public class DashboardTabUI : BaseUI
         SetWeeklyTime();     // 주간 학습 시간 설정
         SetSubjectTime();    // 과목별 학습 시간 설정
         SetAIAdvice();       // AI 조언 설정
+        UpdateCharts();      // 차트 업데이트
     }
     
     /// <summary>
@@ -86,27 +69,42 @@ public class DashboardTabUI : BaseUI
     /// </summary>
     private void SetAIAdvice()
     {
-        // 사용자의 마지막 AI 조언 데이터를 가져옵니다
-        UserLastAdviceData userLastAdviceData = UserDataManager.Instance.GetUserData<UserLastAdviceData>();
-        if (userLastAdviceData == null)
+        if (aiText == null)
         {
-            Logger.Log($"{GetType()}::UserLastAdviceData is null");
-            userLastAdviceData = new UserLastAdviceData();
-        }
-
-        // 오늘 날짜를 문자열로 만듭니다
-        string today = DateTime.UtcNow.AddHours(9).Date.ToString("yyyy-MM-dd");
-        
-        // 오늘 이미 조언을 받았으면 저장된 조언을 보여줍니다
-        if (userLastAdviceData.Date == today && !string.IsNullOrEmpty(userLastAdviceData.Advice))
-        {
-            aiText.text = userLastAdviceData.Advice;
-            aiEmptyText.SetActive(false);
+            Logger.LogWarning($"{GetType()}::aiText가 연결되지 않았습니다");
             return;
         }
 
-        // 새로운 조언을 받아야 하는 경우
-        StartCoroutine(RequestAIAdvice(userLastAdviceData));
+        try
+        {
+            // 사용자의 마지막 AI 조언 데이터를 가져옵니다
+            UserLastAdviceData userLastAdviceData = UserDataManager.Instance?.GetUserData<UserLastAdviceData>();
+            if (userLastAdviceData == null)
+            {
+                Logger.Log($"{GetType()}::UserLastAdviceData를 새로 생성합니다");
+                userLastAdviceData = new UserLastAdviceData();
+            }
+
+            // 오늘 날짜를 문자열로 만듭니다
+            string today = DateTime.UtcNow.AddHours(9).Date.ToString("yyyy-MM-dd");
+            
+            // 오늘 이미 조언을 받았으면 저장된 조언을 보여줍니다
+            if (userLastAdviceData.Date == today && !string.IsNullOrEmpty(userLastAdviceData.Advice))
+            {
+                aiText.text = userLastAdviceData.Advice;
+                if (aiEmptyText != null)
+                    aiEmptyText.SetActive(false);
+                return;
+            }
+
+            // 새로운 조언을 받아야 하는 경우
+            StartCoroutine(RequestAIAdvice(userLastAdviceData));
+        }
+        catch (Exception e)
+        {
+            Logger.LogError($"{GetType()}::SetAIAdvice 오류: {e.Message}");
+            ShowAIError();
+        }
     }
     
     /// <summary>
@@ -114,34 +112,56 @@ public class DashboardTabUI : BaseUI
     /// </summary>
     private IEnumerator RequestAIAdvice(UserLastAdviceData userLastAdviceData)
     {
-        // 사용자의 학습 데이터를 가져와서 AI에게 보낼 메시지를 만듭니다
-        string promptMessage = CreatePromptMessage();
+        // Firebase RemoteConfig에서 API 키 가져오기
+        string apiKey = FirebaseManager.Instance?.GetOpenAIKey();
         
-        // OpenAI API 요청 데이터를 만듭니다
-        var requestData = new OpenAIRequest
+        if (string.IsNullOrEmpty(apiKey))
         {
-            messages = new List<Message>
-            {
-                new Message { role = "user", content = promptMessage }
-            }
-        };
+            Logger.LogError($"{GetType()}::OpenAI API 키를 가져올 수 없습니다");
+            ShowAIError("API 키를 찾을 수 없습니다");
+            yield break;
+        }
 
-        // JSON으로 변환합니다
-        string jsonData = JsonUtility.ToJson(requestData);
-        byte[] postData = Encoding.UTF8.GetBytes(jsonData);
-        
-        // HTTP 요청을 만듭니다
-        using UnityWebRequest request = new UnityWebRequest(Constants.OpenAI.API_URL, "POST");
-        request.uploadHandler = new UploadHandlerRaw(postData);
-        request.downloadHandler = new DownloadHandlerBuffer();
-        request.SetRequestHeader("Content-Type", "application/json");
-        request.SetRequestHeader("Authorization", $"Bearer {Constants.OpenAI.API_KEY}");
+        try
+        {
+            // 사용자의 학습 데이터를 바탕으로 AI에게 보낼 메시지를 만듭니다
+            string promptMessage = CreatePromptMessage();
             
-        // 요청을 보내고 결과를 기다립니다
-        yield return request.SendWebRequest();
+            // OpenAI API 요청 데이터를 만듭니다
+            var requestData = new OpenAIRequest
+            {
+                messages = new List<Message>
+                {
+                    new Message { role = "user", content = promptMessage }
+                }
+            };
+
+            // JSON으로 변환합니다
+            string jsonData = JsonUtility.ToJson(requestData);
+            byte[] postData = Encoding.UTF8.GetBytes(jsonData);
             
-        // 요청 결과를 처리합니다
-        HandleAIResponse(request, userLastAdviceData);
+            // HTTP 요청을 만듭니다
+            using UnityWebRequest request = new UnityWebRequest(Constants.OpenAI.API_URL, "POST");
+            request.uploadHandler = new UploadHandlerRaw(postData);
+            request.downloadHandler = new DownloadHandlerBuffer();
+            request.SetRequestHeader("Content-Type", "application/json");
+            request.SetRequestHeader("Authorization", $"Bearer {apiKey}");
+                
+            // 로딩 표시
+            if (aiText != null)
+                aiText.text = "AI가 조언을 생각하고 있어요...";
+            
+            // 요청을 보내고 결과를 기다립니다
+            request.SendWebRequest();
+                
+            // 요청 결과를 처리합니다
+            HandleAIResponse(request, userLastAdviceData);
+        }
+        catch (Exception e)
+        {
+            Logger.LogError($"{GetType()}::RequestAIAdvice 오류: {e.Message}");
+            ShowAIError();
+        }
     }
     
     /// <summary>
@@ -153,14 +173,18 @@ public class DashboardTabUI : BaseUI
         _sb.Append("사용자의 학습 데이터를 바탕으로 간단한 조언을 해주세요.\n");
         
         // 총 학습 시간 추가
-        UserTimeData userTimeData = UserDataManager.Instance.GetUserData<UserTimeData>();
-        if (userTimeData != null)
+        UserTimeData userTimeData = UserDataManager.Instance?.GetUserData<UserTimeData>();
+        if (userTimeData != null && userTimeData.Time > 0)
         {
             _sb.Append($"총 학습 시간: {CalculateTimeFormat(userTimeData.Time)}\n");
         }
+        else
+        {
+            _sb.Append("총 학습 시간: 아직 기록이 없음\n");
+        }
         
         // 과목별 학습 시간 추가
-        UserSubjectTimeData userSubjectTimeData = UserDataManager.Instance.GetUserData<UserSubjectTimeData>();
+        UserSubjectTimeData userSubjectTimeData = UserDataManager.Instance?.GetUserData<UserSubjectTimeData>();
         if (userSubjectTimeData != null && userSubjectTimeData.SubjectTimeItemDataList.Count > 0)
         {
             _sb.Append("과목별 학습 시간:\n");
@@ -169,8 +193,12 @@ public class DashboardTabUI : BaseUI
                 _sb.Append($"- {subject.Name}: {CalculateTimeFormat(subject.Time)}\n");
             }
         }
+        else
+        {
+            _sb.Append("과목별 데이터: 아직 기록이 없음\n");
+        }
         
-        _sb.Append("50자 이내로 간단한 학습 조언을 해주세요.");
+        _sb.Append("\n한국어로 50자 이내의 따뜻하고 격려가 되는 학습 조언을 해주세요.");
         return _sb.ToString();
     }
     
@@ -183,32 +211,67 @@ public class DashboardTabUI : BaseUI
         {
             // 요청이 실패한 경우
             Logger.LogError($"{GetType()}::AI 요청 실패: {request.error}");
-            aiText.text = "AI 조언을 가져올 수 없습니다.";
-            aiEmptyText.SetActive(true);
+            ShowAIError($"네트워크 오류: {request.error}");
             return;
         }
         
         try
         {
             // 응답을 파싱합니다
-            var response = JsonUtility.FromJson<OpenAIResponse>(request.downloadHandler.text);
-            string advice = response.choices[0].message.content;
+            string responseText = request.downloadHandler.text;
+            Logger.Log($"{GetType()}::OpenAI 응답 받음: {responseText}");
+            
+            var response = JsonUtility.FromJson<OpenAIResponse>(responseText);
+            
+            if (response?.choices == null || response.choices.Length == 0)
+            {
+                Logger.LogError($"{GetType()}::OpenAI 응답에 choices가 없습니다");
+                ShowAIError("AI 응답 형식이 올바르지 않습니다");
+                return;
+            }
+            
+            string advice = response.choices[0].message.content?.Trim();
+            
+            if (string.IsNullOrEmpty(advice))
+            {
+                Logger.LogError($"{GetType()}::OpenAI 응답이 비어있습니다");
+                ShowAIError("AI가 빈 응답을 보냈습니다");
+                return;
+            }
             
             // UI에 조언을 표시합니다
-            aiText.text = advice;
-            aiEmptyText.SetActive(false);
+            if (aiText != null)
+                aiText.text = advice;
+            
+            if (aiEmptyText != null)
+                aiEmptyText.SetActive(false);
             
             // 조언을 저장합니다
             userLastAdviceData.Date = DateTime.UtcNow.AddHours(9).Date.ToString("yyyy-MM-dd");
             userLastAdviceData.Advice = advice;
             userLastAdviceData.SaveData();
             
-            Logger.Log($"{GetType()}::AI 조언 받기 성공");
+            Logger.Log($"{GetType()}::AI 조언 받기 성공: {advice}");
         }
         catch (Exception e)
         {
             Logger.LogError($"{GetType()}::AI 응답 파싱 실패: {e.Message}");
-            aiText.text = "AI 조언을 처리할 수 없습니다.";
+            ShowAIError("AI 응답을 처리하는 중 오류가 발생했습니다");
+        }
+    }
+    
+    /// <summary>
+    /// AI 오류 메시지를 표시하는 함수
+    /// </summary>
+    private void ShowAIError(string customMessage = null)
+    {
+        if (aiText != null)
+        {
+            aiText.text = customMessage ?? "AI 조언을 가져올 수 없습니다";
+        }
+        
+        if (aiEmptyText != null)
+        {
             aiEmptyText.SetActive(true);
         }
     }
@@ -218,412 +281,226 @@ public class DashboardTabUI : BaseUI
     /// </summary>
     private void SetTotalTime()
     {
-        UserTimeData userTimeData = UserDataManager.Instance.GetUserData<UserTimeData>();
-        if (userTimeData == null)
+        if (totalTimeText == null) return;
+
+        try
         {
-            Logger.Log($"{GetType()}::UserTimeData가 없습니다");
-            totalTimeText.text = "0초";
-            return;
+            UserTimeData userTimeData = UserDataManager.Instance?.GetUserData<UserTimeData>();
+            if (userTimeData != null && userTimeData.Time > 0)
+            {
+                totalTimeText.text = CalculateTimeFormat(userTimeData.Time);
+            }
+            else
+            {
+                totalTimeText.text = "0시간";
+            }
         }
-        
-        totalTimeText.text = CalculateTimeFormat(userTimeData.Time);
+        catch (Exception e)
+        {
+            Logger.LogError($"{GetType()}::SetTotalTime 오류: {e.Message}");
+            totalTimeText.text = "오류";
+        }
     }
     
     /// <summary>
-    /// 주간 학습 시간을 설정하고 차트를 그리는 함수
+    /// 주간 총 학습 시간을 설정하는 함수
     /// </summary>
     private void SetWeeklyTime()
     {
-        UserDailyTimeData userDailyTimeData = UserDataManager.Instance.GetUserData<UserDailyTimeData>();
-        if (userDailyTimeData == null || userDailyTimeData.DailyTimeItemDataList.Count == 0)
+        if (weeklyTotalTime == null) return;
+
+        try
         {
-            // 데이터가 없는 경우
-            ShowEmptyCharts();
-            weeklyTotalTime.text = "0초";
-            return;
-        }
-        
-        // 데이터가 있는 경우 차트를 보여줍니다
-        ShowCharts();
-        
-        // 지난 7일과 30일 데이터를 계산합니다
-        CalculateTimeData(userDailyTimeData);
-        
-        // 주간 총 시간을 계산합니다
-        long weeklyTotal = _last7Days.Values.Sum();
-        weeklyTotalTime.text = CalculateTimeFormat(weeklyTotal);
-        
-        // 차트들을 그립니다
-        DrawBarChart();
-        DrawLineChart();
-    }
-    
-    /// <summary>
-    /// 빈 차트들을 보여주는 함수
-    /// </summary>
-    private void ShowEmptyCharts()
-    {
-        barChartEmptyText.SetActive(true);
-        lineChartEmptyText.SetActive(true);
-        barChartContent.SetActive(false);
-        lineChartContent.SetActive(false);
-    }
-    
-    /// <summary>
-    /// 차트들을 보여주는 함수
-    /// </summary>
-    private void ShowCharts()
-    {
-        barChartEmptyText.SetActive(false);
-        lineChartEmptyText.SetActive(false);
-        barChartContent.SetActive(true);
-        lineChartContent.SetActive(true);
-    }
-    
-    /// <summary>
-    /// 시간 데이터를 계산하는 함수
-    /// </summary>
-    private void CalculateTimeData(UserDailyTimeData userDailyTimeData)
-    {
-        DateTime today = DateTime.UtcNow.AddHours(9).Date;
-        
-        // 지난 7일 데이터 초기화
-        foreach (var key in _last7Days.Keys.ToList())
-        {
-            _last7Days[key] = 0;
-        }
-        
-        // 지난 30일 데이터 초기화
-        _last30Days.Clear();
-        for (int i = 0; i < 30; i++)
-        {
-            DateTime date = today.AddDays(-i);
-            string label = $"{date.Month}/{date.Day}";
-            _last30Days[label] = 0;
-        }
-        
-        // 실제 데이터를 넣습니다
-        foreach (var dailyData in userDailyTimeData.DailyTimeItemDataList)
-        {
-            if (!DateTime.TryParse(dailyData.Date, out DateTime dataDate)) continue;
-            
-            // 지난 7일 데이터 처리
-            int dayDiff = (today - dataDate).Days;
-            if (dayDiff is >= 0 and < 7)
+            UserDailyTimeData userDailyTimeData = UserDataManager.Instance?.GetUserData<UserDailyTimeData>();
+            if (userDailyTimeData?.DailyTimeItemDataList == null)
             {
-                DateTime targetDate = today.AddDays(-dayDiff);
-                if (_dayOfWeekKor.TryGetValue(targetDate.DayOfWeek, out string korDay))
+                weeklyTotalTime.text = "0시간";
+                return;
+            }
+
+            // 최근 7일간의 데이터를 합산합니다
+            DateTime now = DateTime.UtcNow.AddHours(9);
+            long weeklyTotal = 0;
+
+            for (int i = 0; i < 7; i++)
+            {
+                string date = now.AddDays(-i).ToString("yyyy-MM-dd");
+                var dayData = userDailyTimeData.DailyTimeItemDataList.FirstOrDefault(x => x.Date == date);
+                if (dayData != null)
                 {
-                    _last7Days[korDay] = dailyData.Time;
+                    weeklyTotal += dayData.Time;
                 }
             }
-            
-            // 지난 30일 데이터 처리
-            if (dayDiff is >= 0 and < 30)
-            {
-                string label = $"{dataDate.Month}/{dataDate.Day}";
-                if (_last30Days.ContainsKey(label))
-                {
-                    _last30Days[label] = dailyData.Time;
-                }
-            }
+
+            weeklyTotalTime.text = CalculateTimeFormat(weeklyTotal);
+        }
+        catch (Exception e)
+        {
+            Logger.LogError($"{GetType()}::SetWeeklyTime 오류: {e.Message}");
+            weeklyTotalTime.text = "오류";
         }
     }
     
     /// <summary>
-    /// 과목별 학습 시간을 설정하고 파이차트를 그리는 함수
+    /// 과목별 학습 시간을 설정하는 함수
     /// </summary>
     private void SetSubjectTime()
     {
-        UserSubjectTimeData userSubjectTimeData = UserDataManager.Instance.GetUserData<UserSubjectTimeData>();
-        if (userSubjectTimeData == null || userSubjectTimeData.SubjectTimeItemDataList.Count == 0)
+        if (subjectTime == null) return;
+
+        try
         {
-            // 데이터가 없는 경우
-            Logger.Log($"{GetType()}::과목별 데이터가 없습니다");
-            pieChartEmptyText.SetActive(true);
-            pieChartContent.SetActive(false);
-            subjectTime.text = "학습 기록이 없습니다";
-            return;
+            UserSubjectTimeData userSubjectTimeData = UserDataManager.Instance?.GetUserData<UserSubjectTimeData>();
+            if (userSubjectTimeData?.SubjectTimeItemDataList == null || 
+                userSubjectTimeData.SubjectTimeItemDataList.Count == 0)
+            {
+                subjectTime.text = "과목별 데이터가 없습니다";
+                return;
+            }
+
+            // 상위 3개 과목을 시간순으로 표시합니다
+            _sbSubject.Clear();
+            var topSubjects = userSubjectTimeData.SubjectTimeItemDataList
+                .OrderByDescending(x => x.Time)
+                .Take(3);
+
+            foreach (var subject in topSubjects)
+            {
+                if (_sbSubject.Length > 0)
+                    _sbSubject.AppendLine();
+                
+                _sbSubject.Append($"{subject.Name}: {CalculateTimeFormat(subject.Time)}");
+            }
+
+            subjectTime.text = _sbSubject.ToString();
         }
-        
-        // 데이터가 있는 경우
-        pieChartEmptyText.SetActive(false);
-        pieChartContent.SetActive(true);
-        
-        // 시간 순으로 정렬해서 상위 3개만 가져옵니다
-        var topSubjects = userSubjectTimeData.SubjectTimeItemDataList
-            .OrderByDescending(subject => subject.Time)
-            .Take(3)
-            .ToList();
-        
-        // 과목별 시간 텍스트를 만듭니다
-        _sbSubject.Clear();
-        foreach (var subject in topSubjects)
+        catch (Exception e)
         {
-            _sbSubject.Append($"{subject.Name} : {CalculateTimeFormat(subject.Time)}\n");
+            Logger.LogError($"{GetType()}::SetSubjectTime 오류: {e.Message}");
+            subjectTime.text = "오류";
         }
-        subjectTime.text = _sbSubject.ToString();
-        
-        // 파이차트를 그립니다
-        DrawPieChart(topSubjects);
     }
     
     /// <summary>
-    /// 막대 차트를 그리는 함수 (지난 7일 데이터)
+    /// 차트들을 업데이트하는 함수
     /// </summary>
-    private void DrawBarChart()
+    private void UpdateCharts()
     {
-        // 기존 차트를 지웁니다
-        ClearChildren(barChartContainer);
-        
-        if (_last7Days.Values.All(v => v == 0))
+        UpdatePieChart();
+        UpdateBarChart();
+        UpdateLineChart();
+    }
+    
+    /// <summary>
+    /// 파이차트를 업데이트하는 함수
+    /// </summary>
+    private void UpdatePieChart()
+    {
+        try
         {
-            return; // 모든 값이 0이면 차트를 그리지 않습니다
-        }
-        
-        // 최대값을 찾아서 차트 높이를 정규화합니다
-        long maxValue = _last7Days.Values.Max();
-        if (maxValue == 0) return;
-        
-        float chartWidth = ((RectTransform)barChartContainer).rect.width;
-        float chartHeight = ((RectTransform)barChartContainer).rect.height;
-        float barWidth = chartWidth / _last7Days.Count * 0.8f; // 간격을 위해 0.8 곱함
-        
-        int index = 0;
-        foreach (var dayData in _last7Days)
-        {
-            // 막대 높이 계산 (최대값 대비 비율)
-            float barHeight = (float)dayData.Value / maxValue * chartHeight * 0.8f;
+            UserSubjectTimeData userSubjectTimeData = UserDataManager.Instance?.GetUserData<UserSubjectTimeData>();
+            bool hasData = userSubjectTimeData?.SubjectTimeItemDataList?.Count > 0;
+
+            if (pieChartContent != null)
+                pieChartContent.SetActive(hasData);
             
-            // 막대 위치 계산
-            float xPos = (index + 0.5f) * (chartWidth / _last7Days.Count) - chartWidth / 2;
-            float yPos = barHeight / 2 - chartHeight / 2;
+            if (pieChartEmptyText != null)
+                pieChartEmptyText.SetActive(!hasData);
+        }
+        catch (Exception e)
+        {
+            Logger.LogError($"{GetType()}::UpdatePieChart 오류: {e.Message}");
+        }
+    }
+    
+    /// <summary>
+    /// 막대차트를 업데이트하는 함수
+    /// </summary>
+    private void UpdateBarChart()
+    {
+        try
+        {
+            UserDailyTimeData userDailyTimeData = UserDataManager.Instance?.GetUserData<UserDailyTimeData>();
+            bool hasData = userDailyTimeData?.DailyTimeItemDataList?.Count > 0;
+
+            if (barChartContent != null)
+                barChartContent.SetActive(hasData);
             
-            // 막대 오브젝트 생성
-            GameObject bar = CreateBarObject(dayData.Key, barHeight, barWidth, xPos, yPos, chartColors[index % chartColors.Length]);
-            bar.transform.SetParent(barChartContainer, false);
+            if (barChartEmptyText != null)
+                barChartEmptyText.SetActive(!hasData);
+        }
+        catch (Exception e)
+        {
+            Logger.LogError($"{GetType()}::UpdateBarChart 오류: {e.Message}");
+        }
+    }
+    
+    /// <summary>
+    /// 꺾은선 차트를 업데이트하는 함수
+    /// </summary>
+    private void UpdateLineChart()
+    {
+        try
+        {
+            UserHistoryData userHistoryData = UserDataManager.Instance?.GetUserData<UserHistoryData>();
+            bool hasData = userHistoryData?.HistoryItemDataList?.Count > 0;
+
+            if (lineChartContent != null)
+                lineChartContent.SetActive(hasData);
             
-            index++;
+            if (lineChartEmptyText != null)
+                lineChartEmptyText.SetActive(!hasData);
+        }
+        catch (Exception e)
+        {
+            Logger.LogError($"{GetType()}::UpdateLineChart 오류: {e.Message}");
         }
     }
     
     /// <summary>
-    /// 꺾은선 차트를 그리는 함수 (지난 30일 데이터)
-    /// </summary>
-    private void DrawLineChart()
-    {
-        // 기존 차트를 지웁니다
-        ClearChildren(lineChartContainer);
-        
-        if (_last30Days.Values.All(v => v == 0))
-        {
-            return; // 모든 값이 0이면 차트를 그리지 않습니다
-        }
-        
-        // 최대값을 찾아서 차트 높이를 정규화합니다
-        long maxValue = _last30Days.Values.Max();
-        if (maxValue == 0) return;
-        
-        float chartWidth = ((RectTransform)lineChartContainer).rect.width;
-        float chartHeight = ((RectTransform)lineChartContainer).rect.height;
-        
-        var sortedDays = _last30Days.OrderBy(x => 
-        {
-            var parts = x.Key.Split('/');
-            return new DateTime(DateTime.Now.Year, int.Parse(parts[0]), int.Parse(parts[1]));
-        }).ToList();
-        
-        List<Vector2> points = new List<Vector2>();
-        
-        for (int i = 0; i < sortedDays.Count; i++)
-        {
-            float xPos = (float)i / (sortedDays.Count - 1) * chartWidth - chartWidth / 2;
-            float yPos = (float)sortedDays[i].Value / maxValue * chartHeight * 0.8f - chartHeight / 2;
-            points.Add(new Vector2(xPos, yPos));
-        }
-        
-        // 선을 그립니다
-        DrawLineSegments(points, lineChartContainer);
-    }
-    
-    /// <summary>
-    /// 파이차트를 그리는 함수
-    /// </summary>
-    private void DrawPieChart(List<SubjectTimeItemData> subjects)
-    {
-        // 기존 차트를 지웁니다
-        ClearChildren(pieChartContainer);
-        
-        long totalTime = subjects.Sum(s => s.Time);
-        if (totalTime == 0) return;
-        
-        float currentAngle = 0f;
-        int colorIndex = 0;
-        
-        foreach (var subject in subjects)
-        {
-            float percentage = (float)subject.Time / totalTime;
-            float angle = percentage * 360f;
-            
-            // 파이 조각 생성
-            GameObject pieSlice = CreatePieSlice(subject.Name, currentAngle, angle, chartColors[colorIndex % chartColors.Length]);
-            pieSlice.transform.SetParent(pieChartContainer, false);
-            
-            currentAngle += angle;
-            colorIndex++;
-        }
-    }
-    
-    /// <summary>
-    /// 막대 오브젝트를 생성하는 함수
-    /// </summary>
-    private GameObject CreateBarObject(string label, float height, float width, float xPos, float yPos, Color color)
-    {
-        GameObject bar = new GameObject($"Bar_{label}");
-        
-        // RectTransform 설정
-        RectTransform rectTransform = bar.AddComponent<RectTransform>();
-        rectTransform.sizeDelta = new Vector2(width, height);
-        rectTransform.anchoredPosition = new Vector2(xPos, yPos);
-        
-        // Image 컴포넌트 추가
-        Image image = bar.AddComponent<Image>();
-        image.color = color;
-        
-        // 라벨 텍스트 추가
-        GameObject labelObj = new GameObject($"Label_{label}");
-        labelObj.transform.SetParent(bar.transform, false);
-        
-        RectTransform labelRect = labelObj.AddComponent<RectTransform>();
-        labelRect.sizeDelta = new Vector2(width, 20);
-        labelRect.anchoredPosition = new Vector2(0, -height/2 - 15);
-        
-        TMP_Text labelText = labelObj.AddComponent<TextMeshProUGUI>();
-        labelText.text = label;
-        labelText.fontSize = 12;
-        labelText.color = Color.black;
-        labelText.alignment = TextAlignmentOptions.Center;
-        
-        return bar;
-    }
-    
-    /// <summary>
-    /// 파이 조각을 생성하는 함수
-    /// </summary>
-    private GameObject CreatePieSlice(string label, float startAngle, float angle, Color color)
-    {
-        GameObject slice = new GameObject($"PieSlice_{label}");
-        
-        RectTransform rectTransform = slice.AddComponent<RectTransform>();
-        rectTransform.sizeDelta = new Vector2(200, 200); // 파이차트 크기
-        
-        Image image = slice.AddComponent<Image>();
-        image.color = color;
-        image.type = Image.Type.Filled;
-        image.fillMethod = Image.FillMethod.Radial360;
-        image.fillOrigin = 2; // Top
-        image.fillAmount = angle / 360f;
-        
-        // 회전 적용
-        rectTransform.rotation = Quaternion.Euler(0, 0, -startAngle);
-        
-        return slice;
-    }
-    
-    /// <summary>
-    /// 선 세그먼트들을 그리는 함수
-    /// </summary>
-    private void DrawLineSegments(List<Vector2> points, Transform parent)
-    {
-        for (int i = 0; i < points.Count - 1; i++)
-        {
-            GameObject line = CreateLine(points[i], points[i + 1]);
-            line.transform.SetParent(parent, false);
-        }
-        
-        // 점들도 표시
-        foreach (var point in points)
-        {
-            GameObject dot = CreateDot(point);
-            dot.transform.SetParent(parent, false);
-        }
-    }
-    
-    /// <summary>
-    /// 선을 생성하는 함수
-    /// </summary>
-    private GameObject CreateLine(Vector2 start, Vector2 end)
-    {
-        GameObject line = new GameObject("Line");
-        
-        RectTransform rectTransform = line.AddComponent<RectTransform>();
-        Image image = line.AddComponent<Image>();
-        image.color = Color.blue;
-        
-        Vector2 direction = end - start;
-        float distance = direction.magnitude;
-        
-        rectTransform.sizeDelta = new Vector2(distance, 2f); // 선 두께 2픽셀
-        rectTransform.anchoredPosition = (start + end) / 2;
-        rectTransform.rotation = Quaternion.FromToRotation(Vector2.right, direction);
-        
-        return line;
-    }
-    
-    /// <summary>
-    /// 점을 생성하는 함수
-    /// </summary>
-    private GameObject CreateDot(Vector2 position)
-    {
-        GameObject dot = new GameObject("Dot");
-        
-        RectTransform rectTransform = dot.AddComponent<RectTransform>();
-        rectTransform.sizeDelta = new Vector2(6, 6); // 점 크기
-        rectTransform.anchoredPosition = position;
-        
-        Image image = dot.AddComponent<Image>();
-        image.color = Color.red;
-        image.sprite = null; // 기본 흰색 스프라이트 사용
-        
-        return dot;
-    }
-    
-    /// <summary>
-    /// 컨테이너의 모든 자식을 지우는 함수
-    /// </summary>
-    private void ClearChildren(Transform container)
-    {
-        if (container == null) return;
-        
-        // 런타임에서는 Destroy, 에디터에서는 DestroyImmediate 사용
-        for (int i = container.childCount - 1; i >= 0; i--)
-        {
-            GameObject child = container.GetChild(i).gameObject;
-            if (Application.isPlaying)
-                Destroy(child);
-            else
-                DestroyImmediate(child);
-        }
-    }
-    
-    /// <summary>
-    /// 시간을 "시간 분 초" 형태로 변환하는 함수
+    /// 시간을 포맷팅하는 함수 (초 -> "X시간 Y분" 형태)
     /// </summary>
     private string CalculateTimeFormat(long timeInSeconds)
     {
+        if (timeInSeconds <= 0) return "0초";
+
+        long hours = timeInSeconds / 3600;
+        long minutes = (timeInSeconds % 3600) / 60;
+        long seconds = timeInSeconds % 60;
+
         _sb.Clear();
-        
-        int hours = (int)(timeInSeconds / 3600);
-        int minutes = (int)((timeInSeconds % 3600) / 60);
-        int seconds = (int)(timeInSeconds % 60);
 
-        if (hours > 0) _sb.Append(hours).Append("시간 ");
-        if (minutes > 0) _sb.Append(minutes).Append("분 ");
-        if (seconds > 0) _sb.Append(seconds).Append("초 ");
+        if (hours > 0)
+        {
+            _sb.Append($"{hours}시간");
+            if (minutes > 0)
+                _sb.Append($" {minutes}분");
+        }
+        else if (minutes > 0)
+        {
+            _sb.Append($"{minutes}분");
+            if (seconds > 0)
+                _sb.Append($" {seconds}초");
+        }
+        else
+        {
+            _sb.Append($"{seconds}초");
+        }
 
-        return _sb.Length > 0 ? _sb.ToString().TrimEnd() : "0초";
+        return _sb.ToString();
+    }
+    
+    /// <summary>
+    /// 수동으로 데이터를 새로고침하는 함수 (버튼에서 호출 가능)
+    /// </summary>
+    public void OnRefreshButtonClicked()
+    {
+        Logger.Log($"{GetType()}::수동 새로고침 버튼 클릭됨");
+        RefreshAllData();
     }
 }
+
+#region OpenAI API Response Classes
 
 /// <summary>
 /// OpenAI API 응답을 받기 위한 클래스
@@ -664,3 +541,5 @@ public class OpenAIRequest
     public int maxTokens = Constants.OpenAI.MAX_TOKENS;    // 최대 토큰 수
     public float temperature = Constants.OpenAI.TEMPERATURE; // AI 응답의 창의성 정도
 }
+
+#endregion
