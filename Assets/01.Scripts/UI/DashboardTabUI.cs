@@ -160,7 +160,7 @@ public class DashboardTabUI : BaseUI
         catch (Exception e)
         {
             Logger.LogError($"{GetType()}::RequestAIAdvice 오류: {e.Message}");
-            ShowAIError();
+            ShowAIError("요청 처리 중 오류가 발생했습니다");
         }
     }
     
