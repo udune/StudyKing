@@ -87,6 +87,6 @@ public class StudyItemSlot : InfiniteScrollItem
             return;
         }
 
-        studyUI.RefreshFromExternal();
+        studyUI.RefreshStudyList();
     }
 }
