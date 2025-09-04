@@ -31,6 +31,8 @@ public class StudyItemSlot : InfiniteScrollItem
         id = _studyItemSlotData.Id;
         nameInput.text = _studyItemSlotData.Name;
         
+        // 기존 리스너 제거 후 새로 등록
+        nameInput.onEndEdit.RemoveAllListeners();
         nameInput.onEndEdit.AddListener(OnInputEnd);
     }
 

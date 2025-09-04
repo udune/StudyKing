@@ -55,8 +55,15 @@ public class StudyUI : BaseUI
             return;
         }
         
+        // 완전한 데이터 변환으로 수정
         var scrollDataArray = _studyData.StudyItemDataList
-            .Select(_ => new InfiniteScrollData()) // 필요시 생성자에 데이터 전달
+            .Select(item => new StudyItemSlotData
+            {
+                Id = item.id,
+                Name = item.name,
+                Check = item.check
+            })
+            .Cast<InfiniteScrollData>()
             .ToArray();
 
         if (studyScrollList != null)

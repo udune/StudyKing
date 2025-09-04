@@ -145,7 +145,7 @@ public class UIManager : SingletonBehaviour<UIManager>
             }
         }
         
-        // 리스트 정리 (OnUICllosed에서 하나씩 제거되지만 안전을 위해)
+        // 리스트 정리 (OnUIClosed에서 하나씩 제거되지만 안전을 위해)
         _activeUIs.Clear();
         
         Logger.Log($"{GetType()}::모든 UI 닫기 완료");
