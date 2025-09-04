@@ -122,26 +122,28 @@ public class DashboardTabUI : BaseUI
             yield break;
         }
 
+        // 사용자의 학습 데이터를 바탕으로 AI에게 보낼 메시지 생성
+        string promptMessage = CreatePromptMessage();
+        
+        // OpenAI API 요청 데이터 생성
+        var requestData = new OpenAIRequest
+        {
+            messages = new List<Message>
+            {
+                new Message { role = "user", content = promptMessage }
+            }
+        };
+
+        // JSON 변환
+        string jsonData = JsonUtility.ToJson(requestData);
+        byte[] postData = Encoding.UTF8.GetBytes(jsonData);
+        
+        // UnityWebRequest 생성 및 설정
+        UnityWebRequest request = null;
+        
         try
         {
-            // 사용자의 학습 데이터를 바탕으로 AI에게 보낼 메시지를 만듭니다
-            string promptMessage = CreatePromptMessage();
-            
-            // OpenAI API 요청 데이터를 만듭니다
-            var requestData = new OpenAIRequest
-            {
-                messages = new List<Message>
-                {
-                    new Message { role = "user", content = promptMessage }
-                }
-            };
-
-            // JSON으로 변환합니다
-            string jsonData = JsonUtility.ToJson(requestData);
-            byte[] postData = Encoding.UTF8.GetBytes(jsonData);
-            
-            // HTTP 요청을 만듭니다
-            using UnityWebRequest request = new UnityWebRequest(Constants.OpenAI.API_URL, "POST");
+            request = new UnityWebRequest(Constants.OpenAI.API_URL, "POST");
             request.uploadHandler = new UploadHandlerRaw(postData);
             request.downloadHandler = new DownloadHandlerBuffer();
             request.SetRequestHeader("Content-Type", "application/json");
@@ -150,17 +152,31 @@ public class DashboardTabUI : BaseUI
             // 로딩 표시
             if (aiText != null)
                 aiText.text = "AI가 조언을 생각하고 있어요...";
-            
-            // 요청을 보내고 결과를 기다립니다
-            request.SendWebRequest();
-                
-            // 요청 결과를 처리합니다
+        }
+        catch (Exception e)
+        {
+            Logger.LogError($"{GetType()}::HTTP 요청 생성 중 오류: {e.Message}");
+            ShowAIError("요청 생성 중 오류가 발생했습니다");
+            request?.Dispose();
+            yield break;
+        }
+        
+        yield return request.SendWebRequest();
+        
+        // 요청 결과 처리
+        try
+        {
             HandleAIResponse(request, userLastAdviceData);
         }
         catch (Exception e)
         {
-            Logger.LogError($"{GetType()}::RequestAIAdvice 오류: {e.Message}");
-            ShowAIError("요청 처리 중 오류가 발생했습니다");
+            Logger.LogError($"{GetType()}::AI 응답 처리 중 오류: {e.Message}");
+            ShowAIError("응답 처리 중 오류가 발생했습니다");
+        }
+        finally
+        {
+            // 리소스 정리
+            request?.Dispose();
         }
     }
     
