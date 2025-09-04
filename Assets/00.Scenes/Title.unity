@@ -734,6 +734,11 @@ PrefabInstance:
       propertyPath: timeUI
       value: 
       objectReference: {fileID: 700540877601612520}
+    - target: {fileID: 4977411810437956793, guid: 6c024f2167e5f86459511d6021dc52e8,
+        type: 3}
+      propertyPath: uiCanvasTrn
+      value: 
+      objectReference: {fileID: 700540877601612521}
     - target: {fileID: 5027493938693753630, guid: 6c024f2167e5f86459511d6021dc52e8,
         type: 3}
       propertyPath: m_AnchorMax.y
@@ -883,6 +888,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 442457953521885478fb9972aa8af9d0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!224 &700540877601612521 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 7824629268954025351, guid: 6c024f2167e5f86459511d6021dc52e8,
+    type: 3}
+  m_PrefabInstance: {fileID: 700540877601612518}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1158633760204367934
 PrefabInstance:
   m_ObjectHideFlags: 0

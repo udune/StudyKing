@@ -301,7 +301,7 @@ public class AccountUI : BaseUI
             if (statusText != null)
             {
                 string userName = user?.DisplayName ?? "게스트";
-                statusText.text = $"환영합니다, {userName}님! 🎉";
+                statusText.text = $"환영합니다, {userName}님!";
             }
             
             // 잠시 후 UI 닫기
