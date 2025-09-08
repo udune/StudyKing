@@ -37,12 +37,24 @@ public class ItemTabUI : BaseUI
             return;
         }
 
+        // 저장된 장착 아이템 데이터를 먼저 로드
+        LoadItems();
+        
+        // UI 초기화
         InitializeItems();
+        
+        // UI 상태 복원 (장착된 아이템들의 선택 표시)
+        RestoreItemStates();
     }
     
     private void InitializeItems()
     {
-        if (content.childCount > 0) return; // 이미 생성됨
+        // UI가 재활성화될 때마다 아이템이 중복 생성되는 것을 방지
+        if (content.childCount > 0)
+        {
+            Logger.Log($"{GetType()}::아이템이 이미 생성되어 있음, 건너뜀");
+            return; 
+        }
     
         foreach (var item in inventoryItemList)
         {
@@ -55,6 +67,68 @@ public class ItemTabUI : BaseUI
                 Logger.LogError($"{GetType()}::아이템 생성 실패 [{item?.id}]: {e.Message}");
             }
         }
+        
+        Logger.Log($"{GetType()}::총 {inventoryItemList.Count}개의 아이템 버튼 생성 완료");
+    }
+    
+    /// <summary>
+    /// 저장된 데이터를 바탕으로 UI 상태를 복원하는 메서드
+    /// </summary>
+    private void RestoreItemStates()
+    {
+        try
+        {
+            // 장착된 아이템들의 UI 상태를 복원
+            foreach (Transform child in content)
+            {
+                RestoreItemState(child.gameObject);
+            }
+            
+            // 슬롯 상태도 업데이트
+            SortSlots();
+            
+            Logger.Log($"{GetType()}::UI 상태 복원 완료 - 장착된 아이템: {_equippedItemList.Count}개");
+        }
+        catch (Exception e)
+        {
+            Logger.LogError($"{GetType()}::UI 상태 복원 실패: {e.Message}");
+        }
+    }
+    
+    /// <summary>
+    /// 개별 아이템의 UI 상태를 복원하는 메서드
+    /// </summary>
+    private void RestoreItemState(GameObject itemObject)
+    {
+        try
+        {
+            // 게임오브젝트 이름에서 아이템 ID 추출 (형식: "Item_아이템ID")
+            if (itemObject.name.StartsWith("Item_"))
+            {
+                string itemId = itemObject.name.Substring(5); // "Item_" 제거
+                var item = inventoryItemList.Find(x => x.id == itemId);
+                
+                if (item != null)
+                {
+                    bool isEquipped = _equippedItemList.Any(x => x.id == item.id);
+                    SetItemSelected(itemObject, isEquipped);
+                    
+                    if (isEquipped)
+                    {
+                        PlayerCustom.Instance?.Equip(item.id);
+                        Logger.Log($"{GetType()}::아이템 {item.id} 장착 상태 복원");
+                    }
+                }
+                else
+                {
+                    Logger.LogWarning($"{GetType()}::아이템 ID {itemId}를 inventoryItemList에서 찾을 수 없음");
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            Logger.LogError($"{GetType()}::개별 아이템 상태 복원 실패: {e.Message}");
+        }
     }
     
     private void CreateItemButton(InventoryItem item)
@@ -63,6 +137,9 @@ public class ItemTabUI : BaseUI
     
         var go = Instantiate(itemPrefab, content);
         if (go == null) return;
+        
+        // 아이템 ID를 게임오브젝트 이름에 저장하여 나중에 찾기 쉽게 함
+        go.name = $"Item_{item.id}";
     
         // 아이콘 설정
         var iconTransform = go.transform.Find("Icon");

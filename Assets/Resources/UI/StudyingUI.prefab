@@ -698,7 +698,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3d1cfebc65d96a84487f67722570fa8d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  openAnimation: {fileID: 0}
+  openAnimation: {fileID: 1498642415057290539}
+  closeAnimation: {fileID: 0}
+  closeOnBgClick: 0
+  pauseGameWhenOpen: 0
   studyingScrollList: {fileID: 5489362510484777707}
   time: {fileID: 3642788095215753335}
   completeBtn: {fileID: 8079469705998198637}

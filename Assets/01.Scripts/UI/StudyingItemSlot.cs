@@ -71,7 +71,6 @@ public class StudyingItemSlot : InfiniteScrollItem
 
             data.check = isChecked;
             userStudyData.SaveData();
-            LobbyManager.Instance.IsComplete = false;
 
             var studyingUI = UIManager.Instance.GetActiveUI<StudyingUI>() as StudyingUI;
             if (studyingUI == null)
@@ -104,41 +103,14 @@ public class StudyingItemSlot : InfiniteScrollItem
                 userSubjectTimeData.SaveData();
 
                 studyingUI.StartTime = now;
-
-                if (studyingUI.CheckCompleted())
-                {
-                    var pauseStartTime = DateTime.UtcNow;
-                    LobbyManager.Instance.Pause();
-
-                    var modal = new ModalUIData
-                    {
-                        Type = ModalType.OkCancel,
-                        Title = "정말 다 하셨어요?",
-                        Desc = "공부 스케줄을 종료합니다.",
-                        OkBtnText = "종료",
-                        CancelBtnText = "취소",
-                        OkAction = () =>
-                        {
-                            data.check = true;
-                            userStudyData.SaveData();
-
-                            LobbyManager.Instance.IsComplete = true;
-                        },
-                        CancelAction = () =>
-                        {
-                            studyingUI.Resume(pauseStartTime);
-                            LobbyManager.Instance.Resume();
-                            check.isOn = false;
-                        }
-                    };
-
-                    UIManager.Instance.OpenUI<ModalUI>(modal);
-                }
             }
             else
             {
                 studyingUI.StartTime = DateTime.UtcNow;
             }
+
+            // 이벤트 기반으로 완료 상태 체크 및 UI 업데이트
+            studyingUI.OnStudyItemCheckChanged();
         }
         catch (Exception e)
         {

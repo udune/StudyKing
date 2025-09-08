@@ -733,9 +733,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 4321689513942137297}
         m_TargetAssemblyTypeName: StudyUI, Assembly-CSharp
-        m_MethodName: 
+        m_MethodName: OnAddStudyItem
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -866,9 +866,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 4321689513942137297}
         m_TargetAssemblyTypeName: StudyUI, Assembly-CSharp
-        m_MethodName: 
+        m_MethodName: OnStartStudy
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

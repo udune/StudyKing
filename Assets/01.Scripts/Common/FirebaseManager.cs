@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Common;
 using Firebase;
 using Firebase.Analytics;
@@ -49,6 +50,50 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>, IFirebaseMan
         
         LoadData();
         StartCoroutine(InitFirebaseServiceCoroutine());
+    }
+
+    protected override void OnDestroy()
+    {
+        try
+        {
+            // Firebase RemoteConfig 정리
+            if (remoteConfig != null)
+            {
+                // RemoteConfig는 자동으로 정리되므로 null로 설정만 함
+                remoteConfig = null;
+                isRemoteConfigInit = false;
+            }
+
+            // Auth 정리
+            if (auth != null)
+            {
+                auth = null;
+                isAuthInit = false;
+            }
+
+            // Firestore 정리
+            if (database != null)
+            {
+                database = null;
+                isFirestoreInit = false;
+            }
+
+            // 이벤트 정리
+            OnInitialized = null;
+            OnUserSignedIn = null;
+            OnUserSignedOut = null;
+            OnSignInFailed = null;
+
+            Logger.Log($"{GetType()}::Firebase 리소스 정리 완료");
+        }
+        catch (Exception e)
+        {
+            Logger.LogError($"{GetType()}::OnDestroy Exception: {e}");
+        }
+        finally
+        {
+            base.OnDestroy();
+        }
     }
 
     public bool IsInit()
@@ -602,6 +647,9 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>, IFirebaseMan
         try
         {
             var type = typeof(T);
+            Logger.Log($"Attempting to save {type} data for user: {userId}");
+            Logger.Log($"Data to save: {string.Join(", ", userDataDict.Select(kvp => $"{kvp.Key}={kvp.Value}"))}");
+            
             var documentReference = database.Collection($"{type}").Document(userId);
             documentReference.SetAsync(userDataDict).ContinueWithOnMainThread(task =>
             {
@@ -611,7 +659,25 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>, IFirebaseMan
                 }
                 else
                 {
-                    Logger.LogError($"{type} saving Failed");
+                    var errorMessage = "Unknown error";
+                    if (task.Exception != null)
+                    {
+                        errorMessage = task.Exception.GetBaseException().Message;
+                        Logger.LogError($"{type} saving Failed: {errorMessage}");
+                        Logger.LogError($"Full exception: {task.Exception}");
+                    }
+                    else if (task.IsCanceled)
+                    {
+                        Logger.LogError($"{type} saving Failed: Task was canceled");
+                    }
+                    else if (task.IsFaulted)
+                    {
+                        Logger.LogError($"{type} saving Failed: Task was faulted");
+                    }
+                    else
+                    {
+                        Logger.LogError($"{type} saving Failed: {errorMessage}");
+                    }
                 }
             });
         }
@@ -678,23 +744,23 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>, IFirebaseMan
 
     protected override void Dispose()
     {
-        base.Dispose();
-
         try
         {
+            // Auth 이벤트 해제
             if (auth != null)
             {
                 auth.StateChanged -= OnAuthStateChanged;
             }
             
-            OnInitialized = null;
-            OnUserSignedIn = null;
-            OnUserSignedOut = null;
-            OnSignInFailed = null;
+            Logger.Log($"{GetType()}::FirebaseManager Dispose 완료");
         }
         catch (Exception e)
         {
             Logger.LogError($"{GetType()}::Dispose Exception: {e}");
+        }
+        finally
+        {
+            base.Dispose();
         }
     }
 }

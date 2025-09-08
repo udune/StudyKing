@@ -6,6 +6,7 @@ using System.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
+using UnityEngine.UI;
 using Logger = Common.Logger;
 
 /// <summary>
@@ -15,7 +16,7 @@ using Logger = Common.Logger;
 public class DashboardTabUI : BaseUI
 {
     [Header("텍스트 UI 요소들")]
-    [SerializeField] private TMP_Text aiText;           // AI 조언을 보여주는 텍스트
+    [SerializeField] private Text aiText;           // AI 조언을 보여주는 텍스트
     [SerializeField] private TMP_Text totalTimeText;        // 총 학습 시간을 보여주는 텍스트
     [SerializeField] private TMP_Text weeklyTotalTime;  // 주간 총 학습 시간을 보여주는 텍스트
     [SerializeField] private TMP_Text subjectTime;      // 과목별 학습 시간을 보여주는 텍스트
@@ -138,6 +139,13 @@ public class DashboardTabUI : BaseUI
         string jsonData = JsonUtility.ToJson(requestData);
         byte[] postData = Encoding.UTF8.GetBytes(jsonData);
         
+        // 디버깅: 요청 데이터 로깅
+        Logger.Log($"{GetType()}::OpenAI 요청 데이터:");
+        Logger.Log($"  - URL: {Constants.OpenAI.API_URL}");
+        Logger.Log($"  - JSON: {jsonData}");
+        Logger.Log($"  - API Key 길이: {apiKey?.Length ?? 0}");
+        Logger.Log($"  - API Key 시작: {(string.IsNullOrEmpty(apiKey) ? "null" : apiKey.Substring(0, Math.Min(10, apiKey.Length)))}...");
+        
         // UnityWebRequest 생성 및 설정
         UnityWebRequest request = null;
         
@@ -152,6 +160,8 @@ public class DashboardTabUI : BaseUI
             // 로딩 표시
             if (aiText != null)
                 aiText.text = "AI가 조언을 생각하고 있어요...";
+                
+            Logger.Log($"{GetType()}::OpenAI 요청 전송 시작");
         }
         catch (Exception e)
         {
@@ -225,9 +235,28 @@ public class DashboardTabUI : BaseUI
     {
         if (request.result != UnityWebRequest.Result.Success)
         {
-            // 요청이 실패한 경우
-            Logger.LogError($"{GetType()}::AI 요청 실패: {request.error}");
-            ShowAIError($"네트워크 오류: {request.error}");
+            // 요청이 실패한 경우 - 상세한 디버깅 정보 출력
+            Logger.LogError($"{GetType()}::AI 요청 실패:");
+            Logger.LogError($"  - Result: {request.result}");
+            Logger.LogError($"  - Error: {request.error}");
+            Logger.LogError($"  - Response Code: {request.responseCode}");
+            Logger.LogError($"  - Response Text: {request.downloadHandler?.text ?? "null"}");
+            
+            string errorMessage = $"요청 실패 (코드: {request.responseCode})";
+            if (request.responseCode == 400)
+            {
+                errorMessage = "잘못된 요청입니다. API 파라미터를 확인해주세요.";
+            }
+            else if (request.responseCode == 401)
+            {
+                errorMessage = "API 키가 유효하지 않습니다.";
+            }
+            else if (request.responseCode == 429)
+            {
+                errorMessage = "API 사용량 한도를 초과했습니다.";
+            }
+            
+            ShowAIError(errorMessage);
             return;
         }
         
@@ -554,7 +583,7 @@ public class OpenAIRequest
 {
     public string model = Constants.OpenAI.MODEL;           // 사용할 AI 모델
     public List<Message> messages;                          // 보낼 메시지들
-    public int maxTokens = Constants.OpenAI.MAX_TOKENS;    // 최대 토큰 수
+    public int max_tokens = Constants.OpenAI.MAX_TOKENS;    // 최대 토큰 수 (올바른 필드명)
     public float temperature = Constants.OpenAI.TEMPERATURE; // AI 응답의 창의성 정도
 }
 

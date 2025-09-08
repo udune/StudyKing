@@ -64,6 +64,9 @@ public class StudyingUI : BaseUI
         LobbyManager.Instance.OnCompleteChanged -= UpdateCompleteButton;
         LobbyManager.Instance.OnCompleteChanged += UpdateCompleteButton;
 
+        // 완료 상태 즉시 체크 및 업데이트
+        CheckAndUpdateCompletionStatus();
+
         UpdateCompleteButton();
     }
 
@@ -100,15 +103,94 @@ public class StudyingUI : BaseUI
         completeBtn.interactable = LobbyManager.Instance.IsComplete;
     }
 
+    /// <summary>
+    /// 완료 상태를 체크하고 LobbyManager와 UI를 즉시 업데이트하는 메서드
+    /// </summary>
+    public void CheckAndUpdateCompletionStatus()
+    {
+        bool isCompleted = CheckCompleted();
+        
+        if (LobbyManager.Instance.IsComplete != isCompleted)
+        {
+            Logger.Log($"{GetType()}::완료 상태 변경: {LobbyManager.Instance.IsComplete} → {isCompleted}");
+            LobbyManager.Instance.IsComplete = isCompleted;
+            // LobbyManager의 OnCompleteChanged 이벤트가 자동으로 UpdateCompleteButton 호출
+            
+            // 모든 항목이 완료된 경우 완료 확인 모달 표시
+            if (isCompleted)
+            {
+                ShowCompletionModal();
+            }
+        }
+    }
+    
+    /// <summary>
+    /// 공부 완료 확인 모달을 표시하는 메서드
+    /// </summary>
+    private void ShowCompletionModal()
+    {
+        var pauseStartTime = DateTime.UtcNow;
+        LobbyManager.Instance.Pause();
+
+        var modal = new ModalUIData
+        {
+            Type = ModalType.OkCancel,
+            Title = "정말 다 하셨어요?",
+            Desc = "공부 스케줄을 종료합니다.",
+            OkBtnText = "종료",
+            CancelBtnText = "계속 공부",
+            OkAction = () =>
+            {
+                // 최종 완료 처리
+                LobbyManager.Instance.IsComplete = true;
+                Logger.Log($"{GetType()}::공부 완료 확인됨");
+            },
+            CancelAction = () =>
+            {
+                // 일시정지 상태 해제 및 타이머 재시작 (체크박스 상태는 유지)
+                Resume(pauseStartTime);
+                LobbyManager.Instance.Resume();
+                LobbyManager.Instance.IsComplete = false;
+                
+                // 타이머 재시작
+                TimerStart();
+                
+                Logger.Log($"{GetType()}::공부 계속하기 선택됨 - 타이머 재시작, 체크박스 상태 유지");
+            }
+        };
+
+        UIManager.Instance.OpenUI<ModalUI>(modal);
+    }
+    
+    /// <summary>
+    /// 외부에서 호출할 수 있는 완료 상태 업데이트 메서드
+    /// StudyingItemSlot에서 체크박스 상태 변경 시 호출
+    /// </summary>
+    public void OnStudyItemCheckChanged()
+    {
+        CheckAndUpdateCompletionStatus();
+    }
+
     public bool CheckCompleted()
     {
         var userStudyData = UserDataManager.Instance.GetUserData<UserStudyData>();
-        if (userStudyData != null)
+        if (userStudyData == null)
         {
-            return userStudyData.StudyItemDataList.TrueForAll(item => item.check);
+            Logger.LogError($"{GetType()}::UserStudyData is null");
+            return false;
         }
 
-        return false;
+        if (userStudyData.StudyItemDataList == null || userStudyData.StudyItemDataList.Count == 0)
+        {
+            Logger.LogWarning($"{GetType()}::StudyItemDataList is null or empty");
+            return false;
+        }
+
+        bool allCompleted = userStudyData.StudyItemDataList.TrueForAll(item => item.check);
+        
+        Logger.Log($"{GetType()}::완료 상태 체크 결과: {allCompleted} (총 {userStudyData.StudyItemDataList.Count}개 중 {userStudyData.StudyItemDataList.FindAll(item => item.check).Count}개 완료)");
+        
+        return allCompleted;
     }
 
     protected override void OnDestroy()

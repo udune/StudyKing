@@ -294,12 +294,21 @@ public class PauseUI : BaseUI
     /// </summary>
     protected override void OnClose()
     {
-        base.OnClose();
-        
-        // 시간 업데이트 코루틴 정지
-        StopTimeUpdate();
-        
-        Logger.Log($"{GetType()}::PauseUI가 정리되었습니다");
+        try
+        {
+            // 시간 업데이트 코루틴 정지
+            StopTimeUpdate();
+            
+            Logger.Log($"{GetType()}::PauseUI가 정리되었습니다");
+        }
+        catch (Exception e)
+        {
+            Logger.LogError($"{GetType()}::OnClose 중 오류: {e.Message}");
+        }
+        finally
+        {
+            base.OnClose();
+        }
     }
     
     /// <summary>
