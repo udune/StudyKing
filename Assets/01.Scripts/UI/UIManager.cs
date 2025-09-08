@@ -34,15 +34,15 @@ public class UIManager : SingletonBehaviour<UIManager>
     {
         if (uiCanvasTrn == null)
         {
-            Canvas canvas = FindAnyObjectByType<Canvas>();
+            Canvas canvas = FindObjectOfType<Canvas>();
             uiCanvasTrn = canvas?.transform;
         }
 
         if (timeUI == null)
-            timeUI = FindAnyObjectByType<TimeUI>();
+            timeUI = FindObjectOfType<TimeUI>();
 
         if (tabUI == null)
-            tabUI = FindAnyObjectByType<TabUI>();
+            tabUI = FindObjectOfType<TabUI>();
     }
 
     /// <summary>

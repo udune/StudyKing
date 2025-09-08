@@ -37,6 +37,23 @@ public class SceneLoader : SingletonBehaviour<SceneLoader>
 
     public SceneType GetCurrentScene()
     {
-        return Enum.Parse<SceneType>(SceneManager.GetActiveScene().name);
+        try
+        {
+            string sceneName = SceneManager.GetActiveScene().name;
+            if (Enum.TryParse<SceneType>(sceneName, out SceneType result))
+            {
+                return result;
+            }
+            else
+            {
+                Logger.LogWarning($"{GetType()}::Unknown scene name: {sceneName}, defaulting to Title");
+                return SceneType.Title;
+            }
+        }
+        catch (Exception e)
+        {
+            Logger.LogError($"{GetType()}::Error getting current scene: {e.Message}");
+            return SceneType.Title;
+        }
     }
 }

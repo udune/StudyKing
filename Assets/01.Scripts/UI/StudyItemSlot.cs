@@ -29,16 +29,28 @@ public class StudyItemSlot : InfiniteScrollItem
         }
         
         id = _studyItemSlotData.Id;
-        nameInput.text = _studyItemSlotData.Name;
+        if (nameInput != null)
+            nameInput.text = _studyItemSlotData.Name;
+        else
+            Logger.LogWarning($"{GetType()}::nameInput is null");
         
         // 기존 리스너 제거 후 새로 등록
-        nameInput.onEndEdit.RemoveAllListeners();
-        nameInput.onEndEdit.AddListener(OnInputEnd);
+        if (nameInput != null)
+        {
+            nameInput.onEndEdit.RemoveAllListeners();
+            nameInput.onEndEdit.AddListener(OnInputEnd);
+        }
     }
 
     private void OnInputEnd(string nameStr)
     {
         Logger.Log($"{GetType()}::OnEndEdit(text={nameStr})");
+        if (UserDataManager.Instance == null)
+        {
+            Logger.LogError($"{GetType()}::UserDataManager.Instance is null");
+            return;
+        }
+        
         var userStudyData = UserDataManager.Instance.GetUserData<UserStudyData>();
         if (userStudyData == null)
         {
@@ -62,6 +74,12 @@ public class StudyItemSlot : InfiniteScrollItem
 
     public void OnClickDelete()
     {
+        if (UserDataManager.Instance == null)
+        {
+            Logger.LogError($"{GetType()}::UserDataManager.Instance is null");
+            return;
+        }
+        
         var userStudyData = UserDataManager.Instance.GetUserData<UserStudyData>();
         if (userStudyData == null)
         {
@@ -82,6 +100,12 @@ public class StudyItemSlot : InfiniteScrollItem
         userStudyData.StudyItemDataList.Remove(data);
         userStudyData.SaveData();
 
+        if (UIManager.Instance == null)
+        {
+            Logger.LogError($"{GetType()}::UIManager.Instance is null");
+            return;
+        }
+        
         var studyUI = UIManager.Instance.GetActiveUI<StudyUI>() as StudyUI;
         if (studyUI == null)
         {

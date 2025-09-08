@@ -40,7 +40,7 @@ public class MySettingTabUI : BaseUI
     private Firebase.Auth.FirebaseUser _currentUser;
     
     // 설정 데이터
-    private UserSettingsData _userSettings;
+    private UserSettingData _userSettings;
 
     /// <summary>
     /// UI 초기화 시 호출되는 함수
@@ -256,7 +256,7 @@ public class MySettingTabUI : BaseUI
         try
         {
             // 사용자 설정 데이터 로드
-            _userSettings = UserDataManager.Instance?.GetUserData<UserSettingsData>();
+            _userSettings = UserDataManager.Instance?.GetUserData<UserSettingData>();
             
             if (_userSettings == null)
             {
@@ -279,12 +279,13 @@ public class MySettingTabUI : BaseUI
     /// </summary>
     private void CreateDefaultSettings()
     {
-        _userSettings = new UserSettingsData
+        _userSettings = UserDataManager.Instance?.GetUserData<UserSettingData>();
+        if (_userSettings == null)
         {
-            notificationEnabled = true,
-            soundEnabled = true,
-            vibrationEnabled = true
-        };
+            // UserDataManager에서 UserSettingData 인스턴스를 가져올 수 없는 경우 기본값 사용
+            Logger.LogWarning($"{GetType()}::UserSettingData를 찾을 수 없어 기본 설정을 사용합니다");
+            return;
+        }
         
         _userSettings.SaveData();
         Logger.Log($"{GetType()}::기본 설정을 생성했습니다");
@@ -298,13 +299,13 @@ public class MySettingTabUI : BaseUI
         if (_userSettings == null) return;
         
         if (notificationToggle != null)
-            notificationToggle.isOn = _userSettings.notificationEnabled;
+            notificationToggle.isOn = _userSettings.NotificationEnabled;
             
         if (soundToggle != null)
-            soundToggle.isOn = _userSettings.soundEnabled;
+            soundToggle.isOn = _userSettings.SoundEnabled;
             
         if (vibrationToggle != null)
-            vibrationToggle.isOn = _userSettings.vibrationEnabled;
+            vibrationToggle.isOn = false; // UserSettingData에는 vibration 설정이 없음
     }
 
     #region 버튼 이벤트 함수들
@@ -473,8 +474,7 @@ public class MySettingTabUI : BaseUI
         
         if (_userSettings != null)
         {
-            _userSettings.notificationEnabled = isOn;
-            _userSettings.SaveData();
+            _userSettings.SetNotificationEnabled(isOn);
             
             // 시스템 알림 설정 적용
             ApplyNotificationSettings(isOn);
@@ -490,8 +490,7 @@ public class MySettingTabUI : BaseUI
         
         if (_userSettings != null)
         {
-            _userSettings.soundEnabled = isOn;
-            _userSettings.SaveData();
+            _userSettings.SetSoundEnabled(isOn);
             
             // 시스템 사운드 설정 적용
             ApplySoundSettings(isOn);
@@ -505,14 +504,11 @@ public class MySettingTabUI : BaseUI
     {
         Logger.Log($"{GetType()}::진동 설정 변경: {isOn}");
         
-        if (_userSettings != null)
-        {
-            _userSettings.vibrationEnabled = isOn;
-            _userSettings.SaveData();
-            
-            // 시스템 진동 설정 적용
-            ApplyVibrationSettings(isOn);
-        }
+        // UserSettingData에는 vibration 설정이 없으므로 로그만 출력
+        Logger.Log($"{GetType()}::진동 설정 변경 요청되었으나 UserSettingData에는 해당 속성이 없습니다: {isOn}");
+        
+        // 시스템 진동 설정 적용
+        ApplyVibrationSettings(isOn);
     }
     
     #endregion
@@ -633,41 +629,5 @@ public class MySettingTabUI : BaseUI
             vibrationToggle.onValueChanged.RemoveAllListeners();
         
         Logger.Log($"{GetType()}::MySettingTabUI가 정리되었습니다");
-    }
-}
-
-/// <summary>
-/// 사용자 설정 데이터 클래스
-/// </summary>
-[System.Serializable]
-public class UserSettingsData : IUserData
-{
-    public bool notificationEnabled = true;  // 알림 설정
-    public bool soundEnabled = true;         // 사운드 설정
-    public bool vibrationEnabled = true;     // 진동 설정
-
-    public bool IsLoaded { get; set; }
-    public void Initialize()
-    {
-        throw new System.NotImplementedException();
-    }
-
-    public void Setting(Dictionary<string, object> firestoreDict)
-    {
-        throw new System.NotImplementedException();
-    }
-
-    public void LoadData()
-    {
-        throw new System.NotImplementedException();
-    }
-
-    /// <summary>
-    /// 설정 데이터를 저장하는 함수
-    /// </summary>
-    public void SaveData()
-    {
-        // UserDataManager를 통해 저장
-        UserDataManager.Instance?.SaveUserSettingData(this);
     }
 }

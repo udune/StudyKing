@@ -25,63 +25,127 @@ public class ItemTabUI : BaseUI
     {
         base.Setting(data);
         
-        if (content.childCount.Equals(0))
+        if (content == null)
         {
-            foreach (var item in inventoryItemList)
-            {
-                var go = Instantiate(itemPrefab, content);
-                var thisItem = item;
-                
-                go.transform.Find("Icon").GetComponent<Image>().sprite = Resources.Load<Sprite>($"Texture/{thisItem.id}");
-                go.GetComponent<Button>().onClick.RemoveAllListeners();
-                go.GetComponent<Button>().onClick.AddListener(() =>
-                {
-                    try
-                    {
-                        if (OnClickItem(thisItem))
-                        {
-                            PlayerCustom.Instance.Equip(thisItem.id);
-                            go.transform.Find("outline").GetComponent<Image>().color = new Color(251/255f, 180/255f, 170/255f, 1f);
-                        }
-                        else
-                        {
-                            PlayerCustom.Instance.UnEquip(thisItem.id);
-                            go.transform.Find("outline").GetComponent<Image>().color = new Color(229/255f, 235/255f, 214/255f, 1f);
-                        }
-                    }
-                    catch (Exception)
-                    {
-                        Logger.LogError($"{GetType()}:: Error in OnClickItem");
-                    }
-
-                    SaveItems();
-                });
-            }
+            Logger.LogError($"{GetType()}::Content Transform이 null입니다");
+            return;
+        }
+    
+        if (itemPrefab == null)
+        {
+            Logger.LogError($"{GetType()}::Item Prefab이 null입니다");
+            return;
         }
 
-        LoadItems();
+        InitializeItems();
+    }
+    
+    private void InitializeItems()
+    {
+        if (content.childCount > 0) return; // 이미 생성됨
+    
+        foreach (var item in inventoryItemList)
+        {
+            try
+            {
+                CreateItemButton(item);
+            }
+            catch (Exception e)
+            {
+                Logger.LogError($"{GetType()}::아이템 생성 실패 [{item?.id}]: {e.Message}");
+            }
+        }
+    }
+    
+    private void CreateItemButton(InventoryItem item)
+    {
+        if (item == null) return;
+    
+        var go = Instantiate(itemPrefab, content);
+        if (go == null) return;
+    
+        // 아이콘 설정
+        var iconTransform = go.transform.Find("Icon");
+        if (iconTransform != null)
+        {
+            var iconImage = iconTransform.GetComponent<Image>();
+            if (iconImage != null)
+            {
+                var sprite = Resources.Load<Sprite>($"Texture/{item.id}");
+                if (sprite != null)
+                {
+                    iconImage.sprite = sprite;
+                }
+            }
+        }
+    
+        // 버튼 이벤트 설정
+        var button = go.GetComponent<Button>();
+        if (button != null)
+        {
+            button.onClick.RemoveAllListeners();
+            button.onClick.AddListener(() => OnItemClick(item, go));
+        }
+    }
+    
+    private void OnItemClick(InventoryItem item, GameObject itemObject)
+    {
+        try
+        {
+            if (OnClickItem(item))
+            {
+                PlayerCustom.Instance?.Equip(item.id);
+                SetItemSelected(itemObject, true);
+            }
+            else
+            {
+                PlayerCustom.Instance?.UnEquip(item.id);
+                SetItemSelected(itemObject, false);
+            }
+        
+            SaveItems();
+        }
+        catch (Exception e)
+        {
+            Logger.LogError($"{GetType()}::아이템 클릭 처리 실패: {e.Message}");
+        }
+    }
+    
+    private void SetItemSelected(GameObject itemObject, bool selected)
+    {
+        var outline = itemObject.transform.Find("outline");
+        if (outline != null)
+        {
+            var outlineImage = outline.GetComponent<Image>();
+            if (outlineImage != null)
+            {
+                outlineImage.color = selected ? 
+                    new Color(251/255f, 180/255f, 170/255f, 1f) : 
+                    new Color(229/255f, 235/255f, 214/255f, 1f);
+            }
+        }
     }
 
     private void LoadItems()
     {
-        var userInventoryData = UserDataManager.Instance.GetUserData<UserInventoryData>();
-        if (userInventoryData == null)
-            return;
-
-        foreach (var equippedId in userInventoryData.EquippedItemIdList)
+        try
         {
-            var item = inventoryItemList.Find(x => x.id.Equals(equippedId));
-            if (item != null)
+            var userInventoryData = UserDataManager.Instance?.GetUserData<UserInventoryData>();
+            if (userInventoryData?.EquippedItemIdList == null) return;
+
+            foreach (var equippedId in userInventoryData.EquippedItemIdList)
             {
-                if (_equippedItemList.Contains(item))
-                    return;
-                
-                _equippedItemList.Add(item);
-                PlayerCustom.Instance.Equip(item.id);
+                var item = inventoryItemList?.Find(x => x.id.Equals(equippedId));
+                if (item != null && !_equippedItemList.Contains(item))
+                {
+                    _equippedItemList.Add(item);
+                }
             }
         }
-        
-        SortSlots();
+        catch (Exception e)
+        {
+            Logger.LogError($"{GetType()}::아이템 로드 실패: {e.Message}");
+        }
     }
 
     private void SaveItems()

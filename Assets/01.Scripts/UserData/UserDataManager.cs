@@ -49,7 +49,7 @@ public class UserDataManager : SingletonBehaviour<UserDataManager>, IUserDataMan
         }
     }
     
-    public void SaveUserSettingData(UserSettingsData settingData)
+    public void SaveUserSettingData(UserSettingData settingData)
     {
         settingData?.SaveData();
     }
