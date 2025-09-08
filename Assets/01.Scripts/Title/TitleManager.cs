@@ -52,12 +52,14 @@ namespace Title
             
             if (!FirebaseManager.Instance.IsInit())
             {
-                var modal = new ModalUIData();
-                modal.Type = ModalType.Ok;
-                modal.Title = "네트워크 오류";
-                modal.Desc = "네트워크 초기화에 실패했습니다.\n앱을 종료합니다.";
-                modal.OkBtnText = "다시 시도";
-                modal.OkAction = Application.Quit;
+                var modal = new ModalUIData
+                {
+                    Type = ModalType.Ok,
+                    Title = "네트워크 오류",
+                    Desc = "네트워크 초기화에 실패했습니다.\n앱을 종료합니다.",
+                    OkBtnText = "다시 시도",
+                    OkAction = Application.Quit
+                };
                 UIManager.Instance.OpenUI<ModalUI>(modal);
                 
                 yield break;
