@@ -39,6 +39,16 @@ public class TimeUI : MonoBehaviour
         }
         
         cachedTimeData = UserDataManager.Instance.GetUserData<UserTimeData>();
+        
+        if (cachedTimeData != null)
+        {
+            Logger.Log($"{GetType()}::RefreshTimeData - 로드된 Time: {cachedTimeData.Time}초");
+        }
+        else
+        {
+            Logger.LogWarning($"{GetType()}::RefreshTimeData - cachedTimeData is null");
+        }
+        
         SetValue();
     }
     
@@ -70,6 +80,8 @@ public class TimeUI : MonoBehaviour
             return;
         }
         
+        Logger.Log($"{GetType()}::SetValue 호출 - cachedTimeData.Time: {cachedTimeData.Time}초");
+        
         string formattedTime = CalculateTimeFormat(cachedTimeData.Time);
         lastDisplayTime = cachedTimeData.Time;
         
@@ -78,6 +90,7 @@ public class TimeUI : MonoBehaviour
         if (timeText != null)
         {
             timeText.text = formattedTime;
+            Logger.Log($"{GetType()}::timeText 업데이트 완료: '{formattedTime}'");
         }
         else
         {

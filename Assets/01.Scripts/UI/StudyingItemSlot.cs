@@ -47,8 +47,26 @@ public class StudyingItemSlot : InfiniteScrollItem
     private void UpdateCheckState()
     {
         var isComplete = LobbyManager.Instance.IsComplete;
-        check.isOn = isComplete;
-        check.interactable = !isComplete;
+        
+        // 전체 완료 상태일 때만 체크박스 비활성화, 개별 체크 상태는 실제 데이터에서 가져옴
+        if (isComplete)
+        {
+            check.interactable = false;
+        }
+        else
+        {
+            check.interactable = true;
+            // 실제 사용자 데이터에서 체크 상태 가져오기
+            var userStudyData = UserDataManager.Instance.GetUserData<UserStudyData>();
+            if (userStudyData != null)
+            {
+                var data = userStudyData.StudyItemDataList.Find(x => x.id == id);
+                if (data != null)
+                {
+                    check.isOn = data.check;
+                }
+            }
+        }
     }
 
     private void OnClickCheck(bool isChecked)
@@ -69,6 +87,7 @@ public class StudyingItemSlot : InfiniteScrollItem
                 return;
             }
 
+            // 체크 상태 변경
             data.check = isChecked;
             userStudyData.SaveData();
 
@@ -79,35 +98,24 @@ public class StudyingItemSlot : InfiniteScrollItem
                 return;
             }
 
-            if (isChecked)
+            // 과목별 시간 데이터 확인 및 생성
+            var userSubjectTimeData = UserDataManager.Instance.GetUserData<UserSubjectTimeData>();
+            if (userSubjectTimeData != null)
             {
-                var userSubjectTimeData = UserDataManager.Instance.GetUserData<UserSubjectTimeData>();
-                if (userSubjectTimeData == null)
-                {
-                    Logger.Log($"{GetType()}::UserSubjectTimeData is null");
-                    return;
-                }
-
-                var now = DateTime.UtcNow;
-                var elapsedTime = now - studyingUI.StartTime;
-                var elapsedSeconds = (long)elapsedTime.TotalSeconds;
-
                 var subject = userSubjectTimeData.SubjectTimeItemDataList.FirstOrDefault(x => x.Name.Equals(data.name));
                 if (subject == null)
                 {
                     subject = new SubjectTimeItemData { Name = data.name, Time = 0 };
                     userSubjectTimeData.SubjectTimeItemDataList.Add(subject);
+                    userSubjectTimeData.SaveData();
+                    Logger.Log($"{GetType()}::새 과목 생성 - '{data.name}': 0초");
                 }
-
-                subject.Time += elapsedSeconds;
-                userSubjectTimeData.SaveData();
-
-                studyingUI.StartTime = now;
             }
-            else
-            {
-                studyingUI.StartTime = DateTime.UtcNow;
-            }
+
+            Logger.Log($"{GetType()}::OnClickCheck - 과목: '{data.name}', 체크상태: {isChecked}");
+            
+            // 활성 과목 업데이트 (새로운 로직의 핵심)
+            studyingUI.UpdateCurrentActiveSubject();
 
             // 이벤트 기반으로 완료 상태 체크 및 UI 업데이트
             studyingUI.OnStudyItemCheckChanged();

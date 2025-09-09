@@ -76,7 +76,7 @@ public abstract class BaseChart : MonoBehaviour
     // 차트를 지운다.
     protected virtual void ClearChart()
     {
-        if (chartContainer != null)
+        if (chartContainer == null)
         {
             return;
         }

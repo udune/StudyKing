@@ -395,6 +395,7 @@ GameObject:
   - component: {fileID: 6896246675498200845}
   - component: {fileID: 2983574641081193238}
   - component: {fileID: 6494028427201631221}
+  - component: {fileID: 9194197151426850975}
   m_Layer: 5
   m_Name: LineChart
   m_TagString: Untagged
@@ -462,6 +463,33 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &9194197151426850975
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1584431390379695741}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 59d54ea8d0459e4498c5e0f08946e209, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  chartContainer: {fileID: 1600128881732624279}
+  chartColors: []
+  showLabels: 1
+  font: {fileID: 12800000, guid: e987e055c59745948a7db4bd2a040bdd, type: 3}
+  labelFontSize: 12
+  lineWidth: 2
+  pointSize: 6
+  showPoints: 1
+  showArea: 0
+  lineColor: {r: 0, g: 0, b: 1, a: 1}
+  pointColor: {r: 1, g: 0, b: 0, a: 1}
+  areaColor: {r: 0, g: 0, b: 1, a: 1}
+  showGrid: 1
+  gridLineCount: 5
+  gridColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
 --- !u!1 &1869333751796819266
 GameObject:
   m_ObjectHideFlags: 0
@@ -709,10 +737,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 939851398256020411}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: 780, y: 220}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &2582163921426095711
 GameObject:
@@ -725,6 +753,7 @@ GameObject:
   - component: {fileID: 509724634773667947}
   - component: {fileID: 5732478371050640804}
   - component: {fileID: 4148178511430968599}
+  - component: {fileID: 7227505395272522483}
   m_Layer: 5
   m_Name: BarChart
   m_TagString: Untagged
@@ -792,6 +821,29 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &7227505395272522483
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2582163921426095711}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0726f934818d656479b6071be6985f54, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  chartContainer: {fileID: 2668275750240315244}
+  chartColors: []
+  showLabels: 1
+  font: {fileID: 12800000, guid: e987e055c59745948a7db4bd2a040bdd, type: 3}
+  labelFontSize: 12
+  barWidthRatio: 0.8
+  maxBarHeight: 200
+  showValues: 1
+  showGrid: 1
+  gridLineCount: 5
+  gridColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
 --- !u!1 &2730127935232756218
 GameObject:
   m_ObjectHideFlags: 0
@@ -992,6 +1044,9 @@ MonoBehaviour:
   pieChartContainer: {fileID: 3813242553802293747}
   barChartContainer: {fileID: 2668275750240315244}
   lineChartContainer: {fileID: 1600128881732624279}
+  pieChart: {fileID: 5718541506568131598}
+  barChart: {fileID: 7227505395272522483}
+  lineChart: {fileID: 9194197151426850975}
   aiEmptyText: {fileID: 4676271349187278595}
   pieChartEmptyText: {fileID: 1274202360103610482}
   barChartEmptyText: {fileID: 2730127935232756218}
@@ -1688,6 +1743,7 @@ GameObject:
   - component: {fileID: 3873665166142722300}
   - component: {fileID: 8513026822167974607}
   - component: {fileID: 5491994767573746710}
+  - component: {fileID: 5718541506568131598}
   m_Layer: 5
   m_Name: PieChart
   m_TagString: Untagged
@@ -1755,6 +1811,27 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &5718541506568131598
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6078851073616739252}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03c828e6b7adb5843ae92453747d613a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  chartContainer: {fileID: 3813242553802293747}
+  chartColors: []
+  showLabels: 1
+  font: {fileID: 12800000, guid: e987e055c59745948a7db4bd2a040bdd, type: 3}
+  labelFontSize: 12
+  chartRadius: 100
+  showPercentage: 1
+  labelDistance: 120
+  circleSegments: 100
 --- !u!1 &6185613357162919911
 GameObject:
   m_ObjectHideFlags: 0
@@ -2651,10 +2728,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 2973471177238088071}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 200, y: 50}
-  m_SizeDelta: {x: -400, y: 100}
+  m_SizeDelta: {x: 380, y: 400}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &7745882288583945577
 GameObject:
@@ -2823,10 +2900,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1682722294339095457}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: -60, y: 0}
+  m_SizeDelta: {x: 720, y: 220}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &8473521333602025574
 GameObject:

@@ -159,6 +159,32 @@ public class UIManager : SingletonBehaviour<UIManager>
         if (timeUI != null)
         {
             timeUI.gameObject.SetActive(isVisible);
+            
+            // UI가 활성화될 때 시간 데이터를 강제로 새로고침
+            if (isVisible)
+            {
+                var timeUIComponent = timeUI.GetComponent<TimeUI>();
+                if (timeUIComponent != null)
+                {
+                    timeUIComponent.ForceRefresh();
+                }
+            }
+        }
+    }
+    
+    /// <summary>
+    /// 시간 UI 즉시 업데이트 (공부 완료 시 호출)
+    /// </summary>
+    public void RefreshTimeUI()
+    {
+        if (timeUI != null && timeUI.gameObject.activeInHierarchy)
+        {
+            var timeUIComponent = timeUI.GetComponent<TimeUI>();
+            if (timeUIComponent != null)
+            {
+                timeUIComponent.ForceRefresh();
+                Logger.Log($"{GetType()}::TimeUI 즉시 업데이트 완료");
+            }
         }
     }
 

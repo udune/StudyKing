@@ -26,6 +26,11 @@ public class DashboardTabUI : BaseUI
     [SerializeField] private Transform barChartContainer;   // 막대차트가 들어갈 부모 오브젝트
     [SerializeField] private Transform lineChartContainer;  // 꺾은선차트가 들어갈 부모 오브젝트
     
+    [Header("차트 컴포넌트들")]
+    [SerializeField] private CustomPieChart pieChart;       // 파이차트 컴포넌트
+    [SerializeField] private CustomBarChart barChart;       // 막대차트 컴포넌트
+    [SerializeField] private CustomLineChart lineChart;     // 꺾은선차트 컴포넌트
+    
     [Header("빈 데이터일 때 보여줄 텍스트들")]
     [SerializeField] private GameObject aiEmptyText;           // AI 조언이 없을 때 보여줄 텍스트
     [SerializeField] private GameObject pieChartEmptyText;     // 파이차트 데이터가 없을 때 보여줄 텍스트
@@ -48,8 +53,111 @@ public class DashboardTabUI : BaseUI
     {
         base.OnSetting(data);
         
+        // 차트 컴포넌트 자동 연결
+        InitializeChartComponents();
+        
         // 모든 차트와 텍스트 데이터를 새로고침합니다
         RefreshAllData();
+    }
+    
+    /// <summary>
+    /// 차트 컴포넌트들을 자동으로 찾아서 연결
+    /// </summary>
+    private void InitializeChartComponents()
+    {
+        // 파이차트 컴포넌트 찾기
+        if (pieChart == null && pieChartContainer != null)
+        {
+            pieChart = pieChartContainer.GetComponentInChildren<CustomPieChart>();
+            if (pieChart != null)
+            {
+                SetupChartTransform(pieChart.transform, "PieChart");
+                Logger.Log($"{GetType()}::PieChart 자동 연결 및 설정 완료");
+            }
+            else
+            {
+                Logger.LogWarning($"{GetType()}::PieChart 컴포넌트를 찾을 수 없습니다");
+            }
+        }
+        
+        // 막대차트 컴포넌트 찾기
+        if (barChart == null && barChartContainer != null)
+        {
+            barChart = barChartContainer.GetComponentInChildren<CustomBarChart>();
+            if (barChart != null)
+            {
+                SetupChartTransform(barChart.transform, "BarChart");
+                Logger.Log($"{GetType()}::BarChart 자동 연결 및 설정 완료");
+            }
+            else
+            {
+                Logger.LogWarning($"{GetType()}::BarChart 컴포넌트를 찾을 수 없습니다");
+            }
+        }
+        
+        // 꺾은선차트 컴포넌트 찾기
+        if (lineChart == null && lineChartContainer != null)
+        {
+            lineChart = lineChartContainer.GetComponentInChildren<CustomLineChart>();
+            if (lineChart != null)
+            {
+                SetupChartTransform(lineChart.transform, "LineChart");
+                Logger.Log($"{GetType()}::LineChart 자동 연결 및 설정 완료");
+            }
+            else
+            {
+                Logger.LogWarning($"{GetType()}::LineChart 컴포넌트를 찾을 수 없습니다");
+            }
+        }
+        
+        Logger.Log($"{GetType()}::차트 컴포넌트 초기화 완료 - PieChart: {(pieChart != null ? "연결됨" : "null")}, BarChart: {(barChart != null ? "연결됨" : "null")}, LineChart: {(lineChart != null ? "연결됨" : "null")}");
+    }
+    
+    /// <summary>
+    /// 차트 Transform을 올바르게 설정
+    /// </summary>
+    private void SetupChartTransform(Transform chartTransform, string chartName)
+    {
+        if (chartTransform == null) return;
+        
+        // Transform 정보 로깅
+        Logger.Log($"{GetType()}::{chartName} 현재 Transform - Position: {chartTransform.localPosition}, Scale: {chartTransform.localScale}, Rotation: {chartTransform.localRotation}");
+        
+        // Scale이 비정상적으로 큰 경우 수정
+        if (chartTransform.localScale.magnitude > 10f)
+        {
+            chartTransform.localScale = Vector3.one;
+            Logger.Log($"{GetType()}::{chartName} Scale을 (1,1,1)로 수정");
+        }
+        
+        // Position이 비정상적인 경우 수정 (UI는 보통 (0,0,0) 근처에 있어야 함)
+        if (Vector3.Distance(chartTransform.localPosition, Vector3.zero) > 1000f)
+        {
+            chartTransform.localPosition = Vector3.zero;
+            Logger.Log($"{GetType()}::{chartName} Position을 (0,0,0)으로 수정");
+        }
+        
+        // Rotation 정규화
+        chartTransform.localRotation = Quaternion.identity;
+        
+        // UI 차트의 경우 Material 설정 (Renderer가 있는 경우)
+        var renderer = chartTransform.GetComponent<Renderer>();
+        if (renderer != null && renderer.material == null)
+        {
+            // UI 기본 Material 설정 (UI/Default 또는 Sprites/Default)
+            renderer.material = Resources.GetBuiltinResource<Material>("UI/Default.mat");
+            Logger.Log($"{GetType()}::{chartName} 기본 Material 설정 완료");
+        }
+        
+        // 또는 Image 컴포넌트가 있는 경우
+        var image = chartTransform.GetComponent<UnityEngine.UI.Image>();
+        if (image != null && image.material == null)
+        {
+            image.material = Resources.GetBuiltinResource<Material>("UI/Default.mat");
+            Logger.Log($"{GetType()}::{chartName} Image Material 설정 완료");
+        }
+        
+        Logger.Log($"{GetType()}::{chartName} 수정된 Transform - Position: {chartTransform.localPosition}, Scale: {chartTransform.localScale}");
     }
     
     /// <summary>
@@ -57,11 +165,15 @@ public class DashboardTabUI : BaseUI
     /// </summary>
     private void RefreshAllData()
     {
+        Logger.Log($"{GetType()}::RefreshAllData 시작");
+        
         SetTotalTime();      // 총 학습 시간 설정
         SetWeeklyTime();     // 주간 학습 시간 설정
         SetSubjectTime();    // 과목별 학습 시간 설정
         SetAIAdvice();       // AI 조언 설정
         UpdateCharts();      // 차트 업데이트
+        
+        Logger.Log($"{GetType()}::RefreshAllData 완료");
     }
     
     /// <summary>
@@ -431,9 +543,17 @@ public class DashboardTabUI : BaseUI
     /// </summary>
     private void UpdateCharts()
     {
+        Logger.Log($"{GetType()}::차트 업데이트 시작");
+        Logger.Log($"{GetType()}::차트 컴포넌트 상태 - PieChart: {(pieChart != null ? "연결됨" : "null")}, BarChart: {(barChart != null ? "연결됨" : "null")}, LineChart: {(lineChart != null ? "연결됨" : "null")}");
+        Logger.Log($"{GetType()}::차트 컨테이너 상태 - PieContainer: {(pieChartContainer != null ? "연결됨" : "null")}, BarContainer: {(barChartContainer != null ? "연결됨" : "null")}, LineContainer: {(lineChartContainer != null ? "연결됨" : "null")}");
+        Logger.Log($"{GetType()}::차트 콘텐츠 상태 - PieContent: {(pieChartContent != null ? "연결됨" : "null")}, BarContent: {(barChartContent != null ? "연결됨" : "null")}, LineContent: {(lineChartContent != null ? "연결됨" : "null")}");
+        Logger.Log($"{GetType()}::차트 빈 데이터 텍스트 상태 - PieEmpty: {(pieChartEmptyText != null ? "연결됨" : "null")}, BarEmpty: {(barChartEmptyText != null ? "연결됨" : "null")}, LineEmpty: {(lineChartEmptyText != null ? "연결됨" : "null")}");
+        
         UpdatePieChart();
         UpdateBarChart();
         UpdateLineChart();
+        
+        Logger.Log($"{GetType()}::차트 업데이트 완료");
     }
     
     /// <summary>
@@ -445,12 +565,51 @@ public class DashboardTabUI : BaseUI
         {
             UserSubjectTimeData userSubjectTimeData = UserDataManager.Instance?.GetUserData<UserSubjectTimeData>();
             bool hasData = userSubjectTimeData?.SubjectTimeItemDataList?.Count > 0;
+            
+            Logger.Log($"{GetType()}::파이차트 데이터 확인 - UserSubjectTimeData: {(userSubjectTimeData != null ? "있음" : "null")}, SubjectTimeItemDataList: {userSubjectTimeData?.SubjectTimeItemDataList?.Count ?? 0}개, hasData: {hasData}");
 
             if (pieChartContent != null)
+            {
                 pieChartContent.SetActive(hasData);
+                Logger.Log($"{GetType()}::PieChartContent 활성화: {hasData}");
+            }
             
             if (pieChartEmptyText != null)
+            {
                 pieChartEmptyText.SetActive(!hasData);
+                Logger.Log($"{GetType()}::PieChartEmptyText 활성화: {!hasData}");
+            }
+
+            // 실제 파이차트 데이터 업데이트
+            if (pieChart == null)
+            {
+                Logger.LogWarning($"{GetType()}::PieChart 컴포넌트가 연결되지 않았습니다");
+            }
+            else if (hasData)
+            {
+                Logger.Log($"{GetType()}::파이차트 데이터 업데이트 시작 - {userSubjectTimeData.SubjectTimeItemDataList.Count}개 과목");
+                
+                pieChart.ClearData();
+                
+                foreach (var subject in userSubjectTimeData.SubjectTimeItemDataList)
+                {
+                    if (subject.Time > 0)
+                    {
+                        // 시간을 시간 단위로 변환 (초 -> 시간)
+                        float hours = subject.Time / 3600f;
+                        pieChart.AddData(subject.Name, hours);
+                        Logger.Log($"{GetType()}::파이차트 데이터 추가 - {subject.Name}: {hours:F2}시간");
+                    }
+                }
+                
+                pieChart.RefreshChart();
+                Logger.Log($"{GetType()}::파이차트 RefreshChart 호출 완료");
+            }
+            else
+            {
+                Logger.Log($"{GetType()}::파이차트 데이터 없음 - 차트 클리어");
+                pieChart.ClearData();
+            }
         }
         catch (Exception e)
         {
@@ -473,6 +632,34 @@ public class DashboardTabUI : BaseUI
             
             if (barChartEmptyText != null)
                 barChartEmptyText.SetActive(!hasData);
+
+            // 실제 막대차트 데이터 업데이트 (최근 7일)
+            if (hasData && barChart != null)
+            {
+                barChart.ClearData();
+                
+                DateTime now = DateTime.UtcNow.AddHours(9);
+                
+                // 최근 7일 데이터를 가져와서 막대차트에 추가
+                for (int i = 6; i >= 0; i--)
+                {
+                    DateTime targetDate = now.AddDays(-i);
+                    string dateString = targetDate.ToString("yyyy-MM-dd");
+                    string displayDate = targetDate.ToString("MM/dd");
+                    
+                    var dayData = userDailyTimeData.DailyTimeItemDataList.FirstOrDefault(x => x.Date == dateString);
+                    float hours = dayData?.Time / 3600f ?? 0f; // 초를 시간으로 변환
+                    
+                    barChart.AddData(displayDate, hours);
+                }
+                
+                barChart.RefreshChart();
+                Logger.Log($"{GetType()}::막대차트 업데이트 완료 - 최근 7일 데이터");
+            }
+            else if (barChart != null)
+            {
+                barChart.ClearData();
+            }
         }
         catch (Exception e)
         {
@@ -487,14 +674,42 @@ public class DashboardTabUI : BaseUI
     {
         try
         {
-            UserHistoryData userHistoryData = UserDataManager.Instance?.GetUserData<UserHistoryData>();
-            bool hasData = userHistoryData?.HistoryItemDataList?.Count > 0;
+            UserDailyTimeData userDailyTimeData = UserDataManager.Instance?.GetUserData<UserDailyTimeData>();
+            bool hasData = userDailyTimeData?.DailyTimeItemDataList?.Count > 0;
 
             if (lineChartContent != null)
                 lineChartContent.SetActive(hasData);
             
             if (lineChartEmptyText != null)
                 lineChartEmptyText.SetActive(!hasData);
+
+            // 실제 꺾은선 차트 데이터 업데이트 (최근 30일 학습 시간 추이)
+            if (hasData && lineChart != null)
+            {
+                lineChart.ClearData();
+                
+                DateTime now = DateTime.UtcNow.AddHours(9);
+                
+                // 최근 30일 데이터를 가져와서 꺾은선 차트에 추가
+                for (int i = 29; i >= 0; i--)
+                {
+                    DateTime targetDate = now.AddDays(-i);
+                    string dateString = targetDate.ToString("yyyy-MM-dd");
+                    string displayDate = targetDate.ToString("MM/dd");
+                    
+                    var dayData = userDailyTimeData.DailyTimeItemDataList.FirstOrDefault(x => x.Date == dateString);
+                    float hours = dayData?.Time / 3600f ?? 0f; // 초를 시간으로 변환
+                    
+                    lineChart.AddData(displayDate, hours);
+                }
+                
+                lineChart.RefreshChart();
+                Logger.Log($"{GetType()}::꺾은선차트 업데이트 완료 - 최근 30일 데이터");
+            }
+            else if (lineChart != null)
+            {
+                lineChart.ClearData();
+            }
         }
         catch (Exception e)
         {

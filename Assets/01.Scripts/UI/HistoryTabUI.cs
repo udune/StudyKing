@@ -23,17 +23,13 @@ public class HistoryTabUI : BaseUI
     public override void ShowUI()
     {
         base.ShowUI();
-#if !UNITY_EDITOR
         StartCoroutine(RefreshLayout());
-#endif
     }
 
     public override void Setting(BaseUIData data)
     {
         base.Setting(data);
-#if !UNITY_EDITOR
         Setting();
-#endif
     }
 
     private void Setting()
