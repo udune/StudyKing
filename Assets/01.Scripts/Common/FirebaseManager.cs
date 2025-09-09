@@ -372,18 +372,6 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>, IFirebaseMan
         {
             Logger.LogError($"{GetType()}::OnAuthStateChanged Exception: {e}");
         }
-
-        // 🔥 원본 코드의 중복 로직 그대로 유지
-        if (auth != null && auth.CurrentUser == null)
-        {
-            Logger.Log($"{GetType()}::User Signed out or disconnected");
-            firebaseUser = null;
-            HasSignedWithGoogle = false;
-            HasSignedWithApple = false;
-            SaveData();
-            UIManager.Instance.CloseAllOpenUI();
-            SceneLoader.Instance.LoadScene(SceneType.Title);
-        }
     }
 
     private void HandleAutoSignIn()
@@ -392,18 +380,27 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>, IFirebaseMan
         {
             if (auth.CurrentUser == null)
             {
+                // 이전에 로그인한 기록이 있을 때만 자동 로그인 시도
                 if (HasSignedWithGoogle)
                 {
+                    Logger.Log($"{GetType()}::Auto sign-in with Google");
                     SignInWithGoogle();
                 }
                 else if (HasSignedWithApple)
                 {
+                    Logger.Log($"{GetType()}::Auto sign-in with Apple");
                     SignInWithApple();
+                }
+                else
+                {
+                    Logger.Log($"{GetType()}::No previous sign-in record found");
                 }
             }
             else
             {
+                // 이미 로그인된 사용자가 있는 경우
                 firebaseUser = auth.CurrentUser;
+                Logger.Log($"{GetType()}::User already signed in: {firebaseUser.DisplayName} ({firebaseUser.UserId})");
                 OnUserSignedIn?.Invoke(firebaseUser);
             }
         }
@@ -519,21 +516,14 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>, IFirebaseMan
     {
         try
         {
-            if (firebaseUser != null)
+            if (auth != null && firebaseUser != null)
             {
                 auth.SignOut();
                 Logger.Log($"{GetType()}::User signed out successfully.");
             }
             
-#if UNITY_EDITOR
-            Logger.Log($"{GetType()}::User Signed out or disconnected");
-            firebaseUser = null;
-            HasSignedWithGoogle = false;
-            HasSignedWithApple = false;
-            SaveData();
-            UIManager.Instance.CloseAllOpenUI();
-            SceneLoader.Instance.LoadScene(SceneType.Title);
-#endif
+            // live 환경에서도 로그아웃 처리 실행
+            HandleSignOut();
         }
         catch (Exception e)
         {
