@@ -516,6 +516,19 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>, IFirebaseMan
     {
         try
         {
+            if (HasSignedWithGoogle)
+            {
+                try
+                {
+                    GoogleSignIn.DefaultInstance?.SignOut();
+                    Logger.Log($"{GetType()}::GoogleSignIn signed out successfully.");
+                }
+                catch (Exception e)
+                {
+                    Logger.LogError($"{GetType()}::GoogleSignIn SignOut Exception: {e}");
+                }
+            }
+            
             if (auth != null && firebaseUser != null)
             {
                 auth.SignOut();
@@ -528,6 +541,7 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>, IFirebaseMan
         catch (Exception e)
         {
             Logger.LogError($"{GetType()}::SignOut Exception: {e}");
+            HandleSignOut();
         }
     }
 

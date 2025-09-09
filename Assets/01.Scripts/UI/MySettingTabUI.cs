@@ -349,21 +349,41 @@ public class MySettingTabUI : BaseUI
         {
             if (FirebaseManager.Instance != null)
             {
+                FirebaseManager.Instance.OnUserSignedOut += OnLogoutComplete;
                 FirebaseManager.Instance.SignOut();
                 Logger.Log($"{GetType()}::로그아웃 완료");
-                
-                // UI 새로고침
-                LoadUserInfo();
             }
             else
             {
                 Logger.LogWarning($"{GetType()}::FirebaseManager를 찾을 수 없습니다");
+                OnLogoutComplete();
             }
         }
         catch (System.Exception e)
         {
             Logger.LogError($"{GetType()}::로그아웃 중 오류: {e.Message}");
-            ShowErrorModal("오류", "로그아웃 중 문제가 발생했습니다.");
+            OnLogoutComplete();
+        }
+    }
+    
+    private void OnLogoutComplete()
+    {
+        try
+        {
+            // 이벤트 해제
+            if (FirebaseManager.Instance != null)
+            {
+                FirebaseManager.Instance.OnUserSignedOut -= OnLogoutComplete;
+            }
+        
+            // UI 새로고침
+            LoadUserInfo();
+        
+            Logger.Log($"{GetType()}::로그아웃 완료 및 UI 업데이트");
+        }
+        catch (System.Exception e)
+        {
+            Logger.LogError($"{GetType()}::로그아웃 완료 처리 중 오류: {e.Message}");
         }
     }
     
