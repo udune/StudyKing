@@ -67,6 +67,7 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>, IFirebaseMan
             // Auth 정리
             if (auth != null)
             {
+                auth.StateChanged -= OnAuthStateChanged; // 중요: 이벤트 해제 추가
                 auth = null;
                 isAuthInit = false;
             }
@@ -136,19 +137,27 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>, IFirebaseMan
         
         var checkTask = FirebaseApp.CheckAndFixDependenciesAsync();
 
-        while (!checkTask.IsCompleted)
-            yield return null;
-
-        if (checkTask.IsFaulted || checkTask.IsCanceled)
+        float dependencyCheckTime = 0f;
+        const float DEPENDENCY_TIMEOUT = 15f;
+        
+        while (!checkTask.IsCompleted && dependencyCheckTime < DEPENDENCY_TIMEOUT)
         {
-            Logger.LogError($"{GetType()}::FirebaseService could not be resolved.");
+            dependencyCheckTime += Time.deltaTime;
+            yield return null;
+        }
+        
+        if (!checkTask.IsCompleted || checkTask.IsFaulted || checkTask.IsCanceled)
+        {
+            Logger.LogError($"{GetType()}::FirebaseService could not be resolved. Continuing without Firebase.");
+            OnInitialized?.Invoke();
             yield break;
         }
         
         var dependencyStatus = checkTask.Result;
         if (dependencyStatus != DependencyStatus.Available)
         {
-            Logger.LogError($"{GetType()}::FirebaseService dependency check failed.");
+            Logger.LogError($"{GetType()}::FirebaseService dependency check failed. Continuing without Firebase.");
+            OnInitialized?.Invoke();
             yield break;
         }
         
@@ -169,7 +178,9 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>, IFirebaseMan
             elapsedTime += Time.deltaTime;
             yield return null;
         }
-        Logger.LogError($"{GetType()}::FirebaseApp initialization failed.");
+        
+        Logger.LogWarning($"{GetType()}::Firebase initialization timeout. Continuing anyway.");
+        OnInitialized?.Invoke();
     }
 
     private IEnumerator InitializeServicesCoroutine()
@@ -192,13 +203,14 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>, IFirebaseMan
             if (remoteConfig == null)
             {
                 Logger.LogError($"{GetType()}::FirebaseApp Initialization failed. FirebaseRemoteConfig is null.");
+                SetDefaultRemoteConfig();
                 return;
             }
 
             var defaults = new Dictionary<string, object>
             {
-                { "dev_app_version", string.Empty },
-                { "real_app_version", string.Empty },
+                { "dev_app_version", Application.version },
+                { "real_app_version", Application.version },
                 { "openai_apikey", string.Empty }
             };
 
@@ -211,13 +223,24 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>, IFirebaseMan
                 else
                 {
                     Logger.LogError($"{GetType()}::RemoteConfig SetDefaultsAsync failed");
+                    SetDefaultRemoteConfig();
                 }
             });
         }
         catch (Exception e)
         {
             Logger.LogError($"{GetType()}::RemoteConfig Exception: {e}");
+            SetDefaultRemoteConfig();
         }
+    }
+
+    private void SetDefaultRemoteConfig()
+    {
+        remoteConfigDic["dev_app_version"] = Application.version;
+        remoteConfigDic["real_app_version"] = Application.version;
+        remoteConfigDic["openai_apikey"] = string.Empty;
+        isRemoteConfigInit = true;
+        Logger.Log($"{GetType()}::RemoteConfig set to default values.");
     }
 
     private void FetchRemoteConfig()
@@ -237,12 +260,14 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>, IFirebaseMan
                     else
                     {
                         Logger.LogError($"{GetType()}::RemoteConfig ActivateAsync failed");
+                        SetDefaultRemoteConfig();
                     }
                 });
             }
             else
             {
                 Logger.LogError($"{GetType()}::RemoteConfig FetchAsync failed");
+                SetDefaultRemoteConfig();
             }
         });
     }
@@ -266,15 +291,17 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>, IFirebaseMan
         try
         {
 #if DEV_VER
-            return remoteConfigDic.TryGetValue("dev_app_version", out var value) ? value.ToString() : string.Empty;
+            return remoteConfigDic.TryGetValue("dev_app_version", out var value) ? 
+                   (string.IsNullOrEmpty(value.ToString()) ? Application.version : value.ToString()) : Application.version;
 #else
-            return remoteConfigDic.TryGetValue("real_app_version", out var value) ? value.ToString() : string.Empty;
+            return remoteConfigDic.TryGetValue("real_app_version", out var value) ? 
+                   (string.IsNullOrEmpty(value.ToString()) ? Application.version : value.ToString()) : Application.version;
 #endif
         }
         catch (Exception e)
         {
             Logger.LogError($"{GetType()}::GetAppVersion Exception: {e}");
-            return string.Empty;
+            return Application.version;
         }
     }
 
@@ -303,6 +330,7 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>, IFirebaseMan
             if (auth == null)
             {
                 Logger.LogError($"{GetType()}::FirebaseApp Initialization failed. FirebaseAuth is null.");
+                isAuthInit = true;
                 return;
             }
 
@@ -321,6 +349,7 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>, IFirebaseMan
         catch (Exception e)
         {
             Logger.LogError($"{GetType()}::FirebaseAuth Exception: {e}");
+            isAuthInit = true;
         }
     }
 
@@ -344,7 +373,7 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>, IFirebaseMan
             Logger.LogError($"{GetType()}::OnAuthStateChanged Exception: {e}");
         }
 
-
+        // 🔥 원본 코드의 중복 로직 그대로 유지
         if (auth != null && auth.CurrentUser == null)
         {
             Logger.Log($"{GetType()}::User Signed out or disconnected");
@@ -359,21 +388,28 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>, IFirebaseMan
 
     private void HandleAutoSignIn()
     {
-        if (auth.CurrentUser == null)
+        try
         {
-            if (HasSignedWithGoogle)
+            if (auth.CurrentUser == null)
             {
-                SignInWithGoogle();
+                if (HasSignedWithGoogle)
+                {
+                    SignInWithGoogle();
+                }
+                else if (HasSignedWithApple)
+                {
+                    SignInWithApple();
+                }
             }
-            else if (HasSignedWithApple)
+            else
             {
-                SignInWithApple();
+                firebaseUser = auth.CurrentUser;
+                OnUserSignedIn?.Invoke(firebaseUser);
             }
         }
-        else
+        catch (Exception e)
         {
-            firebaseUser = auth.CurrentUser;
-            OnUserSignedIn?.Invoke(firebaseUser);
+            Logger.LogError($"{GetType()}::HandleAutoSignIn Exception: {e}");
         }
     }
 
@@ -541,6 +577,7 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>, IFirebaseMan
     #endregion
     
     #region FIRESTORE
+    
     private void InitFirestore()
     {
         try
@@ -549,6 +586,7 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>, IFirebaseMan
             if (database == null)
             {
                 Logger.LogError($"FirebaseFirestore initialization failed. FirebaseFirestore is null");
+                isFirestoreInit = true;
                 return;
             }
         
@@ -558,6 +596,7 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>, IFirebaseMan
         catch (Exception e)
         {
             Logger.LogError($"{GetType()}::FirebaseFirestore Exception: {e}");
+            isFirestoreInit = true;
         }
     }
 
@@ -604,15 +643,23 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>, IFirebaseMan
                         }
                         else
                         {
-                            Logger.Log($"{GetType()}::{type} No Found. setting default data");
+                            Logger.Log($"{GetType()}::{type} No Found. Create new data");
                             userData.Initialize();
                             userData.SaveData();
                         }
                     }
+                    else
+                    {
+                        Logger.LogError($"{GetType()}::{type} Loading Failed");
+                    }
                 }
                 catch (Exception e)
                 {
-                    Logger.LogError($"{GetType()}::{type} Loading Failed: {e}");
+                    Logger.LogError($"{GetType()}::LoadUserData inner Exception: {e}");
+                }
+                finally
+                {
+                    onFinishLoad?.Invoke();
                 }
             });
         }
@@ -623,6 +670,7 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>, IFirebaseMan
         }
     }
 
+    // 인터페이스 구현: Dictionary를 받는 SaveUserData
     public void SaveUserData<T>(Dictionary<string, object> userDataDict) where T : class, IUserData
     {
         if (!isFirestoreInit)
@@ -686,6 +734,7 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>, IFirebaseMan
             Logger.LogError($"{GetType()}::SaveUserData Exception: {e}");
         }
     }
+    
     #endregion
     
     #region ANALYTICS
@@ -701,9 +750,11 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>, IFirebaseMan
         catch (Exception e)
         {
             Logger.LogError($"{GetType()}::FirebaseAnalytics Exception: {e}");
+            isAnalyticsInit = true;
         }
     }
 
+    // 인터페이스 구현: LogCustomEvent
     public void LogCustomEvent(string eventName, Dictionary<string, object> parameters)
     {
         if (!isAnalyticsInit)
@@ -740,6 +791,7 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>, IFirebaseMan
             Logger.LogError($"{GetType()}::LogCustomEvent Exception: {e}");
         }
     }
+    
     #endregion
 
     protected override void Dispose()
