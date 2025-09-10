@@ -15,15 +15,14 @@ public class StudyUI : BaseUI
     
     private UserStudyData _studyData;
 
-    protected override void OnInit()
-    {
-        base.OnInit();
-        ValidateComponents();
-    }
-    
     protected override void OnSetting(BaseUIData data)
     {
         base.OnSetting(data);
+        
+        // 컴포넌트 검증
+        ValidateComponents();
+        
+        // 스터디 리스트 새로고침
         RefreshStudyList();
     }
 

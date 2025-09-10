@@ -34,7 +34,7 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>, IFirebaseMan
     private bool isFirestoreInit = false;
     
     // Analytics
-    private bool isAnalyticsInit = true;
+    private bool isAnalyticsInit = false;
 
     public bool HasSignedWithGoogle { get; private set; }
     public bool HasSignedWithApple { get; private set; }
@@ -97,11 +97,6 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>, IFirebaseMan
         }
     }
 
-    public bool IsInit()
-    {
-        return isRemoteConfigInit && isAuthInit && isFirestoreInit && isAnalyticsInit;
-    }
-
     private void LoadData()
     {
         try
@@ -136,61 +131,35 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>, IFirebaseMan
         Logger.Log($"{GetType()}::FirebaseApp initialization start.");
         
         var checkTask = FirebaseApp.CheckAndFixDependenciesAsync();
-
-        float dependencyCheckTime = 0f;
-        const float DEPENDENCY_TIMEOUT = 15f;
-        
-        while (!checkTask.IsCompleted && dependencyCheckTime < DEPENDENCY_TIMEOUT)
-        {
-            dependencyCheckTime += Time.deltaTime;
-            yield return null;
-        }
-        
-        if (!checkTask.IsCompleted || checkTask.IsFaulted || checkTask.IsCanceled)
-        {
-            Logger.LogError($"{GetType()}::FirebaseService could not be resolved. Continuing without Firebase.");
-            OnInitialized?.Invoke();
-            yield break;
-        }
+        yield return new WaitUntil(() => checkTask.IsCompleted);
         
         var dependencyStatus = checkTask.Result;
         if (dependencyStatus != DependencyStatus.Available)
         {
-            Logger.LogError($"{GetType()}::FirebaseService dependency check failed. Continuing without Firebase.");
+            Logger.LogError($"{GetType()}::Firebase dependency failed: {dependencyStatus}");
             OnInitialized?.Invoke();
             yield break;
         }
         
-        Logger.Log($"{GetType()}::FirebaseApp initialization success.");
+        Logger.Log($"{GetType()}::Firebase dependencies resolved successfully");
 
-        yield return StartCoroutine(InitializeServicesCoroutine());
-        
-        var elapsedTime = 0.0f;
-        while (elapsedTime < initTimeout)
-        {
-            if (IsInit())
-            {
-                Logger.Log($"{GetType()}:: initialization success.");
-                OnInitialized?.Invoke();
-                yield break;
-            }
-
-            elapsedTime += Time.deltaTime;
-            yield return null;
-        }
-        
-        Logger.LogWarning($"{GetType()}::Firebase initialization timeout. Continuing anyway.");
-        OnInitialized?.Invoke();
-    }
-
-    private IEnumerator InitializeServicesCoroutine()
-    {
+        // RemoteConfig 초기화
         InitRemoteConfig();
+        
+        // Auth 초기화
         InitAuth();
+        
+        // Firestore 초기화  
         InitFirestore();
+        
+        // Analytics 초기화
         InitAnalytics();
         
-        yield return new WaitForSeconds(0.1f);
+        // 초기화 완료 대기
+        yield return new WaitUntil(() => IsInit());
+        
+        Logger.Log($"{GetType()}::Firebase initialization complete");
+        OnInitialized?.Invoke();
     }
     
     #region REMOTE_CONFIG
@@ -329,26 +298,32 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>, IFirebaseMan
             auth = FirebaseAuth.DefaultInstance;
             if (auth == null)
             {
-                Logger.LogError($"{GetType()}::FirebaseApp Initialization failed. FirebaseAuth is null.");
+                Logger.LogError($"{GetType()}::FirebaseAuth is null");
                 isAuthInit = true;
                 return;
             }
 
-            auth.StateChanged += OnAuthStateChanged;
+            // Google Sign-In 구성 설정
             googleSignInConfiguration = new GoogleSignInConfiguration()
             {
                 WebClientId = Constants.Firebase.GOOGLE_WEB_CLIENT_ID,
                 RequestIdToken = true
             };
-        
+            
+            // Google Sign-In 구성 적용
+            GoogleSignIn.Configuration = googleSignInConfiguration;
+            
+            auth.StateChanged += OnAuthStateChanged;
             isAuthInit = true;
-            Logger.Log($"{GetType()}::FirebaseAuth Initialization success");
+            
+            Logger.Log($"{GetType()}::Auth initialization success");
 
+            // 자동 로그인 처리
             HandleAutoSignIn();
         }
         catch (Exception e)
         {
-            Logger.LogError($"{GetType()}::FirebaseAuth Exception: {e}");
+            Logger.LogError($"{GetType()}::InitAuth Exception: {e}");
             isAuthInit = true;
         }
     }
@@ -378,29 +353,10 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>, IFirebaseMan
     {
         try
         {
-            if (auth.CurrentUser == null)
+            if (auth.CurrentUser != null)
             {
-                // 이전에 로그인한 기록이 있을 때만 자동 로그인 시도
-                if (HasSignedWithGoogle)
-                {
-                    Logger.Log($"{GetType()}::Auto sign-in with Google");
-                    SignInWithGoogle();
-                }
-                else if (HasSignedWithApple)
-                {
-                    Logger.Log($"{GetType()}::Auto sign-in with Apple");
-                    SignInWithApple();
-                }
-                else
-                {
-                    Logger.Log($"{GetType()}::No previous sign-in record found");
-                }
-            }
-            else
-            {
-                // 이미 로그인된 사용자가 있는 경우
                 firebaseUser = auth.CurrentUser;
-                Logger.Log($"{GetType()}::User already signed in: {firebaseUser.DisplayName} ({firebaseUser.UserId})");
+                Logger.Log($"{GetType()}::User already signed in: {firebaseUser.DisplayName}");
                 OnUserSignedIn?.Invoke(firebaseUser);
             }
         }
@@ -422,6 +378,11 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>, IFirebaseMan
         UIManager.Instance.CloseAllOpenUI();
         SceneLoader.Instance.LoadScene(SceneType.Title);
     }
+    
+    public bool IsInit()
+    {
+        return isRemoteConfigInit && isAuthInit && isFirestoreInit && isAnalyticsInit;
+    }
 
     public bool IsSignedIn()
     {
@@ -434,40 +395,57 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>, IFirebaseMan
 
     public void SignInWithGoogle()
     {
-        if (!isAuthInit || googleSignInConfiguration == null)
+        Logger.Log($"{GetType()}::SignInWithGoogle 시작");
+        
+        // 초기화 확인
+        if (!isAuthInit || auth == null)
         {
-            Logger.LogError($"{GetType()}::Auth or GoogleSignInConfiguration is null. SignInWithGoogle failed.");
-            ShowLoginFailUI();
+            Logger.LogError($"{GetType()}::Auth가 초기화되지 않았습니다");
+            OnSignInFailed?.Invoke("인증 시스템이 준비되지 않았습니다");
+            return;
+        }
+
+        if (googleSignInConfiguration == null)
+        {
+            Logger.LogError($"{GetType()}::Google 구성이 없습니다");
+            OnSignInFailed?.Invoke("Google 로그인 구성 오류");
             return;
         }
 
         try
         {
+            // Google Sign-In 구성 재설정 (안전하게)
             GoogleSignIn.Configuration = googleSignInConfiguration;
+            
+            Logger.Log($"{GetType()}::Google Sign-In 시작...");
+            
             GoogleSignIn.DefaultInstance.SignIn().ContinueWithOnMainThread(task =>
             {
                 if (task.IsCanceled)
                 {
-                    Logger.LogError($"{GetType()}::SignInWithGoogle was Canceled");
+                    Logger.Log($"{GetType()}::Google Sign-In 취소됨");
                     return;
                 }
                 
                 if (task.IsFaulted)
                 {
-                    Logger.LogError($"{GetType()}::SignInWithGoogle was Faulted: {task.Exception}");
-                    ShowLoginFailUI("Google 로그인 실패");
-                    OnSignInFailed?.Invoke("Google sign-in failed");
+                    string errorMsg = task.Exception?.GetBaseException()?.Message ?? "알 수 없는 오류";
+                    Logger.LogError($"{GetType()}::Google Sign-In 실패: {errorMsg}");
+                    OnSignInFailed?.Invoke($"Google 로그인 실패: {errorMsg}");
                     return;
                 }
 
                 var googleUser = task.Result;
                 if (googleUser == null)
                 {
-                    Logger.LogError($"{GetType()}::SignInWithGoogle was null");
-                    ShowLoginFailUI("Google 사용자 정보 오류");
+                    Logger.LogError($"{GetType()}::Google 사용자 정보가 null입니다");
+                    OnSignInFailed?.Invoke("Google 사용자 정보를 가져올 수 없습니다");
                     return;
                 }
                 
+                Logger.Log($"{GetType()}::Google Sign-In 성공: {googleUser.DisplayName}");
+                
+                // Firebase 인증
                 var credential = GoogleAuthProvider.GetCredential(googleUser.IdToken, null);
                 SignInWithCredential(credential, true, false);
             });
@@ -475,40 +453,50 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>, IFirebaseMan
         catch (Exception e)
         {
             Logger.LogError($"{GetType()}::SignInWithGoogle Exception: {e}");
-            ShowLoginFailUI("Google 로그인 오류");
+            OnSignInFailed?.Invoke($"Google 로그인 오류: {e.Message}");
         }
     }
 
     public void SignInWithApple()
     {
-        // TODO: Apple Sign-In 구현
-        Logger.Log($"{GetType()}::SignInWithApple");
+        Logger.Log($"{GetType()}::Apple Sign-In은 아직 구현되지 않았습니다");
+        OnSignInFailed?.Invoke("Apple Sign-In은 준비 중입니다");
     }
 
     private void SignInWithCredential(Credential credential, bool isGoogle, bool isApple)
     {
+        if (auth == null)
+        {
+            Logger.LogError($"{GetType()}::Auth가 null입니다");
+            OnSignInFailed?.Invoke("인증 시스템 오류");
+            return;
+        }
+
         auth.SignInWithCredentialAsync(credential).ContinueWithOnMainThread(task =>
         {
             if (task.IsCanceled || task.IsFaulted)
             {
-                var errorMessage = task.IsCanceled ? "로그인이 취소되었습니다." : $"로그인 실패 : {task.Exception}";
-                Logger.LogError($"{GetType()}::SignInWithCredential was Canceled: {errorMessage}");
-                ShowLoginFailUI(errorMessage);
+                string errorMessage = task.IsCanceled ? "로그인이 취소되었습니다." : $"로그인 실패: {task.Exception?.GetBaseException()?.Message}";
+                Logger.LogError($"{GetType()}::Firebase 인증 실패: {errorMessage}");
                 OnSignInFailed?.Invoke(errorMessage);
                 return;
             }
-                
-            firebaseUser = task.Result;
-            if (firebaseUser != null)
-            {
-                Logger.Log($"{GetType()}::User signed in successfully. {firebaseUser.DisplayName} ({firebaseUser.UserId})");
 
-                HasSignedWithGoogle = isGoogle;
-                HasSignedWithApple = isApple;
-                SaveData();
-                
-                OnUserSignedIn?.Invoke(firebaseUser);
+            firebaseUser = task.Result;
+            if (firebaseUser == null)
+            {
+                Logger.LogError($"{GetType()}::Firebase 사용자가 null입니다");
+                OnSignInFailed?.Invoke("Firebase 인증 오류");
+                return;
             }
+
+            // 로그인 상태 저장
+            HasSignedWithGoogle = isGoogle;
+            HasSignedWithApple = isApple;
+            SaveData();
+
+            Logger.Log($"{GetType()}::Firebase 로그인 성공: {firebaseUser.DisplayName}");
+            OnUserSignedIn?.Invoke(firebaseUser);
         });
     }
 
@@ -516,56 +504,19 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>, IFirebaseMan
     {
         try
         {
-            if (HasSignedWithGoogle)
-            {
-                try
-                {
-                    GoogleSignIn.DefaultInstance?.SignOut();
-                    Logger.Log($"{GetType()}::GoogleSignIn signed out successfully.");
-                }
-                catch (Exception e)
-                {
-                    Logger.LogError($"{GetType()}::GoogleSignIn SignOut Exception: {e}");
-                }
-            }
-            
-            if (auth != null && firebaseUser != null)
+            if (auth != null)
             {
                 auth.SignOut();
-                Logger.Log($"{GetType()}::User signed out successfully.");
             }
             
-            // live 환경에서도 로그아웃 처리 실행
+            GoogleSignIn.DefaultInstance.SignOut();
             HandleSignOut();
+            
+            Logger.Log($"{GetType()}::로그아웃 완료");
         }
         catch (Exception e)
         {
             Logger.LogError($"{GetType()}::SignOut Exception: {e}");
-            HandleSignOut();
-        }
-    }
-
-    private void ShowLoginFailUI(string errorMessage = null)
-    {
-        try
-        {
-            var modal = new ModalUIData
-            {
-                Type = ModalType.Ok,
-                Title = "로그인 오류",
-                Desc = errorMessage ?? "로그인에 실패했습니다",
-                OkBtnText = "확인",
-                OkAction = () =>
-                {
-                    var modal = new ModalUIData();
-                    UIManager.Instance.OpenUI<AccountUI>(modal);
-                }
-            };
-            UIManager.Instance.OpenUI<ModalUI>(modal);
-        }
-        catch (Exception e)
-        {
-            Logger.LogError($"{GetType()}::ShowLoginFailUI Exception: {e}");
         }
     }
     
@@ -587,19 +538,12 @@ public class FirebaseManager : SingletonBehaviour<FirebaseManager>, IFirebaseMan
         try
         {
             database = FirebaseFirestore.DefaultInstance;
-            if (database == null)
-            {
-                Logger.LogError($"FirebaseFirestore initialization failed. FirebaseFirestore is null");
-                isFirestoreInit = true;
-                return;
-            }
-        
             isFirestoreInit = true;
-            Logger.Log($"{GetType()}::FirebaseFirestore initialization success");
+            Logger.Log($"{GetType()}::Firestore initialization success");
         }
         catch (Exception e)
         {
-            Logger.LogError($"{GetType()}::FirebaseFirestore Exception: {e}");
+            Logger.LogError($"{GetType()}::InitFirestore Exception: {e}");
             isFirestoreInit = true;
         }
     }

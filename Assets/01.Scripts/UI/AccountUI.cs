@@ -26,22 +26,6 @@ public class AccountUI : BaseUI
     // 로그인 상태 관리
     private bool _isLoggingIn;
 
-    /// <summary>
-    /// UI 초기화 시 호출되는 함수
-    /// </summary>
-    protected override void OnInit()
-    {
-        base.OnInit();
-        
-        // 필수 컴포넌트 확인
-        ValidateComponents();
-        
-        // 버튼 이벤트 연결
-        SetupButtonEvents();
-        
-        // Firebase 이벤트 연결
-        SetupFirebaseEvents();
-    }
     
     /// <summary>
     /// 필수 컴포넌트들이 제대로 연결되었는지 확인하는 함수
@@ -108,6 +92,15 @@ public class AccountUI : BaseUI
     {
         base.OnSetting(data);
         
+        // 필수 컴포넌트 확인
+        ValidateComponents();
+        
+        // 버튼 이벤트 연결
+        SetupButtonEvents();
+        
+        // Firebase 이벤트 연결
+        SetupFirebaseEvents();
+        
         // UI 초기 상태 설정
         SetupInitialUI();
     }
@@ -120,7 +113,7 @@ public class AccountUI : BaseUI
         // 제목 설정
         if (titleText != null)
         {
-            titleText.text = "학습 도우미에 오신 것을 환영합니다! 📚";
+            titleText.text = "학습 도우미에 오신 것을 환영합니다!";
         }
         
         // 설명 설정

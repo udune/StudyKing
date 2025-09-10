@@ -32,9 +32,6 @@ public class BaseUI : MonoBehaviour
     // UI가 열릴 때 일시정지
     [SerializeField] protected bool pauseGameWhenOpen;
 
-    // 초기화 완료
-    private bool _isInit;
-    
     // 현재 표시되고 있는지
     private bool _isShow;
     
@@ -44,72 +41,6 @@ public class BaseUI : MonoBehaviour
     // 시간 스케일
     private float _originTimeScale = 1.0f;
 
-    public virtual void Init(Transform anchor)
-    {
-        if (_isInit)
-        {
-            Logger.Log($"{GetType()}::Init is already init");
-            return;
-        }
-        
-        Logger.Log($"{GetType()}::Init");
-
-        try
-        {
-            // 부모 설정
-            SetupParent(anchor);
-
-            // RectTrn 설정
-            SetupRectTrn();
-
-            // 배경 클릭 이벤트 설정
-            SetupBgClickHandler();
-
-            OnInit();
-            
-            _isInit = true;
-            Logger.Log($"{GetType()}::Init is done");
-        }
-        catch (Exception)
-        {
-            Logger.LogError($"{GetType()}::Init is failed");
-            throw;
-        }
-    }
-
-    private void SetupParent(Transform anchor)
-    {
-        if (anchor == null)
-        {
-            Logger.Log($"{GetType()}::anchor is null");
-            return;
-        }
-        
-        transform.SetParent(anchor, false);
-    }
-
-    private void SetupRectTrn()
-    {
-        RectTransform rect = GetComponent<RectTransform>();
-        if (rect == null)
-        {
-            Logger.Log($"{GetType()}::rect is null");
-            return;
-        }
-        
-        // 화면 전체를 덮도록 한다.
-        rect.localPosition = Vector3.zero;
-        rect.localScale = Vector3.one;
-        rect.offsetMin = Vector2.zero;
-        rect.offsetMax = Vector2.zero;
-    }
-
-    private void SetupBgClickHandler()
-    {
-        if (!closeOnBgClick) { }
-        
-        // TODO
-    }
 
     public virtual void Setting(BaseUIData data)
     {
@@ -288,12 +219,6 @@ public class BaseUI : MonoBehaviour
     }
     
     #region Virtual
-    // UI 초기화 시 호출
-    protected virtual void OnInit()
-    {
-        // 상속받는 클래스에서 구현
-    }
-
     // UI 설정 시 호출
     protected virtual void OnSetting(BaseUIData data)
     {
@@ -314,9 +239,6 @@ public class BaseUI : MonoBehaviour
     #endregion
     
     #region Util
-    // UI가 초기화되었는가.
-    public bool IsInit => _isInit;
-    
     // UI가 현재 표시되고 있는가.
     public bool IsShow => _isShow;
 

@@ -42,22 +42,6 @@ public class MySettingTabUI : BaseUI
     // 설정 데이터
     private UserSettingData _userSettings;
 
-    /// <summary>
-    /// UI 초기화 시 호출되는 함수
-    /// </summary>
-    protected override void OnInit()
-    {
-        base.OnInit();
-        
-        // 컴포넌트 검증
-        ValidateComponents();
-        
-        // 버튼 이벤트 설정
-        SetupButtonEvents();
-        
-        // 토글 이벤트 설정
-        SetupToggleEvents();
-    }
     
     /// <summary>
     /// 필수 컴포넌트들이 제대로 연결되었는지 확인하는 함수
@@ -113,6 +97,15 @@ public class MySettingTabUI : BaseUI
     protected override void OnSetting(BaseUIData data)
     {
         base.OnSetting(data);
+        
+        // 컴포넌트 검증
+        ValidateComponents();
+        
+        // 버튼 이벤트 설정
+        SetupButtonEvents();
+        
+        // 토글 이벤트 설정
+        SetupToggleEvents();
         
         // 사용자 정보 로드
         LoadUserInfo();
