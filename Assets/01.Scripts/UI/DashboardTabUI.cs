@@ -15,230 +15,408 @@ using Logger = Common.Logger;
 /// </summary>
 public class DashboardTabUI : BaseUI
 {
-    [Header("텍스트 UI 요소들")]
-    [SerializeField] private Text aiText;           // AI 조언을 보여주는 텍스트
-    [SerializeField] private TMP_Text totalTimeText;        // 총 학습 시간을 보여주는 텍스트
-    [SerializeField] private TMP_Text weeklyTotalTime;  // 주간 총 학습 시간을 보여주는 텍스트
-    [SerializeField] private TMP_Text subjectTime;      // 과목별 학습 시간을 보여주는 텍스트
-    
-    [Header("차트 컨테이너들")]
-    [SerializeField] private Transform pieChartContainer;   // 파이차트가 들어갈 부모 오브젝트
-    [SerializeField] private Transform barChartContainer;   // 막대차트가 들어갈 부모 오브젝트
-    [SerializeField] private Transform lineChartContainer;  // 꺾은선차트가 들어갈 부모 오브젝트
-    
-    [Header("차트 컴포넌트들")]
-    [SerializeField] private CustomPieChart pieChart;       // 파이차트 컴포넌트
-    [SerializeField] private CustomBarChart barChart;       // 막대차트 컴포넌트
-    [SerializeField] private CustomLineChart lineChart;     // 꺾은선차트 컴포넌트
-    
-    [Header("빈 데이터일 때 보여줄 텍스트들")]
-    [SerializeField] private GameObject aiEmptyText;           // AI 조언이 없을 때 보여줄 텍스트
-    [SerializeField] private GameObject pieChartEmptyText;     // 파이차트 데이터가 없을 때 보여줄 텍스트
-    [SerializeField] private GameObject barChartEmptyText;     // 막대차트 데이터가 없을 때 보여줄 텍스트
-    [SerializeField] private GameObject lineChartEmptyText;    // 꺾은선차트 데이터가 없을 때 보여줄 텍스트
-    
-    [Header("차트 내용 컨테이너들")]
-    [SerializeField] private GameObject pieChartContent;     // 파이차트 실제 내용
-    [SerializeField] private GameObject barChartContent;     // 막대차트 실제 내용
-    [SerializeField] private GameObject lineChartContent;    // 꺾은선차트 실제 내용
-    
+    [Header("텍스트 UI 요소들")] 
+    [SerializeField] private Text aiText; // AI 조언을 보여주는 텍스트
+
+    [SerializeField] private TMP_Text totalTimeText; // 총 학습 시간을 보여주는 텍스트
+    [SerializeField] private TMP_Text weeklyTotalTime; // 주간 총 학습 시간을 보여주는 텍스트
+    [SerializeField] private TMP_Text subjectTime; // 과목별 학습 시간을 보여주는 텍스트
+
+    [Header("차트 컨테이너들")] 
+    [SerializeField] private Transform pieChartContainer; // 파이차트가 들어갈 부모 오브젝트
+    [SerializeField] private Transform barChartContainer; // 막대차트가 들어갈 부모 오브젝트
+    [SerializeField] private Transform lineChartContainer; // 꺾은선차트가 들어갈 부모 오브젝트
+
+    [Header("차트 컴포넌트들")] 
+    [SerializeField] private CustomPieChart pieChart; // 파이차트 컴포넌트
+    [SerializeField] private CustomBarChart barChart; // 막대차트 컴포넌트
+    [SerializeField] private CustomLineChart lineChart; // 꺾은선차트 컴포넌트
+
+    [Header("빈 데이터일 때 보여줄 텍스트들")] 
+    [SerializeField] private GameObject aiEmptyText; // AI 조언이 없을 때 보여줄 텍스트
+    [SerializeField] private GameObject pieChartEmptyText; // 파이차트 데이터가 없을 때 보여줄 텍스트
+    [SerializeField] private GameObject barChartEmptyText; // 막대차트 데이터가 없을 때 보여줄 텍스트
+    [SerializeField] private GameObject lineChartEmptyText; // 꺾은선차트 데이터가 없을 때 보여줄 텍스트
+
+    [Header("차트 내용 컨테이너들")] 
+    [SerializeField] private GameObject pieChartContent; // 파이차트 실제 내용
+    [SerializeField] private GameObject barChartContent; // 막대차트 실제 내용
+    [SerializeField] private GameObject lineChartContent; // 꺾은선차트 실제 내용
+
     // 텍스트를 만들 때 사용하는 StringBuilder (메모리 효율성을 위해)
-    private readonly StringBuilder _sb = new StringBuilder();
-    private readonly StringBuilder _sbSubject = new StringBuilder();
-    
+    private readonly StringBuilder _sb = new StringBuilder(); // 일반 용도
+    private readonly StringBuilder _sbSubject = new StringBuilder(); // 과목별 시간 표시용
+
     /// <summary>
     /// UI가 열릴 때 호출되는 설정 함수
     /// </summary>
     protected override void OnSetting(BaseUIData data)
     {
         base.OnSetting(data);
-        
-        // 차트 컴포넌트 자동 연결
-        InitializeChartComponents();
-        
+
+        if (!InitializeChartComponents()) // 차트 컴포넌트 초기화에 실패하면 로그를 남기고 종료
+        {
+            Logger.LogError($"{GetType()}::차트 컴포넌트 초기화에 실패했습니다");
+            return;
+        }
+
         // 모든 차트와 텍스트 데이터를 새로고침합니다
         RefreshAllData();
     }
-    
+
     /// <summary>
     /// 차트 컴포넌트들을 자동으로 찾아서 연결
     /// </summary>
-    private void InitializeChartComponents()
+    private bool InitializeChartComponents()
     {
-        // 파이차트 컴포넌트 찾기
-        if (pieChart == null && pieChartContainer != null)
+        bool isValid = true; // 모든 컴포넌트가 유효한지 여부
+
+        if (pieChartContainer == null) // 파이차트 컨테이너가 연결되지 않았으면 오류 로그를 남기고 false 반환
         {
-            pieChart = pieChartContainer.GetComponentInChildren<CustomPieChart>();
-            if (pieChart != null)
+            Logger.LogError($"{GetType()}::pieChartContainer가 연결되지 않았습니다");
+            isValid = false;
+        }
+        else if (pieChart == null) // 파이차트 컴포넌트가 연결되지 않았으면 컨테이너에서 찾아서 연결 시도
+        {
+            pieChart = pieChartContainer.GetComponentInChildren<CustomPieChart>(); // 자식 오브젝트에서 CustomPieChart 컴포넌트를 찾음
+            if (pieChart == null) // 그래도 못 찾으면 오류 로그를 남기고 false 반환
             {
-                SetupChartTransform(pieChart.transform, "PieChart");
-                Logger.Log($"{GetType()}::PieChart 자동 연결 및 설정 완료");
-            }
-            else
-            {
-                Logger.LogWarning($"{GetType()}::PieChart 컴포넌트를 찾을 수 없습니다");
+                Logger.LogError($"{GetType()}::pieChart 컴포넌트를 찾을 수 없습니다");
+                isValid = false;
             }
         }
-        
-        // 막대차트 컴포넌트 찾기
-        if (barChart == null && barChartContainer != null)
+
+        if (barChartContainer == null) // 막대차트 컨테이너가 연결되지 않았으면 오류 로그를 남기고 false 반환
         {
-            barChart = barChartContainer.GetComponentInChildren<CustomBarChart>();
-            if (barChart != null)
+            Logger.LogError($"{GetType()}::barChartContainer가 연결되지 않았습니다");
+            isValid = false;
+        }
+        else if (barChart == null) // 막대차트 컴포넌트가 연결되지 않았으면 컨테이너에서 찾아서 연결 시도
+        {
+            barChart = barChartContainer.GetComponentInChildren<CustomBarChart>(); // 자식 오브젝트에서 CustomBarChart 컴포넌트를 찾음
+            if (barChart == null) // 그래도 못 찾으면 오류 로그를 남기고 false 반환
             {
-                SetupChartTransform(barChart.transform, "BarChart");
-                Logger.Log($"{GetType()}::BarChart 자동 연결 및 설정 완료");
-            }
-            else
-            {
-                Logger.LogWarning($"{GetType()}::BarChart 컴포넌트를 찾을 수 없습니다");
+                Logger.LogError($"{GetType()}::barChart 컴포넌트를 찾을 수 없습니다");
+                isValid = false;
             }
         }
-        
-        // 꺾은선차트 컴포넌트 찾기
-        if (lineChart == null && lineChartContainer != null)
+
+        if (lineChartContainer == null) // 꺾은선차트 컨테이너가 연결되지 않았으면 오류 로그를 남기고 false 반환
         {
-            lineChart = lineChartContainer.GetComponentInChildren<CustomLineChart>();
-            if (lineChart != null)
+            Logger.LogError($"{GetType()}::lineChartContainer가 연결되지 않았습니다");
+            isValid = false;
+        }
+        else if (lineChart == null) // 꺾은선차트 컴포넌트가 연결되지 않았으면 컨테이너에서 찾아서 연결 시도
+        {
+            lineChart = lineChartContainer.GetComponentInChildren<CustomLineChart>(); // 자식 오브젝트에서 CustomLineChart 컴포넌트를 찾음
+            if (lineChart == null) // 그래도 못 찾으면 오류 로그를 남기고 false 반환
             {
-                SetupChartTransform(lineChart.transform, "LineChart");
-                Logger.Log($"{GetType()}::LineChart 자동 연결 및 설정 완료");
-            }
-            else
-            {
-                Logger.LogWarning($"{GetType()}::LineChart 컴포넌트를 찾을 수 없습니다");
+                Logger.LogError($"{GetType()}::lineChart 컴포넌트를 찾을 수 없습니다");
+                isValid = false;
             }
         }
-        
-        Logger.Log($"{GetType()}::차트 컴포넌트 초기화 완료 - PieChart: {(pieChart != null ? "연결됨" : "null")}, BarChart: {(barChart != null ? "연결됨" : "null")}, LineChart: {(lineChart != null ? "연결됨" : "null")}");
+
+        return isValid;
     }
-    
-    /// <summary>
-    /// 차트 Transform을 올바르게 설정
-    /// </summary>
-    private void SetupChartTransform(Transform chartTransform, string chartName)
-    {
-        if (chartTransform == null) return;
-        
-        // Transform 정보 로깅
-        Logger.Log($"{GetType()}::{chartName} 현재 Transform - Position: {chartTransform.localPosition}, Scale: {chartTransform.localScale}, Rotation: {chartTransform.localRotation}");
-        
-        // Scale이 비정상적으로 큰 경우 수정
-        if (chartTransform.localScale.magnitude > 10f)
-        {
-            chartTransform.localScale = Vector3.one;
-            Logger.Log($"{GetType()}::{chartName} Scale을 (1,1,1)로 수정");
-        }
-        
-        // Position이 비정상적인 경우 수정 (UI는 보통 (0,0,0) 근처에 있어야 함)
-        if (Vector3.Distance(chartTransform.localPosition, Vector3.zero) > 1000f)
-        {
-            chartTransform.localPosition = Vector3.zero;
-            Logger.Log($"{GetType()}::{chartName} Position을 (0,0,0)으로 수정");
-        }
-        
-        // Rotation 정규화
-        chartTransform.localRotation = Quaternion.identity;
-        
-        // UI 차트의 경우 Material 설정 (Renderer가 있는 경우)
-        var renderer = chartTransform.GetComponent<Renderer>();
-        if (renderer != null && renderer.material == null)
-        {
-            // UI 기본 Material 설정 (UI/Default 또는 Sprites/Default)
-            renderer.material = Resources.GetBuiltinResource<Material>("UI/Default.mat");
-            Logger.Log($"{GetType()}::{chartName} 기본 Material 설정 완료");
-        }
-        
-        // 또는 Image 컴포넌트가 있는 경우
-        var image = chartTransform.GetComponent<UnityEngine.UI.Image>();
-        if (image != null && image.material == null)
-        {
-            image.material = Resources.GetBuiltinResource<Material>("UI/Default.mat");
-            Logger.Log($"{GetType()}::{chartName} Image Material 설정 완료");
-        }
-        
-        Logger.Log($"{GetType()}::{chartName} 수정된 Transform - Position: {chartTransform.localPosition}, Scale: {chartTransform.localScale}");
-    }
-    
+
     /// <summary>
     /// 모든 데이터를 새로고침하는 함수
     /// </summary>
     private void RefreshAllData()
     {
-        Logger.Log($"{GetType()}::RefreshAllData 시작");
-        
-        SetTotalTime();      // 총 학습 시간 설정
-        SetWeeklyTime();     // 주간 학습 시간 설정
-        SetSubjectTime();    // 과목별 학습 시간 설정
-        SetAIAdvice();       // AI 조언 설정
-        UpdateCharts();      // 차트 업데이트
-        
-        Logger.Log($"{GetType()}::RefreshAllData 완료");
+        UpdateTotalTime(); // 총 학습 시간 업데이트
+        UpdateWeeklyTime(); // 주간 학습 시간 업데이트
+        UpdateSubjectTime(); // 과목별 학습 시간 업데이트
+        UpdatePieChart(); // 파이차트 업데이트
+        UpdateBarChart(); // 막대차트 업데이트
+        UpdateLineChart(); // 꺾은선차트 업데이트
+        UpdateAIAdvice(); // AI 조언 업데이트
     }
-    
-    /// <summary>
-    /// AI 조언을 설정하는 함수
-    /// 하루에 한 번만 새로운 조언을 받아옵니다
-    /// </summary>
-    private void SetAIAdvice()
+
+    private void UpdateTotalTime() // 총 학습 시간 업데이트
     {
-        if (aiText == null)
+        if (totalTimeText == null) // 텍스트 컴포넌트가 연결되지 않았으면 종료
         {
-            Logger.LogWarning($"{GetType()}::aiText가 연결되지 않았습니다");
             return;
         }
 
+        UserTimeData timeData = UserDataManager.Instance?.GetUserData<UserTimeData>(); // 사용자 총 학습 시간 데이터 가져오기
+
+        if (timeData != null && timeData.Time > 0) // 데이터가 유효하면 시간과 분으로 변환하여 표시
+        {
+            int hours = (int)(timeData.Time / 3600); // 초를 시간으로 변환
+            int minutes = (int)((timeData.Time % 3600) / 60); // 남은 초를 분으로 변환
+            totalTimeText.text = $"{hours}시간 {minutes}분"; // 텍스트에 표시
+        }
+        else
+        {
+            totalTimeText.text = "0시간"; // 데이터가 없으면 0시간으로 표시
+        }
+    }
+
+    private void UpdateWeeklyTime() // 주간 학습 시간 업데이트
+    {
+        if (weeklyTotalTime == null) // 텍스트 컴포넌트가 연결되지 않았으면 종료
+        {
+            return;
+        }
+
+        UserDailyTimeData dailyData = UserDataManager.Instance?.GetUserData<UserDailyTimeData>(); // 사용자 일일 학습 시간 데이터 가져오기
+
+        if (dailyData?.DailyTimeItemDataList == null) // 데이터가 없으면 0시간으로 표시하고 종료
+        {
+            weeklyTotalTime.text = "0시간";
+            return;
+        }
+
+        DateTime now = DateTime.UtcNow.AddHours(9); // 한국 시간 기준 현재 날짜
+        long weeklyTotal = 0; // 주간 총 학습 시간 (초 단위)
+
+        for (int i = 0; i < 7; i++) // 최근 7일간의 데이터를 합산
+        {
+            string date = now.AddDays(-i).ToString("yyyy-MM-dd"); // 날짜 문자열 생성
+            var dayData = dailyData.DailyTimeItemDataList.FirstOrDefault(x => x.Date == date); // 해당 날짜의 데이터 찾기
+            if (dayData != null) // 데이터가 있으면 시간을 합산
+            {
+                weeklyTotal += dayData.Time; // 초 단위로 합산
+            }
+        }
+
+        if (weeklyTotal > 0) // 합산된 시간이 있으면 시간과 분으로 변환하여 표시
+        {
+            int hours = (int)(weeklyTotal / 3600); // 초를 시간으로 변환
+            int minutes = (int)((weeklyTotal % 3600) / 60); // 남은 초를 분으로 변환
+            weeklyTotalTime.text = $"{hours}시간 {minutes}분"; // 텍스트에 표시
+        }
+        else
+        {
+            weeklyTotalTime.text = "0시간";
+        }
+    }
+
+    private void UpdateSubjectTime() // 과목별 학습 시간 업데이트
+    {
+        if (subjectTime == null) // 텍스트 컴포넌트가 연결되지 않았으면 종료
+        {
+            return;
+        }
+
+        UserSubjectTimeData subjectData = UserDataManager.Instance?.GetUserData<UserSubjectTimeData>(); // 사용자 과목별 학습 시간 데이터 가져오기
+
+        if (subjectData?.SubjectTimeItemDataList != null && subjectData.SubjectTimeItemDataList.Count > 0) // 데이터가 유효하면 각 과목별 시간을 계산하여 표시
+        {
+            _sbSubject.Clear(); // StringBuilder 초기화
+
+            foreach (var subject in subjectData.SubjectTimeItemDataList) // 각 과목별로 반복
+            {
+                if (subject.Time > 0) // 학습 시간이 0보다 크면 시간과 분으로 변환하여 추가
+                {
+                    int hours = (int)(subject.Time / 3600); // 초를 시간으로 변환
+                    int minutes = (int)((subject.Time % 3600) / 60); // 남은 초를 분으로 변환
+
+                    if (hours > 0) // 시간이 있으면 시간과 분 모두 표시
+                    {
+                        _sbSubject.AppendLine($"{subject.Name}: {hours}시간 {minutes}분"); // 과목명: X시간 Y분
+                    }
+                    else
+                    {
+                        _sbSubject.AppendLine($"{subject.Name}: {minutes}분"); // 과목명: Y분
+                    }
+                }
+            }
+
+            subjectTime.text = _sbSubject.ToString().TrimEnd(); // 최종 문자열을 텍스트에 설정 (끝의 개행 문자 제거)
+        }
+        else
+        {
+            subjectTime.text = "데이터 없음"; // 데이터가 없으면 "데이터 없음"으로 표시
+        }
+    }
+
+    private void UpdatePieChart() // 파이차트 업데이트
+    {
+        if (pieChart == null) // 파이차트 컴포넌트가 연결되지 않았으면 종료
+        {
+            Logger.LogWarning($"{GetType()}::pieChart 컴포넌트가 연결되지 않았습니다");
+            return;
+        }
+
+        UserSubjectTimeData subjectData = UserDataManager.Instance?.GetUserData<UserSubjectTimeData>(); // 사용자 과목별 학습 시간 데이터 가져오기
+        bool hasData = subjectData?.SubjectTimeItemDataList != null &&
+                       subjectData.SubjectTimeItemDataList.Any(s => s.Time > 0); // 유효한 데이터가 있는지 확인
+
+        if (pieChartContent != null) // 파이차트 내용 컨테이너가 있으면 데이터 유무에 따라 활성화/비활성화
+        {
+            pieChartContent.SetActive(hasData); // 데이터가 있으면 활성화
+        }
+
+        if (pieChartEmptyText != null) // 빈 데이터 텍스트가 있으면 데이터 유무에 따라 활성화/비활성화
+        {
+            pieChartEmptyText.SetActive(!hasData); // 데이터가 없으면 활성화
+        }
+
+        pieChart.ClearData(); // 기존 데이터를 모두 지움
+
+        if (hasData) // 유효한 데이터가 있으면 파이차트에 데이터 추가
+        {
+            foreach (var subject in subjectData.SubjectTimeItemDataList) // 각 과목별로 반복
+            {
+                if (subject.Time > 0) // 학습 시간이 0보다 크면 파이차트에 추가
+                {
+                    float hours = subject.Time / 3600f; // 초를 시간으로 변환 (소수점 포함)
+                    pieChart.AddData(subject.Name, hours); // 과목명과 시간을 파이차트에 추가
+                }
+            }
+
+            pieChart.RefreshChart(); // 차트 갱신
+        }
+    }
+
+    private void UpdateBarChart() // 막대차트 업데이트
+    {
         try
         {
-            // 사용자의 마지막 AI 조언 데이터를 가져옵니다
-            UserLastAdviceData userLastAdviceData = UserDataManager.Instance?.GetUserData<UserLastAdviceData>();
-            if (userLastAdviceData == null)
+            UserSubjectTimeData userSubjectTimeData = UserDataManager.Instance?.GetUserData<UserSubjectTimeData>();
+            bool hasData = userSubjectTimeData?.SubjectTimeItemDataList?.Count > 0;
+
+            Logger.Log($"{GetType()}::막대차트 데이터 확인 - UserSubjectTimeData: {(userSubjectTimeData != null ? "있음" : "null")}, SubjectTimeItemDataList: {userSubjectTimeData?.SubjectTimeItemDataList?.Count ?? 0}개, hasData: {hasData}");
+
+            if (barChartContent != null)
             {
-                Logger.Log($"{GetType()}::UserLastAdviceData를 새로 생성합니다");
-                userLastAdviceData = new UserLastAdviceData();
+                barChartContent.SetActive(hasData);
+                Logger.Log($"{GetType()}::BarChartContent 활성화: {hasData}");
+            }
+        
+            if (barChartEmptyText != null)
+            {
+                barChartEmptyText.SetActive(!hasData);
+                Logger.Log($"{GetType()}::BarChartEmptyText 활성화: {!hasData}");
             }
 
-            // 오늘 날짜를 문자열로 만듭니다
-            string today = DateTime.UtcNow.AddHours(9).Date.ToString("yyyy-MM-dd");
+            // 실제 막대차트 데이터 업데이트 (과목별 학습 시간)
+            if (barChart == null)
+            {
+                Logger.LogWarning($"{GetType()}::BarChart 컴포넌트가 연결되지 않았습니다");
+            }
+            else if (hasData)
+            {
+                Logger.Log($"{GetType()}::막대차트 데이터 업데이트 시작 - {userSubjectTimeData.SubjectTimeItemDataList.Count}개 과목");
             
-            // 오늘 이미 조언을 받았으면 저장된 조언을 보여줍니다
-            if (userLastAdviceData.Date == today && !string.IsNullOrEmpty(userLastAdviceData.Advice))
-            {
-                aiText.text = userLastAdviceData.Advice;
-                if (aiEmptyText != null)
-                    aiEmptyText.SetActive(false);
-                return;
+                barChart.ClearData();
+            
+                // 시간이 있는 과목들만 추가 (시간 순으로 정렬)
+                var sortedSubjects = userSubjectTimeData.SubjectTimeItemDataList
+                    .Where(x => x.Time > 0)
+                    .OrderByDescending(x => x.Time)
+                    .ToList();
+            
+                foreach (var subject in sortedSubjects)
+                {
+                    // 시간을 시간 단위로 변환 (초 -> 시간)
+                    float hours = subject.Time / 3600f;
+                    barChart.AddData(subject.Name, hours);
+                    Logger.Log($"{GetType()}::막대차트 데이터 추가 - {subject.Name}: {hours:F2}시간");
+                }
+            
+                barChart.RefreshChart();
+                Logger.Log($"{GetType()}::막대차트 RefreshChart 호출 완료");
             }
-
-            // 새로운 조언을 받아야 하는 경우
-            StartCoroutine(RequestAIAdvice(userLastAdviceData));
-        }
-        catch (Exception e)
+            else
+            {
+                Logger.Log($"{GetType()}::막대차트 데이터 없음 - 차트 클리어");
+                barChart.ClearData();
+            }
+        } catch (Exception e)
         {
-            Logger.LogError($"{GetType()}::SetAIAdvice 오류: {e.Message}");
-            ShowAIError();
+            Logger.LogError($"{GetType()}::UpdateBarChart 오류: {e.Message}");
         }
     }
     
-    /// <summary>
-    /// OpenAI API를 사용해서 AI 조언을 요청하는 코루틴
-    /// </summary>
-    private IEnumerator RequestAIAdvice(UserLastAdviceData userLastAdviceData)
+    private void UpdateLineChart() // 꺾은선차트 업데이트
     {
-        // Firebase RemoteConfig에서 API 키 가져오기
+        if (lineChart == null) // 꺾은선차트 컴포넌트가 연결되지 않았으면 종료
+        {
+            Logger.LogWarning($"{GetType()}::lineChart 컴포넌트가 연결되지 않았습니다");
+            return;
+        }
+
+        UserDailyTimeData dailyData = UserDataManager.Instance?.GetUserData<UserDailyTimeData>(); // 사용자 일일 학습 시간 데이터 가져오기
+        bool hasData = dailyData?.DailyTimeItemDataList != null &&
+                       dailyData.DailyTimeItemDataList.Any(d => d.Time > 0); // 유효한 데이터가 있는지 확인
+
+        if (lineChartContent != null) // 꺾은선차트 내용 컨테이너가 있으면 데이터 유무에 따라 활성화/비활성화
+        {
+            lineChartContent.SetActive(hasData); // 데이터가 있으면 활성화
+        }
+
+        if (lineChartEmptyText != null) // 빈 데이터 텍스트가 있으면 데이터 유무에 따라 활성화/비활성화
+        {
+            lineChartEmptyText.SetActive(!hasData); // 데이터가 없으면 활성화
+        }
+
+        lineChart.ClearData(); // 기존 데이터를 모두 지움
+
+        if (hasData) // 유효한 데이터가 있으면 꺾은선차트에 데이터 추가
+        {
+            DateTime now = DateTime.UtcNow.AddHours(9); // 한국 시간 기준 현재 날짜
+
+            for (int i = 6; i >= 0; i--) // 최근 7일간의 데이터를 날짜 순서대로 추가
+            {
+                string date = now.AddDays(-i).ToString("yyyy-MM-dd"); // 날짜 문자열 생성
+                var dayData = dailyData.DailyTimeItemDataList.FirstOrDefault(x => x.Date == date); // 해당 날짜의 데이터 찾기
+
+                float hours = 0; // 기본값은 0시간
+                if (dayData != null && dayData.Time > 0) // 데이터가 있으면 시간을 시간 단위로 변환
+                {
+                    hours = dayData.Time / 3600f; // 초를 시간으로 변환 (소수점 포함)
+                }
+                
+                string label = now.AddDays(-i).ToString("yyyy-MM-dd"); // 라벨은 날짜 문자열로 설정
+                lineChart.AddData(label, hours); // 날짜와 시간을 꺾은선차트에 추가
+            }
+            
+            lineChart.RefreshChart(); // 차트 갱신
+        }
+    }
+    
+    private void UpdateAIAdvice()
+    {
+        if (aiText == null) return;
+
+        UserLastAdviceData adviceData = UserDataManager.Instance?.GetUserData<UserLastAdviceData>();
+        if (adviceData == null)
+        {
+            adviceData = new UserLastAdviceData();
+        }
+
+        string today = DateTime.UtcNow.AddHours(9).Date.ToString("yyyy-MM-dd");
+
+        // 오늘 이미 조언을 받았으면 표시
+        if (adviceData.Date == today && !string.IsNullOrEmpty(adviceData.Advice))
+        {
+            aiText.text = adviceData.Advice;
+            if (aiEmptyText != null)
+                aiEmptyText.SetActive(false);
+            return;
+        }
+
+        // 새 조언 요청
+        StartCoroutine(RequestAIAdvice(adviceData));
+    }
+
+    private IEnumerator RequestAIAdvice(UserLastAdviceData adviceData)
+    {
         string apiKey = FirebaseManager.Instance?.GetOpenAIKey();
-        
+
         if (string.IsNullOrEmpty(apiKey))
         {
-            Logger.LogError($"{GetType()}::OpenAI API 키를 가져올 수 없습니다");
+            Logger.LogError($"{GetType()}::OpenAI API 키 없음");
             ShowAIError("API 키를 찾을 수 없습니다");
             yield break;
         }
 
-        // 사용자의 학습 데이터를 바탕으로 AI에게 보낼 메시지 생성
         string promptMessage = CreatePromptMessage();
-        
-        // OpenAI API 요청 데이터 생성
+
         var requestData = new OpenAIRequest
         {
             messages = new List<Message>
@@ -247,559 +425,142 @@ public class DashboardTabUI : BaseUI
             }
         };
 
-        // JSON 변환
         string jsonData = JsonUtility.ToJson(requestData);
         byte[] postData = Encoding.UTF8.GetBytes(jsonData);
-        
-        // 디버깅: 요청 데이터 로깅
-        Logger.Log($"{GetType()}::OpenAI 요청 데이터:");
-        Logger.Log($"  - URL: {Constants.OpenAI.API_URL}");
-        Logger.Log($"  - JSON: {jsonData}");
-        Logger.Log($"  - API Key 길이: {apiKey?.Length ?? 0}");
-        Logger.Log($"  - API Key 시작: {(string.IsNullOrEmpty(apiKey) ? "null" : apiKey.Substring(0, Math.Min(10, apiKey.Length)))}...");
-        
-        // UnityWebRequest 생성 및 설정
-        UnityWebRequest request = null;
-        
-        try
+
+        UnityWebRequest request = new UnityWebRequest(Constants.OpenAI.API_URL, "POST");
+        request.uploadHandler = new UploadHandlerRaw(postData);
+        request.downloadHandler = new DownloadHandlerBuffer();
+        request.SetRequestHeader("Content-Type", "application/json");
+        request.SetRequestHeader("Authorization", $"Bearer {apiKey}");
+
+        if (aiText != null)
+            aiText.text = "AI가 조언을 생각하고 있어요...";
+
+        yield return request.SendWebRequest();
+
+        if (request.result != UnityWebRequest.Result.Success)
         {
-            request = new UnityWebRequest(Constants.OpenAI.API_URL, "POST");
-            request.uploadHandler = new UploadHandlerRaw(postData);
-            request.downloadHandler = new DownloadHandlerBuffer();
-            request.SetRequestHeader("Content-Type", "application/json");
-            request.SetRequestHeader("Authorization", $"Bearer {apiKey}");
-                
-            // 로딩 표시
-            if (aiText != null)
-                aiText.text = "AI가 조언을 생각하고 있어요...";
-                
-            Logger.Log($"{GetType()}::OpenAI 요청 전송 시작");
-        }
-        catch (Exception e)
-        {
-            Logger.LogError($"{GetType()}::HTTP 요청 생성 중 오류: {e.Message}");
-            ShowAIError("요청 생성 중 오류가 발생했습니다");
-            request?.Dispose();
+            Logger.LogError($"{GetType()}::AI 요청 실패: {request.error}");
+            ShowAIError($"요청 실패 (코드: {request.responseCode})");
+            request.Dispose();
             yield break;
         }
-        
-        yield return request.SendWebRequest();
-        
-        // 요청 결과 처리
+
         try
         {
-            HandleAIResponse(request, userLastAdviceData);
+            string responseText = request.downloadHandler.text;
+            var response = JsonUtility.FromJson<OpenAIResponse>(responseText);
+
+            if (response?.choices == null || response.choices.Length == 0)
+            {
+                ShowAIError("AI 응답 형식 오류");
+                yield break;
+            }
+
+            string advice = response.choices[0].message.content?.Trim();
+
+            if (string.IsNullOrEmpty(advice))
+            {
+                ShowAIError("AI가 빈 응답을 보냈습니다");
+                yield break;
+            }
+
+            if (aiText != null)
+                aiText.text = advice;
+
+            if (aiEmptyText != null)
+                aiEmptyText.SetActive(false);
+
+            adviceData.Date = DateTime.UtcNow.AddHours(9).Date.ToString("yyyy-MM-dd");
+            adviceData.Advice = advice;
+            adviceData.SaveData();
+
+            Logger.Log($"{GetType()}::AI 조언 성공: {advice}");
         }
         catch (Exception e)
         {
-            Logger.LogError($"{GetType()}::AI 응답 처리 중 오류: {e.Message}");
-            ShowAIError("응답 처리 중 오류가 발생했습니다");
+            Logger.LogError($"{GetType()}::AI 응답 파싱 실패: {e.Message}");
+            ShowAIError("응답 처리 오류");
         }
         finally
         {
-            // 리소스 정리
-            request?.Dispose();
+            request.Dispose();
         }
     }
-    
-    /// <summary>
-    /// AI에게 보낼 프롬프트 메시지를 만드는 함수
-    /// </summary>
+
     private string CreatePromptMessage()
     {
         _sb.Clear();
         _sb.Append("사용자의 학습 데이터를 바탕으로 간단한 조언을 해주세요.\n");
-        
-        // 총 학습 시간 추가
-        UserTimeData userTimeData = UserDataManager.Instance?.GetUserData<UserTimeData>();
-        if (userTimeData != null && userTimeData.Time > 0)
+
+        UserTimeData timeData = UserDataManager.Instance?.GetUserData<UserTimeData>();
+        if (timeData != null && timeData.Time > 0)
         {
-            _sb.Append($"총 학습 시간: {CalculateTimeFormat(userTimeData.Time)}\n");
+            _sb.Append($"총 학습 시간: {timeData.Time / 3600}시간\n");
         }
         else
         {
             _sb.Append("총 학습 시간: 아직 기록이 없음\n");
         }
-        
-        // 과목별 학습 시간 추가
-        UserSubjectTimeData userSubjectTimeData = UserDataManager.Instance?.GetUserData<UserSubjectTimeData>();
-        if (userSubjectTimeData != null && userSubjectTimeData.SubjectTimeItemDataList.Count > 0)
+
+        UserSubjectTimeData subjectData = UserDataManager.Instance?.GetUserData<UserSubjectTimeData>();
+        if (subjectData != null && subjectData.SubjectTimeItemDataList.Count > 0)
         {
             _sb.Append("과목별 학습 시간:\n");
-            foreach (var subject in userSubjectTimeData.SubjectTimeItemDataList.Take(3))
+            foreach (var subject in subjectData.SubjectTimeItemDataList.Take(3))
             {
-                _sb.Append($"- {subject.Name}: {CalculateTimeFormat(subject.Time)}\n");
+                _sb.Append($"- {subject.Name}: {subject.Time / 3600}시간\n");
             }
         }
-        else
-        {
-            _sb.Append("과목별 데이터: 아직 기록이 없음\n");
-        }
-        
+
         _sb.Append("\n한국어로 50자 이내의 따뜻하고 격려가 되는 학습 조언을 해주세요.");
         return _sb.ToString();
     }
     
-    /// <summary>
-    /// AI 응답을 처리하는 함수
-    /// </summary>
-    private void HandleAIResponse(UnityWebRequest request, UserLastAdviceData userLastAdviceData)
-    {
-        if (request.result != UnityWebRequest.Result.Success)
-        {
-            // 요청이 실패한 경우 - 상세한 디버깅 정보 출력
-            Logger.LogError($"{GetType()}::AI 요청 실패:");
-            Logger.LogError($"  - Result: {request.result}");
-            Logger.LogError($"  - Error: {request.error}");
-            Logger.LogError($"  - Response Code: {request.responseCode}");
-            Logger.LogError($"  - Response Text: {request.downloadHandler?.text ?? "null"}");
-            
-            string errorMessage = $"요청 실패 (코드: {request.responseCode})";
-            if (request.responseCode == 400)
-            {
-                errorMessage = "잘못된 요청입니다. API 파라미터를 확인해주세요.";
-            }
-            else if (request.responseCode == 401)
-            {
-                errorMessage = "API 키가 유효하지 않습니다.";
-            }
-            else if (request.responseCode == 429)
-            {
-                errorMessage = "API 사용량 한도를 초과했습니다.";
-            }
-            
-            ShowAIError(errorMessage);
-            return;
-        }
-        
-        try
-        {
-            // 응답을 파싱합니다
-            string responseText = request.downloadHandler.text;
-            Logger.Log($"{GetType()}::OpenAI 응답 받음: {responseText}");
-            
-            var response = JsonUtility.FromJson<OpenAIResponse>(responseText);
-            
-            if (response?.choices == null || response.choices.Length == 0)
-            {
-                Logger.LogError($"{GetType()}::OpenAI 응답에 choices가 없습니다");
-                ShowAIError("AI 응답 형식이 올바르지 않습니다");
-                return;
-            }
-            
-            string advice = response.choices[0].message.content?.Trim();
-            
-            if (string.IsNullOrEmpty(advice))
-            {
-                Logger.LogError($"{GetType()}::OpenAI 응답이 비어있습니다");
-                ShowAIError("AI가 빈 응답을 보냈습니다");
-                return;
-            }
-            
-            // UI에 조언을 표시합니다
-            if (aiText != null)
-                aiText.text = advice;
-            
-            if (aiEmptyText != null)
-                aiEmptyText.SetActive(false);
-            
-            // 조언을 저장합니다
-            userLastAdviceData.Date = DateTime.UtcNow.AddHours(9).Date.ToString("yyyy-MM-dd");
-            userLastAdviceData.Advice = advice;
-            userLastAdviceData.SaveData();
-            
-            Logger.Log($"{GetType()}::AI 조언 받기 성공: {advice}");
-        }
-        catch (Exception e)
-        {
-            Logger.LogError($"{GetType()}::AI 응답 파싱 실패: {e.Message}");
-            ShowAIError("AI 응답을 처리하는 중 오류가 발생했습니다");
-        }
-    }
-    
-    /// <summary>
-    /// AI 오류 메시지를 표시하는 함수
-    /// </summary>
-    private void ShowAIError(string customMessage = null)
+    private void ShowAIError(string message = null)
     {
         if (aiText != null)
-        {
-            aiText.text = customMessage ?? "AI 조언을 가져올 수 없습니다";
-        }
-        
+            aiText.text = message ?? "AI 조언을 가져올 수 없습니다";
+
         if (aiEmptyText != null)
-        {
             aiEmptyText.SetActive(true);
-        }
+    }
+
+    public void Refresh() // 외부에서 호출하여 모든 데이터를 새로고침하는 공개 함수
+    {
+        RefreshAllData(); // 외부에서 호출하여 모든 데이터를 새로고침
     }
     
-    /// <summary>
-    /// 총 학습 시간을 설정하는 함수
-    /// </summary>
-    private void SetTotalTime()
+    #region OpenAI API Classes
+
+    [Serializable]
+    public class OpenAIResponse
     {
-        if (totalTimeText == null) return;
-
-        try
-        {
-            UserTimeData userTimeData = UserDataManager.Instance?.GetUserData<UserTimeData>();
-            if (userTimeData != null && userTimeData.Time > 0)
-            {
-                totalTimeText.text = CalculateTimeFormat(userTimeData.Time);
-            }
-            else
-            {
-                totalTimeText.text = "0시간";
-            }
-        }
-        catch (Exception e)
-        {
-            Logger.LogError($"{GetType()}::SetTotalTime 오류: {e.Message}");
-            totalTimeText.text = "오류";
-        }
+        public Choice[] choices;
     }
-    
-    /// <summary>
-    /// 주간 총 학습 시간을 설정하는 함수
-    /// </summary>
-    private void SetWeeklyTime()
+
+    [Serializable]
+    public class Choice
     {
-        if (weeklyTotalTime == null) return;
-
-        try
-        {
-            UserDailyTimeData userDailyTimeData = UserDataManager.Instance?.GetUserData<UserDailyTimeData>();
-            if (userDailyTimeData?.DailyTimeItemDataList == null)
-            {
-                weeklyTotalTime.text = "0시간";
-                return;
-            }
-
-            // 최근 7일간의 데이터를 합산합니다
-            DateTime now = DateTime.UtcNow.AddHours(9);
-            long weeklyTotal = 0;
-
-            for (int i = 0; i < 7; i++)
-            {
-                string date = now.AddDays(-i).ToString("yyyy-MM-dd");
-                var dayData = userDailyTimeData.DailyTimeItemDataList.FirstOrDefault(x => x.Date == date);
-                if (dayData != null)
-                {
-                    weeklyTotal += dayData.Time;
-                }
-            }
-
-            weeklyTotalTime.text = CalculateTimeFormat(weeklyTotal);
-        }
-        catch (Exception e)
-        {
-            Logger.LogError($"{GetType()}::SetWeeklyTime 오류: {e.Message}");
-            weeklyTotalTime.text = "오류";
-        }
+        public Message message;
     }
-    
-    /// <summary>
-    /// 과목별 학습 시간을 설정하는 함수
-    /// </summary>
-    private void SetSubjectTime()
+
+    [Serializable]
+    public class Message
     {
-        if (subjectTime == null) return;
-
-        try
-        {
-            UserSubjectTimeData userSubjectTimeData = UserDataManager.Instance?.GetUserData<UserSubjectTimeData>();
-            if (userSubjectTimeData?.SubjectTimeItemDataList == null || 
-                userSubjectTimeData.SubjectTimeItemDataList.Count == 0)
-            {
-                subjectTime.text = "과목별 데이터가 없습니다";
-                return;
-            }
-
-            // 상위 3개 과목을 시간순으로 표시합니다
-            _sbSubject.Clear();
-            var topSubjects = userSubjectTimeData.SubjectTimeItemDataList
-                .OrderByDescending(x => x.Time)
-                .Take(3);
-
-            foreach (var subject in topSubjects)
-            {
-                if (_sbSubject.Length > 0)
-                    _sbSubject.AppendLine();
-                
-                _sbSubject.Append($"{subject.Name}: {CalculateTimeFormat(subject.Time)}");
-            }
-
-            subjectTime.text = _sbSubject.ToString();
-        }
-        catch (Exception e)
-        {
-            Logger.LogError($"{GetType()}::SetSubjectTime 오류: {e.Message}");
-            subjectTime.text = "오류";
-        }
+        public string role;
+        public string content;
     }
-    
-    /// <summary>
-    /// 차트들을 업데이트하는 함수
-    /// </summary>
-    private void UpdateCharts()
+
+    [Serializable]
+    public class OpenAIRequest
     {
-        Logger.Log($"{GetType()}::차트 업데이트 시작");
-        Logger.Log($"{GetType()}::차트 컴포넌트 상태 - PieChart: {(pieChart != null ? "연결됨" : "null")}, BarChart: {(barChart != null ? "연결됨" : "null")}, LineChart: {(lineChart != null ? "연결됨" : "null")}");
-        Logger.Log($"{GetType()}::차트 컨테이너 상태 - PieContainer: {(pieChartContainer != null ? "연결됨" : "null")}, BarContainer: {(barChartContainer != null ? "연결됨" : "null")}, LineContainer: {(lineChartContainer != null ? "연결됨" : "null")}");
-        Logger.Log($"{GetType()}::차트 콘텐츠 상태 - PieContent: {(pieChartContent != null ? "연결됨" : "null")}, BarContent: {(barChartContent != null ? "연결됨" : "null")}, LineContent: {(lineChartContent != null ? "연결됨" : "null")}");
-        Logger.Log($"{GetType()}::차트 빈 데이터 텍스트 상태 - PieEmpty: {(pieChartEmptyText != null ? "연결됨" : "null")}, BarEmpty: {(barChartEmptyText != null ? "연결됨" : "null")}, LineEmpty: {(lineChartEmptyText != null ? "연결됨" : "null")}");
-        
-        UpdatePieChart();
-        UpdateBarChart();
-        UpdateLineChart();
-        
-        Logger.Log($"{GetType()}::차트 업데이트 완료");
+        public string model = Constants.OpenAI.MODEL;
+        public List<Message> messages;
+        public int max_tokens = Constants.OpenAI.MAX_TOKENS;
+        public float temperature = Constants.OpenAI.TEMPERATURE;
     }
-    
-    /// <summary>
-    /// 파이차트를 업데이트하는 함수
-    /// </summary>
-    private void UpdatePieChart()
-    {
-        try
-        {
-            UserSubjectTimeData userSubjectTimeData = UserDataManager.Instance?.GetUserData<UserSubjectTimeData>();
-            bool hasData = userSubjectTimeData?.SubjectTimeItemDataList?.Count > 0;
-            
-            Logger.Log($"{GetType()}::파이차트 데이터 확인 - UserSubjectTimeData: {(userSubjectTimeData != null ? "있음" : "null")}, SubjectTimeItemDataList: {userSubjectTimeData?.SubjectTimeItemDataList?.Count ?? 0}개, hasData: {hasData}");
 
-            if (pieChartContent != null)
-            {
-                pieChartContent.SetActive(hasData);
-                Logger.Log($"{GetType()}::PieChartContent 활성화: {hasData}");
-            }
-            
-            if (pieChartEmptyText != null)
-            {
-                pieChartEmptyText.SetActive(!hasData);
-                Logger.Log($"{GetType()}::PieChartEmptyText 활성화: {!hasData}");
-            }
-
-            // 실제 파이차트 데이터 업데이트
-            if (pieChart == null)
-            {
-                Logger.LogWarning($"{GetType()}::PieChart 컴포넌트가 연결되지 않았습니다");
-            }
-            else if (hasData)
-            {
-                Logger.Log($"{GetType()}::파이차트 데이터 업데이트 시작 - {userSubjectTimeData.SubjectTimeItemDataList.Count}개 과목");
-                
-                pieChart.ClearData();
-                
-                foreach (var subject in userSubjectTimeData.SubjectTimeItemDataList)
-                {
-                    if (subject.Time > 0)
-                    {
-                        // 시간을 시간 단위로 변환 (초 -> 시간)
-                        float hours = subject.Time / 3600f;
-                        pieChart.AddData(subject.Name, hours);
-                        Logger.Log($"{GetType()}::파이차트 데이터 추가 - {subject.Name}: {hours:F2}시간");
-                    }
-                }
-                
-                pieChart.RefreshChart();
-                Logger.Log($"{GetType()}::파이차트 RefreshChart 호출 완료");
-            }
-            else
-            {
-                Logger.Log($"{GetType()}::파이차트 데이터 없음 - 차트 클리어");
-                pieChart.ClearData();
-            }
-        }
-        catch (Exception e)
-        {
-            Logger.LogError($"{GetType()}::UpdatePieChart 오류: {e.Message}");
-        }
-    }
-    
-    /// <summary>
-    /// 막대차트를 업데이트하는 함수
-    /// </summary>
-    private void UpdateBarChart()
-    {
-        try
-        {
-            UserDailyTimeData userDailyTimeData = UserDataManager.Instance?.GetUserData<UserDailyTimeData>();
-            bool hasData = userDailyTimeData?.DailyTimeItemDataList?.Count > 0;
-
-            if (barChartContent != null)
-                barChartContent.SetActive(hasData);
-            
-            if (barChartEmptyText != null)
-                barChartEmptyText.SetActive(!hasData);
-
-            // 실제 막대차트 데이터 업데이트 (최근 7일)
-            if (hasData && barChart != null)
-            {
-                barChart.ClearData();
-                
-                DateTime now = DateTime.UtcNow.AddHours(9);
-                
-                // 최근 7일 데이터를 가져와서 막대차트에 추가
-                for (int i = 6; i >= 0; i--)
-                {
-                    DateTime targetDate = now.AddDays(-i);
-                    string dateString = targetDate.ToString("yyyy-MM-dd");
-                    string displayDate = targetDate.ToString("MM/dd");
-                    
-                    var dayData = userDailyTimeData.DailyTimeItemDataList.FirstOrDefault(x => x.Date == dateString);
-                    float hours = dayData?.Time / 3600f ?? 0f; // 초를 시간으로 변환
-                    
-                    barChart.AddData(displayDate, hours);
-                }
-                
-                barChart.RefreshChart();
-                Logger.Log($"{GetType()}::막대차트 업데이트 완료 - 최근 7일 데이터");
-            }
-            else if (barChart != null)
-            {
-                barChart.ClearData();
-            }
-        }
-        catch (Exception e)
-        {
-            Logger.LogError($"{GetType()}::UpdateBarChart 오류: {e.Message}");
-        }
-    }
-    
-    /// <summary>
-    /// 꺾은선 차트를 업데이트하는 함수
-    /// </summary>
-    private void UpdateLineChart()
-    {
-        try
-        {
-            UserDailyTimeData userDailyTimeData = UserDataManager.Instance?.GetUserData<UserDailyTimeData>();
-            bool hasData = userDailyTimeData?.DailyTimeItemDataList?.Count > 0;
-
-            if (lineChartContent != null)
-                lineChartContent.SetActive(hasData);
-            
-            if (lineChartEmptyText != null)
-                lineChartEmptyText.SetActive(!hasData);
-
-            // 실제 꺾은선 차트 데이터 업데이트 (최근 30일 학습 시간 추이)
-            if (hasData && lineChart != null)
-            {
-                lineChart.ClearData();
-                
-                DateTime now = DateTime.UtcNow.AddHours(9);
-                
-                // 최근 30일 데이터를 가져와서 꺾은선 차트에 추가
-                for (int i = 29; i >= 0; i--)
-                {
-                    DateTime targetDate = now.AddDays(-i);
-                    string dateString = targetDate.ToString("yyyy-MM-dd");
-                    string displayDate = targetDate.ToString("MM/dd");
-                    
-                    var dayData = userDailyTimeData.DailyTimeItemDataList.FirstOrDefault(x => x.Date == dateString);
-                    float hours = dayData?.Time / 3600f ?? 0f; // 초를 시간으로 변환
-                    
-                    lineChart.AddData(displayDate, hours);
-                }
-                
-                lineChart.RefreshChart();
-                Logger.Log($"{GetType()}::꺾은선차트 업데이트 완료 - 최근 30일 데이터");
-            }
-            else if (lineChart != null)
-            {
-                lineChart.ClearData();
-            }
-        }
-        catch (Exception e)
-        {
-            Logger.LogError($"{GetType()}::UpdateLineChart 오류: {e.Message}");
-        }
-    }
-    
-    /// <summary>
-    /// 시간을 포맷팅하는 함수 (초 -> "X시간 Y분" 형태)
-    /// </summary>
-    private string CalculateTimeFormat(long timeInSeconds)
-    {
-        if (timeInSeconds <= 0) return "0초";
-
-        long hours = timeInSeconds / 3600;
-        long minutes = (timeInSeconds % 3600) / 60;
-        long seconds = timeInSeconds % 60;
-
-        _sb.Clear();
-
-        if (hours > 0)
-        {
-            _sb.Append($"{hours}시간");
-            if (minutes > 0)
-                _sb.Append($" {minutes}분");
-        }
-        else if (minutes > 0)
-        {
-            _sb.Append($"{minutes}분");
-            if (seconds > 0)
-                _sb.Append($" {seconds}초");
-        }
-        else
-        {
-            _sb.Append($"{seconds}초");
-        }
-
-        return _sb.ToString();
-    }
-    
-    /// <summary>
-    /// 수동으로 데이터를 새로고침하는 함수 (버튼에서 호출 가능)
-    /// </summary>
-    public void OnRefreshButtonClicked()
-    {
-        Logger.Log($"{GetType()}::수동 새로고침 버튼 클릭됨");
-        RefreshAllData();
-    }
+    #endregion
 }
-
-#region OpenAI API Response Classes
-
-/// <summary>
-/// OpenAI API 응답을 받기 위한 클래스
-/// </summary>
-[Serializable]
-public class OpenAIResponse
-{
-    public Choice[] choices; // AI의 응답 선택지들
-}
-
-/// <summary>
-/// OpenAI API 응답의 선택지 클래스
-/// </summary>
-[Serializable]
-public class Choice
-{
-    public Message message; // 메시지 내용
-}
-
-/// <summary>
-/// OpenAI API의 메시지 클래스
-/// </summary>
-[Serializable]
-public class Message
-{
-    public string role;    // 역할 (user, assistant)
-    public string content; // 메시지 내용
-}
-
-/// <summary>
-/// OpenAI API 요청을 위한 클래스
-/// </summary>
-[Serializable]
-public class OpenAIRequest
-{
-    public string model = Constants.OpenAI.MODEL;           // 사용할 AI 모델
-    public List<Message> messages;                          // 보낼 메시지들
-    public int max_tokens = Constants.OpenAI.MAX_TOKENS;    // 최대 토큰 수 (올바른 필드명)
-    public float temperature = Constants.OpenAI.TEMPERATURE; // AI 응답의 창의성 정도
-}
-
-#endregion

@@ -136,11 +136,12 @@ public abstract class BaseChart : MonoBehaviour
         }
         
         GameObject label_obj = new GameObject($"Label_{text}");
-        label_obj.transform.SetParent(parent);
+        label_obj.transform.SetParent(parent, false);
         
         RectTransform label_rect = label_obj.AddComponent<RectTransform>();
         label_rect.sizeDelta = size;
         label_rect.anchoredPosition = position;
+        label_rect.localScale = Vector3.one;
         
         Text label_text = label_obj.AddComponent<Text>();
         label_text.text = text;

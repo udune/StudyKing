@@ -6,7 +6,7 @@ public class CustomPieChart : BaseChart
     [Header("파이차트 전용 설정")] 
     [SerializeField] private float chartRadius = 100f; // 파이차트의 반지름
     [SerializeField] private bool showPercentage = true; // 퍼센트를 표시할지 여부
-    [SerializeField] private float labelDistance = 120f; // 라벨과 차트 중심 사이의 거리
+    [SerializeField] private float labelDistance = 130; // 라벨과 차트 중심 사이의 거리
     [SerializeField] private int circleSegments = 100; // 원을 구성하는 세그먼트 수
     
     // 파이차트를 실제로 그린다.
@@ -32,9 +32,11 @@ public class CustomPieChart : BaseChart
             float percentage = data.Value / totalValue;
             float sliceAngle = percentage * 360f;
             
+            Color sliceColor = GetGradientColor(colorIndex);
+            
             // 파이 조각을 그린다.
-            GameObject slice = CreatePieSlice(data.Key, currentAngle, sliceAngle, GetColor(colorIndex));
-            slice.transform.SetParent(chartContainer);
+            GameObject slice = CreatePieSlice(data.Key, currentAngle, sliceAngle, sliceColor);
+            slice.transform.SetParent(chartContainer, false);
             
             // 라벨을 생성한다
             if (showLabels)
@@ -57,6 +59,7 @@ public class CustomPieChart : BaseChart
         RectTransform rect = slice.AddComponent<RectTransform>();
         rect.sizeDelta = new Vector2(chartRadius * 2, chartRadius * 2);
         rect.anchoredPosition = Vector2.zero;
+        rect.localScale = Vector3.one;
         
         // CanvasRenderer와 UI Graphic 컴포넌트 추가
         slice.AddComponent<CanvasRenderer>();
@@ -82,7 +85,7 @@ public class CustomPieChart : BaseChart
         string label_text = label;
         if (showPercentage)
         {
-            label_text = $"\n{percentage:P1}%";
+            label_text += $"{label}\n{percentage:P1}";
         }
         
         GameObject label_obj = CreateLabel(chartContainer, label_text, label_pos, new Vector2(80, 40));
@@ -92,10 +95,34 @@ public class CustomPieChart : BaseChart
             Text text_component = label_obj.GetComponent<Text>();
             if (text_component != null)
             {
-                text_component.color = Color.black;
+                text_component.color = new Color(0.15f, 0.15f, 0.15f, 1f); // 다크 그레이
+                text_component.fontSize = 14;
+                text_component.fontStyle = FontStyle.Bold;
                 text_component.alignment = TextAnchor.MiddleCenter;
+                
+                Outline outline = label_obj.AddComponent<Outline>();
+                outline.effectColor = new Color(1f, 1f, 1f, 0.8f);
+                outline.effectDistance = new Vector2(1f, -1f);
             }
         }
+    }
+    
+    // 그라디언트 색상 생성
+    private Color GetGradientColor(int index)
+    {
+        // 모던한 그라디언트 색상 팔레트
+        Color[] gradientColors = new Color[]
+        {
+            new Color(0.3f, 0.6f, 0.95f, 1f),   // 선명한 파랑
+            new Color(1f, 0.5f, 0.3f, 1f),      // 선명한 주황
+            new Color(0.4f, 0.85f, 0.5f, 1f),   // 선명한 녹색
+            new Color(1f, 0.75f, 0.3f, 1f),     // 선명한 노랑
+            new Color(0.85f, 0.4f, 0.75f, 1f),  // 선명한 분홍
+            new Color(0.4f, 0.75f, 0.85f, 1f),  // 선명한 하늘색
+            new Color(0.7f, 0.5f, 0.95f, 1f),   // 선명한 보라
+        };
+        
+        return gradientColors[index % gradientColors.Length];
     }
 
     // 파이차트의 반지름을 설정
@@ -156,7 +183,7 @@ public class PieSliceGraphic : Graphic
         // 파이 조각의 테두리 점들을 계산한다.
         int actualSegments = Mathf.Max(3, Mathf.RoundToInt(segments * sliceAngle / 360f));
 
-        for (int i = 0; i < actualSegments; i++)
+        for (int i = 0; i <= actualSegments; i++)
         {
             // 현재 각도를 계산한다.
             float currentAngle = startAngle + (sliceAngle * i / actualSegments);
@@ -174,10 +201,8 @@ public class PieSliceGraphic : Graphic
             vh.AddVert(vertex);
         }
 
-        // 삼각형들을 만들어서 파이 조각을 채운다.
         for (int i = 0; i < actualSegments; i++)
         {
-            // 중심점과 연속된 두 테두리 점으로 삼각형을 만든다.
             vh.AddTriangle(0, i + 1, i + 2);
         }
     }
