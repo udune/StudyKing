@@ -6,30 +6,29 @@ using UnityEngine.UI;
 public class CustomLineChart : BaseChart
 {
     [Header("라인 차트 전용 설정")] 
-    [SerializeField] private float lineWidth = 2f; // 선 두께
-    [SerializeField] private float pointSize = 6f; // 데이터 포인트 크기
+    [SerializeField] private float lineWidth = 3f; // 선 두께
+    [SerializeField] private float pointSize = 10f; // 데이터 포인트 크기
     [SerializeField] private bool showPoints = true; // 데이터 포인트를 표시할지
-    [SerializeField] private bool showArea; // 선을 표시할지
-    [SerializeField] private Color lineColor = Color.blue; // 선 색상
-    [SerializeField] private Color pointColor = Color.red; // 데이터 포인트 색상
-    [SerializeField] private Color areaColor = Color.blue; // 영역 색상
+    [SerializeField] private bool showArea = true; // 선을 표시할지
     [SerializeField] private bool showGrid = true; // 격자선을 표시할지
+    [SerializeField] private Color lineColor = new Color(0.2f, 0.6f, 1f, 1f); // 선 색상
+    [SerializeField] private Color pointColor = new Color(0.1f, 0.5f, 0.9f, 1f); // 데이터 포인트 색상
+    [SerializeField] private Color areaColor = new Color(0.3f, 0.7f, 1f, 0.3f); // 영역 색상
+    [SerializeField] private Color gridColor = new Color(0.7f, 0.7f, 0.7f, 0.5f); // 격자선 색상
     [SerializeField] private int gridLineCount = 5; // 격자선 갯수
-    [SerializeField] private Color gridColor = Color.gray; // 격자선 색상
     
     private List<Vector2> dataPoints = new List<Vector2>();
     
     protected override void DrawChart()
     {
-        if (chartData.Count == 0)
+        if (chartData.Count == 2)
         {
+            Debug.LogWarning($"{GetType()}::데이터가 2개 미만입니다. 선을 그릴 수 없습니다.");
             return;
         }
-        
-        PrepareDataPoints();
-        
-        if (dataPoints.Count < 2) return; // 점이 2개 미만이면 선을 그릴 수 없습니다
 
+        CalculateDataPoints();
+        
         // 격자선을 먼저 그립니다
         if (showGrid)
         {
@@ -57,58 +56,55 @@ public class CustomLineChart : BaseChart
             DrawAxisLabels();
         }
 
+        DrawAxisLabels();
+
         Debug.Log($"{GetType()}::선차트 그리기 완료 - {dataPoints.Count}개 포인트");
     }
     
-    private void PrepareDataPoints()
+    private void CalculateDataPoints()
     {
         dataPoints.Clear();
 
-        if (chartData.Count == 0) return;
-
         float chartWidth = chartContainer.rect.width * 0.8f;  // 여백을 위해 80% 사용
         float chartHeight = chartContainer.rect.height * 0.8f;
-
+        
         float maxValue = GetMaxValue();
         float minValue = GetMinValue();
         float valueRange = maxValue - minValue;
 
-        if (valueRange == 0) valueRange = 1; // 0으로 나누기 방지
-
-        // 데이터를 키 순서대로 정렬 (시간 순서)
-        var sortedData = chartData.OrderBy(x => x.Key).ToList();
-
-        for (int i = 0; i < sortedData.Count; i++)
+        if (valueRange <= 0)
         {
-            // X 좌표: 균등하게 분배
-            float xPercent = (float)i / (sortedData.Count - 1);
-            float x = (xPercent - 0.5f) * chartWidth;
+            valueRange = 1f;
+        }
 
-            // Y 좌표: 값에 따라 계산
-            float yPercent = (sortedData[i].Value - minValue) / valueRange;
-            float y = (yPercent - 0.5f) * chartHeight;
+        var sortedKeys = chartData.Keys.OrderBy(x => x).ToList();
 
-            dataPoints.Add(new Vector2(x, y));
+        for (int i = 0; i < sortedKeys.Count; i++)
+        {
+            float xPercent = sortedKeys.Count > 1 ? (float)i / (sortedKeys.Count - 1) : 0.5f;
+            float yPercent = (chartData[sortedKeys[i]] - minValue) / valueRange;
+            
+            Vector2 position = new Vector2(
+                (xPercent - 0.5f) * chartWidth,
+                (yPercent - 0.5f) * chartHeight
+            );
+            
+            dataPoints.Add(position);
         }
     }
-
+    
     private void DrawGridLines()
     {
-        if (gridLineCount <= 0) return;
-
         float chartWidth = chartContainer.rect.width * 0.8f;
         float chartHeight = chartContainer.rect.height * 0.8f;
-        float maxValue = GetMaxValue();
-        float minValue = GetMinValue();
-
+        
         // 수평 격자선 (Y축)
         for (int i = 0; i <= gridLineCount; i++)
         {
             float yPercent = (float)i / gridLineCount;
             float yPosition = (yPercent - 0.5f) * chartHeight;
-            float gridValue = minValue + (maxValue - minValue) * yPercent;
 
-            GameObject gridLine = CreateHorizontalGridLine(chartWidth, yPosition, gridValue);
+            GameObject gridLine = CreateHorizontalGridLine(chartWidth, yPosition);
             gridLine.transform.SetParent(chartContainer, false);
         }
 
@@ -127,13 +123,14 @@ public class CustomLineChart : BaseChart
     /// <summary>
     /// 수평 격자선을 생성하는 함수
     /// </summary>
-    private GameObject CreateHorizontalGridLine(float width, float yPos, float value)
+    private GameObject CreateHorizontalGridLine(float width, float yPos)
     {
-        GameObject gridLine = new GameObject($"HGridLine_{value:F1}");
+        GameObject gridLine = new GameObject($"HGridLine_{yPos}");
         
         RectTransform rectTransform = gridLine.AddComponent<RectTransform>();
-        rectTransform.sizeDelta = new Vector2(width, 1f);
+        rectTransform.sizeDelta = new Vector2(width, 2f);
         rectTransform.anchoredPosition = new Vector2(0, yPos);
+        rectTransform.localScale = Vector3.one;
 
         Image image = gridLine.AddComponent<Image>();
         image.color = gridColor;
@@ -149,8 +146,9 @@ public class CustomLineChart : BaseChart
         GameObject gridLine = new GameObject($"VGridLine_{label}");
         
         RectTransform rectTransform = gridLine.AddComponent<RectTransform>();
-        rectTransform.sizeDelta = new Vector2(1f, height);
+        rectTransform.sizeDelta = new Vector2(2f, height);
         rectTransform.anchoredPosition = new Vector2(xPos, 0);
+        rectTransform.localScale = Vector3.one;
 
         Image image = gridLine.AddComponent<Image>();
         image.color = gridColor;
@@ -163,7 +161,10 @@ public class CustomLineChart : BaseChart
     /// </summary>
     private void DrawArea()
     {
-        if (dataPoints.Count < 2) return;
+        if (dataPoints.Count < 2)
+        {
+            return;
+        }
 
         GameObject areaObj = new GameObject("LineChart_Area");
         areaObj.transform.SetParent(chartContainer, false);
@@ -209,6 +210,7 @@ public class CustomLineChart : BaseChart
         rectTransform.sizeDelta = new Vector2(distance, lineWidth);
         rectTransform.anchoredPosition = (start + end) / 2;
         rectTransform.rotation = Quaternion.FromToRotation(Vector2.right, direction);
+        rectTransform.localScale = Vector3.one;
 
         return line;
     }
@@ -237,6 +239,7 @@ public class CustomLineChart : BaseChart
         RectTransform rectTransform = point.AddComponent<RectTransform>();
         rectTransform.sizeDelta = new Vector2(pointSize, pointSize);
         rectTransform.anchoredPosition = position;
+        rectTransform.localScale = Vector3.one;
 
         Image image = point.AddComponent<Image>();
         image.color = pointColor;
@@ -247,8 +250,19 @@ public class CustomLineChart : BaseChart
         // 포인트 위에 값 표시 (옵션)
         if (showLabels)
         {
-            GameObject valueLabel = CreateLabel(point.transform, value.ToString("F1"), 
-                new Vector2(0, pointSize + 10), new Vector2(50, 20));
+            string valueText;
+            if (value >= 1.0f)
+            {
+                valueText = value.ToString("F1") + "h";
+            }
+            else
+            {
+                int minutes = Mathf.RoundToInt(value * 60);
+                valueText = minutes + "m";
+            }
+            
+            GameObject valueLabel = CreateLabel(point.transform, valueText, 
+                new Vector2(0, pointSize + 15), new Vector2(60, 25));
             
             if (valueLabel != null)
             {
@@ -256,8 +270,9 @@ public class CustomLineChart : BaseChart
                 if (labelText != null)
                 {
                     labelText.alignment = TextAnchor.MiddleCenter;
-                    labelText.fontSize = labelFontSize - 2;
-                    labelText.color = Color.black;
+                    labelText.fontSize = 12;
+                    labelText.color = new Color(0.1f, 0.1f, 0.1f, 1f);
+                    labelText.fontStyle = FontStyle.Bold;
                 }
             }
         }
@@ -280,7 +295,7 @@ public class CustomLineChart : BaseChart
         {
             float xPercent = (float)i / (sortedKeys.Count - 1);
             float xPosition = (xPercent - 0.5f) * chartWidth;
-            float yPosition = -chartHeight / 2 - 25;
+            float yPosition = -chartHeight / 2 - 35;
 
             GameObject xLabel = CreateLabel(chartContainer, sortedKeys[i], 
                 new Vector2(xPosition, yPosition), new Vector2(60, 20));
@@ -291,7 +306,9 @@ public class CustomLineChart : BaseChart
                 if (labelText != null)
                 {
                     labelText.alignment = TextAnchor.MiddleCenter;
-                    labelText.fontSize = labelFontSize - 2;
+                    labelText.fontSize = 12;
+                    labelText.color = new Color(0.2f, 0.2f, 0.2f, 1f);
+                    labelText.fontStyle = FontStyle.Bold;
                 }
             }
         }
@@ -307,7 +324,7 @@ public class CustomLineChart : BaseChart
             float value = minValue + (maxValue - minValue) * yPercent;
 
             GameObject yLabel = CreateLabel(chartContainer, value.ToString("F0"), 
-                new Vector2(-chartWidth / 2 - 35, yPosition), new Vector2(60, 20));
+                new Vector2(-chartWidth / 2 - 45, yPosition), new Vector2(70, 25));
             
             if (yLabel != null)
             {
@@ -315,7 +332,9 @@ public class CustomLineChart : BaseChart
                 if (labelText != null)
                 {
                     labelText.alignment = TextAnchor.MiddleRight;
-                    labelText.fontSize = labelFontSize - 2;
+                    labelText.fontSize = 12;
+                    labelText.color = new Color(0.2f, 0.2f, 0.2f, 1f);
+                    labelText.fontStyle = FontStyle.Bold;
                 }
             }
         }
@@ -380,15 +399,15 @@ public class LineAreaGraphic : Graphic
 {
     private List<Vector2> points = new List<Vector2>();
     private float baselineY = 0f;
+    private float chartHeight = 0f;
 
     /// <summary>
     /// 영역 데이터를 설정하는 함수
     /// </summary>
-    public void SetAreaData(List<Vector2> areaPoints, float chartHeight)
+    public void SetAreaData(List<Vector2> areaPoints, float height)
     {
-        points.Clear();
-        points.AddRange(areaPoints);
-        baselineY = -chartHeight / 2; // 차트 하단을 기준선으로 설정
+        points = new List<Vector2>(areaPoints);
+        chartHeight = height;
         SetVerticesDirty();
     }
 
@@ -401,41 +420,33 @@ public class LineAreaGraphic : Graphic
 
         if (points.Count < 2) return;
 
-        // 영역을 삼각형들로 분할해서 채웁니다
-        for (int i = 0; i < points.Count - 1; i++)
+        // 영역을 채우기 위한 정점들 생성
+        float bottomY = -chartHeight / 2;
+
+        // 첫 번째 하단 점
+        UIVertex vertex = UIVertex.simpleVert;
+        vertex.position = new Vector3(points[0].x, bottomY, 0);
+        vertex.color = color;
+        vh.AddVert(vertex);
+
+        // 데이터 포인트들 추가
+        foreach (Vector2 point in points)
         {
-            // 4개의 꼭짓점으로 사각형을 만들고 두 개의 삼각형으로 분할
-            Vector3 topLeft = new Vector3(points[i].x, points[i].y, 0f);
-            Vector3 topRight = new Vector3(points[i + 1].x, points[i + 1].y, 0f);
-            Vector3 bottomLeft = new Vector3(points[i].x, baselineY, 0f);
-            Vector3 bottomRight = new Vector3(points[i + 1].x, baselineY, 0f);
+            vertex.position = new Vector3(point.x, point.y, 0);
+            vertex.color = color;
+            vh.AddVert(vertex);
+        }
 
-            // 버텍스 추가
-            int vertexIndex = vh.currentVertCount;
-            
-            UIVertex vertex1 = UIVertex.simpleVert;
-            vertex1.position = bottomLeft;
-            vertex1.color = color;
-            vh.AddVert(vertex1);
+        // 마지막 하단 점
+        vertex.position = new Vector3(points[points.Count - 1].x, bottomY, 0);
+        vertex.color = color;
+        vh.AddVert(vertex);
 
-            UIVertex vertex2 = UIVertex.simpleVert;
-            vertex2.position = bottomRight;
-            vertex2.color = color;
-            vh.AddVert(vertex2);
-
-            UIVertex vertex3 = UIVertex.simpleVert;
-            vertex3.position = topRight;
-            vertex3.color = color;
-            vh.AddVert(vertex3);
-
-            UIVertex vertex4 = UIVertex.simpleVert;
-            vertex4.position = topLeft;
-            vertex4.color = color;
-            vh.AddVert(vertex4);
-
-            // 두 개의 삼각형 생성
-            vh.AddTriangle(vertexIndex, vertexIndex + 1, vertexIndex + 2);
-            vh.AddTriangle(vertexIndex + 2, vertexIndex + 3, vertexIndex);
+        // 삼각형 생성
+        int vertCount = vh.currentVertCount;
+        for (int i = 0; i < vertCount - 2; i++)
+        {
+            vh.AddTriangle(0, i + 1, i + 2);
         }
     }
 }

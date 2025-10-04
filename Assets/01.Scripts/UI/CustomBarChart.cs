@@ -4,23 +4,25 @@ using UnityEngine.UI;
 public class CustomBarChart : BaseChart
 {
     [Header("바 차트 전용 설정")] 
-    [SerializeField] private float barWidthRatio = 0.8f; // 막대 너비 비율
+    [SerializeField] private float barWidthRatio = 0.6f; // 막대 너비 비율
     [SerializeField] private float maxBarHeight = 200f; // 최대 막대 높이
     [SerializeField] private bool showValues = true; // 막대 위에 값을 표시할지
     [SerializeField] private bool showGrid = true; // 격자선을 표시할지
     [SerializeField] private int gridLineCount = 5; // 격자선 갯수
-    [SerializeField] private Color gridColor = Color.gray; // 격자선 색상
+    [SerializeField] private Color gridColor = new Color(0.8f, 0.8f, 0.8f, 0.5f); // 격자선 색상
     
     protected override void DrawChart()
     {
         if (chartData.Count == 0)
         {
+            Debug.Log($"{GetType()}::데이터가 없습니다.");
             return;
         }
 
         float maxValue = GetMaxValue();
         if (maxValue <= 0)
         {
+            Debug.LogWarning($"{GetType()}::최대 값이 0 이하입니다.");
             return;
         }
 
@@ -32,20 +34,21 @@ public class CustomBarChart : BaseChart
         float chartWidth = chartContainer.rect.width;
         float barWidth = (chartWidth / chartData.Count) * barWidthRatio;
         float barSpacing = chartWidth / chartData.Count;
+        
+        Debug.Log($"{GetType()}::차트 너비: {chartWidth}, 막대 너비: {barWidth}, 막대 간격: {barSpacing}");
 
         int index = 0;
         foreach (var data in chartData)
         {
-            // 막대 높이 계산
             float barHeight = (data.Value / maxValue) * maxBarHeight;
-            
-            // 막대 위치 계산
             float xPos = (index + 0.5f) * barSpacing - chartWidth / 2;
             float yPos = barHeight / 2 - maxBarHeight / 2;
             
-            // 막대를 생성
-            CreateBar(data.Key, data.Value, barWidth, barHeight, xPos, yPos, GetColor(index));
-            transform.SetParent(chartContainer);
+            Color barColor = GetGradientColor(index);
+            
+            Debug.Log($"{GetType()}::막대 #{index} - 과목: {data.Key}, 값: {data.Value}, width: {barWidth}, height: {barHeight}, xPos: {xPos}, yPos: {yPos}");
+            
+            CreateBar(data.Key, data.Value, barWidth, barHeight, xPos, yPos, barColor);
 
             index++;
         }
@@ -72,7 +75,7 @@ public class CustomBarChart : BaseChart
             
             // 격자선 생성
             GameObject gridLine = CreateGridLine(chartWidth, yPos, gridValue);
-            gridLine.transform.SetParent(chartContainer);
+            gridLine.transform.SetParent(chartContainer, false);
         }
     }
 
@@ -82,8 +85,9 @@ public class CustomBarChart : BaseChart
         GameObject gridLine = new GameObject($"GridLine_{value:F1}");
         
         RectTransform rect = gridLine.AddComponent<RectTransform>();
-        rect.sizeDelta = new Vector2(width, 1f);
+        rect.sizeDelta = new Vector2(width, 2f);
         rect.anchoredPosition = new Vector2(0, yPos);
+        rect.localScale = Vector3.one;
         
         Image image = gridLine.AddComponent<Image>();
         image.color = gridColor;
@@ -91,16 +95,17 @@ public class CustomBarChart : BaseChart
         if (showLabels && value > 0)
         {
             GameObject valueLabel = CreateLabel(gridLine.transform, value.ToString("F0"),
-                new Vector2(-width / 2 - 30, 0), new Vector2(50, 20));
+                new Vector2(-width / 2 - 40, 0), new Vector2(60, 25));
 
             if (valueLabel != null)
             {
                 Text labelText = valueLabel.GetComponent<Text>();
                 if (labelText != null)
                 {
-                    labelText.color = gridColor;
-                    labelText.alignment = TextAnchor.MiddleCenter;
-                    labelText.fontSize = 10;
+                    labelText.color = new Color(0.3f, 0.3f, 0.3f, 1f);
+                    labelText.alignment = TextAnchor.MiddleRight;
+                    labelText.fontSize = 12;
+                    labelText.fontStyle = FontStyle.Normal;
                 }
             }
         }
@@ -114,18 +119,23 @@ public class CustomBarChart : BaseChart
     {
         GameObject bar = new GameObject($"Bar_{label}");
         
+        bar.transform.SetParent(chartContainer, false);
+        
         // 막대 몸체 설정
         RectTransform rect = bar.AddComponent<RectTransform>();
         rect.sizeDelta = new Vector2(width, height);
         rect.anchoredPosition = new Vector2(xPos, yPos);
+        rect.localScale = Vector3.one;
         
         Image image = bar.AddComponent<Image>();
         image.color = color;
+        
+        Debug.Log($"{GetType()}::막대 생성 - {label}: 높이={height}, 위치=({xPos}, {yPos}), 색상={color}");
 
         if (showLabels)
         {
-            GameObject bottomLabel = CreateLabel(bar.transform, label, new Vector2(0, -height / 2 - 20),
-                new Vector2(width + 10, 20));
+            GameObject bottomLabel = CreateLabel(bar.transform, label, new Vector2(0, -height / 2 - 30),
+                new Vector2(width + 20, 30));
 
             if (bottomLabel != null)
             {
@@ -133,14 +143,27 @@ public class CustomBarChart : BaseChart
                 if (labelText != null)
                 {
                     labelText.alignment = TextAnchor.MiddleCenter;
-                    labelText.fontSize = labelFontSize;
+                    labelText.fontSize = 14;
+                    labelText.color = new Color(0.2f, 0.2f, 0.2f, 1f);
+                    labelText.fontStyle = FontStyle.Bold;
                 }
             }
             
             if (showValues && value > 0)
             {
-                GameObject valueLabel = CreateLabel(bar.transform, value.ToString("F1"), new Vector2(0, height / 2 + 15),
-                    new Vector2(width + 10, 20));
+                string valueText;
+                if (value >= 1.0f)
+                {
+                    valueText = value.ToString("F1") + "h";
+                }
+                else
+                {
+                    int minutes = Mathf.RoundToInt(value * 60);
+                    valueText = minutes + "m";
+                }
+                
+                GameObject valueLabel = CreateLabel(bar.transform, valueText, new Vector2(0, height / 2 + 20),
+                    new Vector2(width + 20, 25));
 
                 if (valueLabel != null)
                 {
@@ -148,12 +171,30 @@ public class CustomBarChart : BaseChart
                     if (labelText != null)
                     {
                         labelText.alignment = TextAnchor.MiddleCenter;
-                        labelText.fontSize = labelFontSize - 2;
-                        labelText.color = Color.black;
+                        labelText.fontSize = 13;
+                        labelText.color = new Color(0.1f, 0.1f, 0.1f, 1f);
+                        labelText.fontStyle = FontStyle.Bold;
                     }
                 }
             }
         }
+    }
+
+    private Color GetGradientColor(int index)
+    {
+        // 모던한 그라디언트 색상 팔레트
+        Color[] gradientColors = new Color[]
+        {
+            new Color(0.4f, 0.7f, 1f, 1f),      // 밝은 파랑
+            new Color(1f, 0.6f, 0.4f, 1f),      // 밝은 주황
+            new Color(0.6f, 0.9f, 0.6f, 1f),    // 밝은 녹색
+            new Color(1f, 0.8f, 0.4f, 1f),      // 밝은 노랑
+            new Color(0.9f, 0.5f, 0.8f, 1f),    // 밝은 분홍
+            new Color(0.5f, 0.8f, 0.9f, 1f),    // 밝은 하늘색
+            new Color(0.8f, 0.6f, 1f, 1f),      // 밝은 보라
+        };
+        
+        return gradientColors[index % gradientColors.Length];
     }
     
     // 막대 너비 비율을 설정한다.
