@@ -6,7 +6,7 @@ public class CustomBarChart : BaseChart
     [Header("바 차트 전용 설정")] 
     [SerializeField] private float barWidthRatio = 0.6f; // 막대 너비 비율
     [SerializeField] private float maxBarHeight = 200f; // 최대 막대 높이
-    [SerializeField] private bool showValues = true; // 막대 위에 값을 표시할지
+    [SerializeField] private bool showValues = false; // 막대 위에 값을 표시할지
     [SerializeField] private bool showGrid = true; // 격자선을 표시할지
     [SerializeField] private int gridLineCount = 5; // 격자선 갯수
     [SerializeField] private Color gridColor = new Color(0.8f, 0.8f, 0.8f, 0.5f); // 격자선 색상
@@ -149,34 +149,34 @@ public class CustomBarChart : BaseChart
                 }
             }
             
-            if (showValues && value > 0)
-            {
-                string valueText;
-                if (value >= 1.0f)
-                {
-                    valueText = value.ToString("F1") + "h";
-                }
-                else
-                {
-                    int minutes = Mathf.RoundToInt(value * 60);
-                    valueText = minutes + "m";
-                }
-                
-                GameObject valueLabel = CreateLabel(bar.transform, valueText, new Vector2(0, height / 2 + 20),
-                    new Vector2(width + 20, 25));
-
-                if (valueLabel != null)
-                {
-                    Text labelText = valueLabel.GetComponent<Text>();
-                    if (labelText != null)
-                    {
-                        labelText.alignment = TextAnchor.MiddleCenter;
-                        labelText.fontSize = 13;
-                        labelText.color = new Color(0.1f, 0.1f, 0.1f, 1f);
-                        labelText.fontStyle = FontStyle.Bold;
-                    }
-                }
-            }
+            // if (showValues && value > 0)
+            // {
+            //     string valueText;
+            //     if (value >= 1.0f)
+            //     {
+            //         valueText = value.ToString("F1") + "h";
+            //     }
+            //     else
+            //     {
+            //         int minutes = Mathf.RoundToInt(value * 60);
+            //         valueText = minutes + "m";
+            //     }
+            //     
+            //     GameObject valueLabel = CreateLabel(bar.transform, valueText, new Vector2(0, height / 2 + 20),
+            //         new Vector2(width + 20, 25));
+            //
+            //     if (valueLabel != null)
+            //     {
+            //         Text labelText = valueLabel.GetComponent<Text>();
+            //         if (labelText != null)
+            //         {
+            //             labelText.alignment = TextAnchor.MiddleCenter;
+            //             labelText.fontSize = 13;
+            //             labelText.color = new Color(0.1f, 0.1f, 0.1f, 1f);
+            //             labelText.fontStyle = FontStyle.Bold;
+            //         }
+            //     }
+            // }
         }
     }
 

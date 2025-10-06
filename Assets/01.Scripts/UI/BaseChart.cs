@@ -7,7 +7,7 @@ public abstract class BaseChart : MonoBehaviour
     [Header("차트 기본 설정")]
     [SerializeField] protected RectTransform chartContainer; // 차트가 그려질 컨테이너
     [SerializeField] protected Color[] chartColors; // 차트에 사용할 색상 배열
-    [SerializeField] protected bool showLabels = true; // 라벨을 보여줄지 여부
+    [SerializeField] protected bool showLabels = false; // 라벨을 보여줄지 여부
     [SerializeField] protected Font font; // 라벨에 사용할 폰트
     [SerializeField] protected int labelFontSize = 12; // 라벨 폰트 크기
 

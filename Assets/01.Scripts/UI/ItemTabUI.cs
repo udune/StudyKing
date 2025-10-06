@@ -24,16 +24,9 @@ public class ItemTabUI : BaseUI
     public override void Setting(BaseUIData data)
     {
         base.Setting(data);
-        
-        if (content == null)
+
+        if (!ValidateComponents())
         {
-            Logger.LogError($"{GetType()}::Content Transform이 null입니다");
-            return;
-        }
-    
-        if (itemPrefab == null)
-        {
-            Logger.LogError($"{GetType()}::Item Prefab이 null입니다");
             return;
         }
 
@@ -41,21 +34,47 @@ public class ItemTabUI : BaseUI
         LoadItems();
         
         // UI 초기화
+        ClearExistingItems();
         InitializeItems();
         
         // UI 상태 복원 (장착된 아이템들의 선택 표시)
         RestoreItemStates();
     }
     
-    private void InitializeItems()
+    private bool ValidateComponents()
     {
-        // UI가 재활성화될 때마다 아이템이 중복 생성되는 것을 방지
-        if (content.childCount > 0)
+        if (content == null)
         {
-            Logger.Log($"{GetType()}::아이템이 이미 생성되어 있음, 건너뜀");
-            return; 
+            Logger.LogError($"{GetType()}::Content Transform이 null입니다");
+            return false;
         }
     
+        if (itemPrefab == null)
+        {
+            Logger.LogError($"{GetType()}::Item Prefab이 null입니다");
+            return false;
+        }
+
+        return true;
+    }
+    
+    private void ClearExistingItems()
+    {
+        if (content == null)
+        {
+            return;
+        }
+        
+        foreach (Transform child in content)
+        {
+            Destroy(child.gameObject);
+        }
+        
+        Logger.Log($"{GetType()}::기존 아이템 버튼 모두 제거");
+    }
+    
+    private void InitializeItems()
+    {
         foreach (var item in inventoryItemList)
         {
             try
@@ -142,7 +161,14 @@ public class ItemTabUI : BaseUI
         go.name = $"Item_{item.id}";
     
         // 아이콘 설정
-        var iconTransform = go.transform.Find("Icon");
+        SetupItemIcon(go, item);
+
+        SetupItemButton(go, item);
+    }
+    
+    private void SetupItemIcon(GameObject itemObject, InventoryItem item)
+    {
+        var iconTransform = itemObject.transform.Find("Icon");
         if (iconTransform != null)
         {
             var iconImage = iconTransform.GetComponent<Image>();
@@ -153,15 +179,22 @@ public class ItemTabUI : BaseUI
                 {
                     iconImage.sprite = sprite;
                 }
+                else
+                {
+                    Logger.LogWarning($"{GetType()}::아이템 아이콘 스프라이트를 찾을 수 없음: Texture/{item.id}");
+                }
             }
         }
-    
+    }
+
+    private void SetupItemButton(GameObject itemObject, InventoryItem item)
+    {
         // 버튼 이벤트 설정
-        var button = go.GetComponent<Button>();
+        var button = itemObject.GetComponent<Button>();
         if (button != null)
         {
             button.onClick.RemoveAllListeners();
-            button.onClick.AddListener(() => OnItemClick(item, go));
+            button.onClick.AddListener(() => OnItemClick(item, itemObject));
         }
     }
     
@@ -208,7 +241,12 @@ public class ItemTabUI : BaseUI
         try
         {
             var userInventoryData = UserDataManager.Instance?.GetUserData<UserInventoryData>();
-            if (userInventoryData?.EquippedItemIdList == null) return;
+            if (userInventoryData?.EquippedItemIdList == null)
+            {
+                return;
+            }
+            
+            _equippedItemList.Clear();
 
             foreach (var equippedId in userInventoryData.EquippedItemIdList)
             {
@@ -218,7 +256,8 @@ public class ItemTabUI : BaseUI
                     _equippedItemList.Add(item);
                 }
             }
-        }
+            
+            Logger.Log($"{GetType()}::아이템 로드 완료 - 장착된 아이템: {_equippedItemList.Count}개");        }
         catch (Exception e)
         {
             Logger.LogError($"{GetType()}::아이템 로드 실패: {e.Message}");
@@ -227,17 +266,37 @@ public class ItemTabUI : BaseUI
 
     private void SaveItems()
     {
-        var userInventoryData = UserDataManager.Instance.GetUserData<UserInventoryData>();
-        if (userInventoryData == null)
-            return;
+        try
+        {
+            var userInventoryData = UserDataManager.Instance?.GetUserData<UserInventoryData>();
+            if (userInventoryData == null)
+            {
+                Logger.LogError($"{GetType()}::UserInventoryData가 null입니다");
+                return;
+            }
         
-        userInventoryData.EquippedItemIdList = _equippedItemList.Select(x => x.id).ToList();
-        userInventoryData.SaveData();
+            userInventoryData.EquippedItemIdList = _equippedItemList.Select(x => x.id).ToList();
+            userInventoryData.SaveData();
+            
+            Logger.Log($"{GetType()}::아이템 저장 완료 - 장착된 아이템: {_equippedItemList.Count}개");
+        }
+        catch (Exception e)
+        {
+            Logger.LogError($"{GetType()}::아이템 저장 실패: {e.Message}");
+        }
     }
 
     private void OnDisable()
     {
-        PlayerCustom.Instance.character.GetComponent<ObjRotator>().enabled = false;
+        if (PlayerCustom.Instance?.character != null)
+        {
+            var rotator = PlayerCustom.Instance.character.GetComponent<ObjRotator>();
+            if (rotator != null)
+            {
+                rotator.enabled = false;
+                Logger.Log($"{GetType()}::ObjRotator 비활성화");
+            }
+        }
     }
 
     private bool OnClickItem(InventoryItem item)
@@ -246,16 +305,19 @@ public class ItemTabUI : BaseUI
         {
             _equippedItemList.Remove(item);
             SortSlots();
+            Logger.Log($"{GetType()}::아이템 {item.id} 장착 해제");
             return false;
         }
         
         if (_equippedItemList.Count >= slotList.Count)
         {
+            Logger.Log($"{GetType()}::더 이상 아이템을 장착할 수 없습니다. (최대 {slotList.Count}개)");
             return false;
         }
             
         _equippedItemList.Add(item);
         SortSlots();
+        Logger.Log($"{GetType()}::아이템 {item.id} 장착");
         return true;
     }
 

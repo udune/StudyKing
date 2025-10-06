@@ -123,7 +123,7 @@ public class InventorySlot : MonoBehaviour
             SetIconColor(normalColor);
             
             // 아웃라인 활성화
-            SetOutlineEnabled(true);
+            // SetOutlineEnabled(true);
             
             Logger.Log($"{GetType()}::아이템 적용 완료 - {item.id}");
         }

@@ -241,7 +241,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6cd2935f30b5afc4fbd866f9d8e1a116, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  icon: {fileID: 1604214955758930033}
+  iconImage: {fileID: 0}
+  outline: {fileID: 0}
+  slotButton: {fileID: 0}
+  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  emptyColor: {r: 0, g: 0, b: 0, a: 0}
+  selectedColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
 --- !u!114 &4456159765420338726
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -551,7 +556,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6cd2935f30b5afc4fbd866f9d8e1a116, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  icon: {fileID: 2210442652099746813}
+  iconImage: {fileID: 0}
+  outline: {fileID: 0}
+  slotButton: {fileID: 0}
+  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  emptyColor: {r: 0, g: 0, b: 0, a: 0}
+  selectedColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
 --- !u!114 &6720733266207662211
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -953,7 +963,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6cd2935f30b5afc4fbd866f9d8e1a116, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  icon: {fileID: 1312308910624325998}
+  iconImage: {fileID: 0}
+  outline: {fileID: 0}
+  slotButton: {fileID: 0}
+  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  emptyColor: {r: 0, g: 0, b: 0, a: 0}
+  selectedColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
 --- !u!114 &3464317890698108974
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1137,6 +1152,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   openAnimation: {fileID: 545199457340437207}
+  closeAnimation: {fileID: 0}
+  closeOnBgClick: 0
+  pauseGameWhenOpen: 0
   slotList:
   - {fileID: 2549116925355768699}
   - {fileID: 6016110823812453414}
@@ -1813,7 +1831,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6cd2935f30b5afc4fbd866f9d8e1a116, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  icon: {fileID: 8598205059704572273}
+  iconImage: {fileID: 0}
+  outline: {fileID: 0}
+  slotButton: {fileID: 0}
+  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  emptyColor: {r: 0, g: 0, b: 0, a: 0}
+  selectedColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
 --- !u!114 &6089722577969892261
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2295,7 +2318,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6cd2935f30b5afc4fbd866f9d8e1a116, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  icon: {fileID: 8480270490993566046}
+  iconImage: {fileID: 0}
+  outline: {fileID: 0}
+  slotButton: {fileID: 0}
+  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  emptyColor: {r: 0, g: 0, b: 0, a: 0}
+  selectedColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
 --- !u!114 &5702827635381754064
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2402,7 +2430,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6cd2935f30b5afc4fbd866f9d8e1a116, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  icon: {fileID: 6169748281584841992}
+  iconImage: {fileID: 0}
+  outline: {fileID: 0}
+  slotButton: {fileID: 0}
+  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  emptyColor: {r: 0, g: 0, b: 0, a: 0}
+  selectedColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
 --- !u!114 &7060124567050308229
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2620,7 +2653,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6cd2935f30b5afc4fbd866f9d8e1a116, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  icon: {fileID: 6902723119364612363}
+  iconImage: {fileID: 0}
+  outline: {fileID: 0}
+  slotButton: {fileID: 0}
+  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  emptyColor: {r: 0, g: 0, b: 0, a: 0}
+  selectedColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
 --- !u!114 &743595556013022784
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3103,7 +3141,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6cd2935f30b5afc4fbd866f9d8e1a116, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  icon: {fileID: 2318425593422629270}
+  iconImage: {fileID: 0}
+  outline: {fileID: 0}
+  slotButton: {fileID: 0}
+  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  emptyColor: {r: 0, g: 0, b: 0, a: 0}
+  selectedColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
 --- !u!114 &3276937078822606712
 MonoBehaviour:
   m_ObjectHideFlags: 0
