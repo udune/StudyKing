@@ -85,7 +85,7 @@ public class CustomPieChart : BaseChart
         string label_text = label;
         if (showPercentage)
         {
-            label_text += $"{label}\n{percentage:P1}";
+            label_text += $"\n{percentage:P1}";
         }
         
         GameObject label_obj = CreateLabel(chartContainer, label_text, label_pos, new Vector2(80, 40));

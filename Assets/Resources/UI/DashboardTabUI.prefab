@@ -982,9 +982,6 @@ MonoBehaviour:
   totalTimeText: {fileID: 5817075559274961877}
   weeklyTotalTime: {fileID: 4422869231309864192}
   subjectTime: {fileID: 0}
-  pieChartContainer: {fileID: 2973471177238088071}
-  barChartContainer: {fileID: 939851398256020411}
-  lineChartContainer: {fileID: 1682722294339095457}
   pieChart: {fileID: 6178315716674773978}
   barChart: {fileID: 645558764821589852}
   lineChart: {fileID: 5543932179671120289}
@@ -2828,7 +2825,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uD559\uC2B5 \uCD94\uC774"
+  m_text: "\uC6D4\uAC04 \uD559\uC2B5 \uCD94\uC774"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 110ce30496d2b1843aa9fc04521e53b9, type: 2}
   m_sharedMaterial: {fileID: 3249717732731881229, guid: 110ce30496d2b1843aa9fc04521e53b9,
@@ -3241,7 +3238,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uACFC\uBAA9\uBCC4 \uD559\uC2B5\uB7C9"
+  m_text: "\uC8FC\uAC04 \uD559\uC2B5 \uCD94\uC774"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 110ce30496d2b1843aa9fc04521e53b9, type: 2}
   m_sharedMaterial: {fileID: 3249717732731881229, guid: 110ce30496d2b1843aa9fc04521e53b9,

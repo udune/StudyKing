@@ -247,36 +247,6 @@ public class CustomLineChart : BaseChart
         // 원형 모양으로 만들기 위해 스프라이트 설정
         // 없으면 기본 사각형으로 표시됩니다
 
-        // 포인트 위에 값 표시 (옵션)
-        if (showLabels)
-        {
-            string valueText;
-            if (value >= 1.0f)
-            {
-                valueText = value.ToString("F1") + "h";
-            }
-            else
-            {
-                int minutes = Mathf.RoundToInt(value * 60);
-                valueText = minutes + "m";
-            }
-            
-            GameObject valueLabel = CreateLabel(point.transform, valueText, 
-                new Vector2(0, pointSize + 15), new Vector2(60, 25));
-            
-            if (valueLabel != null)
-            {
-                Text labelText = valueLabel.GetComponent<Text>();
-                if (labelText != null)
-                {
-                    labelText.alignment = TextAnchor.MiddleCenter;
-                    labelText.fontSize = 12;
-                    labelText.color = new Color(0.1f, 0.1f, 0.1f, 1f);
-                    labelText.fontStyle = FontStyle.Bold;
-                }
-            }
-        }
-
         return point;
     }
 
@@ -306,9 +276,9 @@ public class CustomLineChart : BaseChart
                 if (labelText != null)
                 {
                     labelText.alignment = TextAnchor.MiddleCenter;
-                    labelText.fontSize = 12;
+                    labelText.fontSize = 8;
                     labelText.color = new Color(0.2f, 0.2f, 0.2f, 1f);
-                    labelText.fontStyle = FontStyle.Bold;
+                    labelText.fontStyle = FontStyle.Normal;
                 }
             }
         }
