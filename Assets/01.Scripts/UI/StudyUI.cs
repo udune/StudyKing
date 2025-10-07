@@ -1,4 +1,6 @@
+using System;
 using System.Linq;
+using Common;
 using Gpm.Ui;
 using UnityEngine;
 using Logger = Common.Logger;
@@ -12,6 +14,9 @@ public class StudyUI : BaseUI
     [SerializeField] private InfiniteScroll studyScrollList;
     [SerializeField] private GameObject addButton;
     [SerializeField] private GameObject startButton;
+    
+    [Header("에러 핸들러")]
+    [SerializeField] private ErrorHandler errorHandler;
     
     private UserStudyData _studyData;
 
@@ -44,33 +49,44 @@ public class StudyUI : BaseUI
     /// </summary>
     public void RefreshStudyList()
     {
-        studyScrollList?.Clear();
-        
-        _studyData = UserDataManager.Instance?.GetUserData<UserStudyData>();
-        
-        if (_studyData?.StudyItemDataList == null)
+        try
         {
-            Logger.LogWarning($"{GetType()}::공부 데이터가 없습니다.");
-            return;
-        }
-        
-        // 완전한 데이터 변환으로 수정
-        var scrollDataArray = _studyData.StudyItemDataList
-            .Select(item => new StudyItemSlotData
+            studyScrollList?.Clear();
+
+            _studyData = UserDataManager.Instance?.GetUserData<UserStudyData>();
+
+            if (_studyData?.StudyItemDataList == null)
             {
-                Id = item.id,
-                Name = item.name,
-                Check = item.check
-            })
-            .Cast<InfiniteScrollData>()
-            .ToArray();
+                Logger.LogWarning($"{GetType()}::공부 데이터가 없습니다.");
+                return;
+            }
 
-        if (studyScrollList != null)
-        {
-            studyScrollList.InsertData(scrollDataArray, true);
+            // 완전한 데이터 변환으로 수정
+            var scrollDataArray = _studyData.StudyItemDataList
+                .Select(item => new StudyItemSlotData
+                {
+                    Id = item.id,
+                    Name = item.name,
+                    Check = item.check
+                })
+                .Cast<InfiniteScrollData>()
+                .ToArray();
+
+            if (studyScrollList != null)
+            {
+                studyScrollList.InsertData(scrollDataArray, true);
+            }
+                
+            Logger.Log($"{GetType()}::공부 리스트 새로고침 완료");
         }
-
-        Logger.Log($"{GetType()}::공부 리스트 새로고침 완료");
+        catch (Exception e)
+        {
+            Logger.LogError($"{GetType()}::공부 리스트 새로고침 실패: {e.Message}");
+            if (errorHandler != null)
+            {
+                errorHandler.Show(ErrorType.DataError, RefreshStudyList);
+            }
+        }
     }
 
     /// <summary>

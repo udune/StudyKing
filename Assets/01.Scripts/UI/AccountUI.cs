@@ -1,3 +1,4 @@
+using Common;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -22,6 +23,9 @@ public class AccountUI : BaseUI
     [Header("로딩 UI")]
     [SerializeField] private GameObject loadingPanel;     // 로딩 패널
     [SerializeField] private TMP_Text loadingText;        // 로딩 텍스트
+    
+    [Header("에러 핸들러")]
+    [SerializeField] private ErrorHandler errorHandler; // 에러 핸들러
     
     // 로그인 상태 관리
     private bool _isLoggingIn;
@@ -161,6 +165,13 @@ public class AccountUI : BaseUI
     /// </summary>
     private void OnClickGoogleLogin()
     {
+        if (Application.internetReachability == NetworkReachability.NotReachable)
+        {
+            if (errorHandler != null)
+                errorHandler.Show(ErrorType.NetworkError);
+            return;
+        }
+        
         Logger.Log($"{GetType()}::구글 로그인 버튼이 클릭되었습니다");
         
         if (_isLoggingIn)
