@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Common;
@@ -78,6 +77,7 @@ public class DashboardTabUI : BaseUI
         }
     }
     
+    // 차트 매니저 초기화
     private void InitializeChartManager()
     {
         chartManager = new ChartManager(
@@ -91,24 +91,18 @@ public class DashboardTabUI : BaseUI
     {
         try
         {
-            if (errorHandler != null) // 에러 핸들러가 있으면
-            {
-                errorHandler.Hide(); // 에러 패널 숨기기
-            }
-
+            errorHandler?.Hide(); // 에러 패널 숨기기
+            
             RefreshTotalTime();
             RefreshWeeklyTime();
             RefreshSubjectTime();
-            RefreshCharts();
+            chartManager?.UpdateAllCharts();
             RefreshAIAdvice();
         }
         catch (Exception e)
         {
             Logger.LogError($"{GetType()}::RefreshAllData 오류: {e.Message}");
-            if (errorHandler != null) // 에러 핸들러가 있으면
-            {
-                errorHandler.Show(ErrorType.DataError, RefreshAllData); // 에러 패널 표시 및 재시도 콜백 설정
-            }
+            errorHandler?.Show(ErrorType.DataError, RefreshAllData); // 에러 패널 표시 및 재시도 콜백 설정
         }
     }
 
@@ -122,10 +116,7 @@ public class DashboardTabUI : BaseUI
         var userData = UserDataManager.Instance.GetUserData<UserTimeData>();
         if (userData == null)
         {
-            if (errorHandler != null)
-            {
-                errorHandler.Show(ErrorType.DataError, RefreshAllData);
-            }
+            errorHandler?.Show(ErrorType.DataError, RefreshAllData);
             return;
         }
 
@@ -142,10 +133,7 @@ public class DashboardTabUI : BaseUI
         var dailyData = UserDataManager.Instance.GetUserData<UserDailyTimeData>();
         if (dailyData == null)
         {
-            if (errorHandler != null)
-            {
-                errorHandler.Show(ErrorType.DataError, RefreshAllData);
-            }
+            errorHandler?.Show(ErrorType.DataError, RefreshAllData);
             return;
         }
 
@@ -163,10 +151,7 @@ public class DashboardTabUI : BaseUI
         var subjectData = UserDataManager.Instance.GetUserData<UserSubjectTimeData>();
         if (subjectData == null)
         {
-            if (errorHandler != null)
-            {
-                errorHandler.Show(ErrorType.DataError, RefreshAllData);
-            }
+            errorHandler?.Show(ErrorType.DataError, RefreshAllData);
             return;
         }
 
@@ -185,10 +170,7 @@ public class DashboardTabUI : BaseUI
         var adviceData = UserDataManager.Instance.GetUserData<UserLastAdviceData>();
         if (adviceData == null)
         {
-            if (errorHandler != null)
-            {
-                errorHandler.Show(ErrorType.DataError, RefreshAllData);
-            }
+            errorHandler?.Show(ErrorType.DataError, RefreshAllData);
             return;
         }
         
@@ -209,162 +191,21 @@ public class DashboardTabUI : BaseUI
     {
         if (Application.internetReachability == NetworkReachability.NotReachable)
         {
-            if (errorHandler != null)
-            {
-                errorHandler.Show(ErrorType.NetworkError, RequestAIAdvice);
-            }
-
+            errorHandler?.Show(ErrorType.NetworkError, RequestAIAdvice);
             return;
         }
         
         string studyContext = BuildStudyContext();
         StartCoroutine(RequestOpenAIAdvice(studyContext));
     }
-
-    private void RefreshCharts()
-    {
-        RefreshPieChart();
-        RefreshBarChart();
-        RefreshLineChart();
-    }
     
-    // 파이차트 새로고침
-    private void RefreshPieChart()
-    {
-        try
-        {
-            if (pieChart == null) // 컴포넌트가 없으면 종료
-            {
-                return; // 컴포넌트가 없으면 종료
-            }
-
-            var subjectData = UserDataManager.Instance.GetUserData<UserSubjectTimeData>(); // 과목별 학습 시간 데이터 가져오기
-            if (subjectData == null) // 데이터가 없으면 종료
-            {
-                if (errorHandler != null)
-                {
-                    errorHandler.Show(ErrorType.DataError, RefreshAllData);
-                }
-                return; // 데이터가 없으면 종료
-            }
-        
-            var chartData = new Dictionary<string, float>(); // 차트에 넣을 데이터 딕셔너리
-            foreach (var item in subjectData.SubjectTimeItemDataList) // 각 과목별 학습 시간 데이터를 순회
-            {
-                chartData[item.Name] = item.Time; // 과목 이름을 키로, 학습 시간을 값으로 딕셔너리에 추가
-            }
-
-            if (chartData.Count == 0) // 데이터가 없으면 빈 상태 표시
-            {
-                ShowEmptyState(pieChartEmptyText, pieChartContent); // 빈 상태 표시
-                return; // 종료
-            }
-
-            ShowChartState(pieChartEmptyText, pieChartContent); // 차트 상태 표시
-            pieChart.SetData(chartData); // 데이터 설정
-            pieChart.RefreshChart(); // 차트 새로고침
-        } 
-        catch (Exception e)
-        {
-            Logger.LogError($"{GetType()}::RefreshPieChart 오류: {e.Message}");
-            if (errorHandler != null) // 에러 핸들러가 있으면
-            {
-                errorHandler.Show(ErrorType.ChartLoadError, RefreshPieChart); // 에러 패널 표시 및 재시도 콜백 설정
-            }
-        }
-    }
-    
-    private void RefreshBarChart()
-    {
-        try
-        {
-            if (barChart == null)
-            {
-                return;
-            }
-
-            var dailyData = UserDataManager.Instance.GetUserData<UserDailyTimeData>();
-            if (dailyData == null)
-            {
-                if (errorHandler != null)
-                {
-                    errorHandler.Show(ErrorType.DataError, RefreshAllData);
-                }
-                return;
-            }
-
-            var weeklyData = GetWeeklyChartData(dailyData);
-
-            if (weeklyData.Count == 0)
-            {
-                ShowEmptyState(barChartEmptyText, barChartContent);
-                return;
-            }
-
-            ShowChartState(barChartEmptyText, barChartContent);
-            barChart.SetData(weeklyData);
-            barChart.RefreshChart();
-        } 
-        catch (Exception e)
-        {
-            Logger.LogError($"{GetType()}::RefreshBarChart 오류: {e.Message}");
-            if (errorHandler != null) // 에러 핸들러가 있으면
-            {
-                errorHandler.Show(ErrorType.ChartLoadError, RefreshBarChart); // 에러 패널 표시 및 재시도 콜백 설정
-            }
-        }
-    }
-
-    private void RefreshLineChart()
-    {
-        try
-        {
-            if (lineChart == null)
-            {
-                return;
-            }
-        
-            var dailyData = UserDataManager.Instance.GetUserData<UserDailyTimeData>();
-            if (dailyData == null)
-            {
-                if (errorHandler != null)
-                {
-                    errorHandler.Show(ErrorType.DataError, RefreshAllData);
-                }
-                return;
-            }
-        
-            var monthlyData = GetMonthlyChartData(dailyData);
-            if (monthlyData.Count == 0)
-            {
-                ShowEmptyState(lineChartEmptyText, lineChartContent);
-                return;
-            }
-        
-            ShowChartState(lineChartEmptyText, lineChartContent);
-            lineChart.SetData(monthlyData);
-            lineChart.RefreshChart();
-        } 
-        catch (Exception e)
-        {
-            Logger.LogError($"{GetType()}::RefreshLineChart 오류: {e.Message}");
-            if (errorHandler != null) // 에러 핸들러가 있으면
-            {
-                errorHandler.Show(ErrorType.ChartLoadError, RefreshLineChart); // 에러 패널 표시 및 재시도 콜백 설정
-            }
-        }
-    }
-
     private IEnumerator RequestOpenAIAdvice(string context)
     {
         string apiKey = FirebaseManager.Instance.GetOpenAIKey();
         if (string.IsNullOrEmpty(apiKey))
         {
             Logger.LogError($"{GetType()}::OpenAI API 키 없음");
-            if (errorHandler != null)
-            {
-                errorHandler.Show(ErrorType.DataError);
-            }
+            errorHandler?.Show(ErrorType.DataError);
             yield break;
         }
 
@@ -393,6 +234,7 @@ public class DashboardTabUI : BaseUI
         HandleAIResponse(request);
     }
 
+    // OpenAI 응답 처리
     private void HandleAIResponse(UnityWebRequest request)
     {
         if (request.result != UnityWebRequest.Result.Success)
@@ -430,10 +272,7 @@ public class DashboardTabUI : BaseUI
         catch (Exception e)
         {
             Logger.LogError($"{GetType()}::AI 응답 파싱 실패: {e.Message}");
-            if (errorHandler != null)
-            {
-                errorHandler.Show(ErrorType.DataError, RequestAIAdvice);
-            }
+            errorHandler?.Show(ErrorType.DataError, RequestAIAdvice);
         }
     }
 
@@ -502,80 +341,27 @@ public class DashboardTabUI : BaseUI
         return weeklyTotal;
     }
 
-    private Dictionary<string, float> GetWeeklyChartData(UserDailyTimeData dailyData)
-    {
-        var result = new Dictionary<string, float>();
-        DateTime now = DateTime.UtcNow.AddHours(9);
-
-        for (int i = 6; i >= 0; i--)
-        {
-            DateTime date = now.AddDays(-i);
-            string dateStr = date.ToString("yyyy-MM-dd");
-            string label = date.ToString("M/d");
-            
-            var dayData = dailyData.DailyTimeItemDataList.FirstOrDefault(x => x.Date == dateStr);
-            result[label] = dayData?.Time ?? 0;
-        }
-
-        return result;
-    }
-    
-    private Dictionary<string, float> GetMonthlyChartData(UserDailyTimeData dailyData)
-    {
-        var result = new Dictionary<string, float>();
-        DateTime now = DateTime.UtcNow.AddHours(9);
-
-        for (int i = 29; i >= 0; i--)
-        {
-            DateTime date = now.AddDays(-i);
-            string dateStr = date.ToString("yyyy-MM-dd");
-            string label = date.ToString("M/d");
-            
-            var dayData = dailyData.DailyTimeItemDataList.FirstOrDefault(x => x.Date == dateStr);
-            result[label] = dayData?.Time ?? 0;
-        }
-
-        return result;
-    }
-
     private void ShowEmptyState(GameObject emptyText, GameObject content)
     {
-        if (emptyText != null)
-        {
-            emptyText.SetActive(true);
-        }
-
-        if (content != null)
-        {
-            content.SetActive(false);
-        }
-    }
-    
-    private void ShowChartState(GameObject emptyText, GameObject content)
-    {
-        if (emptyText != null)
-        {
-            emptyText.SetActive(false);
-        }
-
-        if (content != null)
-        {
-            content.SetActive(true);
-        }
+        emptyText?.SetActive(true);
+        content?.SetActive(false);
     }
     
     private void ShowAIState(string advice)
     {
-        if (aiEmptyText != null)
-        {
-            aiEmptyText.SetActive(false);
-        }
+        aiEmptyText?.SetActive(false);
         
         if (aiText != null)
         {
             aiText.gameObject.SetActive(true);
             aiText.text = advice;
         }
+    }
+    
+    public void OnRefreshButtonClicked()
+    {
+        Logger.Log($"{GetType()}::데이터 새로고침 버튼 클릭됨");
+        RefreshAllData();
     }
 
     [Serializable]

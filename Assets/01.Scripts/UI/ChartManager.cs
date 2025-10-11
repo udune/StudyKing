@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using Logger = Common.Logger;
@@ -47,30 +48,32 @@ public class ChartManager
     {
         try
         {
+            if (pieChart == null) // 파이 차트 컴포넌트가 없으면 종료
+            {
+                return;
+            }
+            
             var data = UserDataManager.Instance?.GetUserData<UserSubjectTimeData>(); // 사용자 과목 시간 데이터
-            bool hasData = data?.SubjectTimeItemDataList?.Count > 0; // 데이터 존재 여부
-            
-            pieChartContent?.SetActive(hasData); // 데이터가 있으면 콘텐츠 표시
-            pieChartEmptyText?.SetActive(!hasData); // 데이터가 없으면 빈 텍스트 표시
-            
-            if (hasData && pieChart != null) // 데이터가 있는 경우에만 업데이트
+            if (data == null) // 데이터가 없으면 종료
             {
-                pieChart.ClearData(); // 기존 데이터 초기화
-                
-                foreach (var item in data.SubjectTimeItemDataList) // 시간 단위로 변환
-                {
-                    if (item.Time > 0) // 시간이 0보다 큰 경우에만 추가
-                    {
-                        pieChart.AddData(item.Name, item.Time / 3600f); // 시간 단위로 변환
-                    }
-                }
-                
-                pieChart.RefreshChart(); // 차트 새로고침
+                return;
             }
-            else
+            
+            var chartData = new Dictionary<string, float>(); // 차트 데이터 초기화
+            foreach (var item in data.SubjectTimeItemDataList) // 데이터 매핑
             {
-                pieChart?.ClearData(); // 데이터가 없으면 차트 초기화
+                chartData[item.Name] = item.Time; // 시간 단위로 변환
             }
+
+            if (chartData.Count == 0) // 데이터가 없으면 빈 텍스트 표시
+            {
+                ShowEmpty(pieChartEmptyText, pieChartContent); // 빈 텍스트 표시
+                return;
+            }
+            
+            ShowChart(pieChartEmptyText, pieChartContent); // 차트 표시
+            pieChart.SetData(chartData); // 차트 데이터 설정
+            pieChart.RefreshChart(); // 차트 새로고침
         }
         catch (Exception e)
         {
@@ -78,34 +81,32 @@ public class ChartManager
         }
     }
     
+    // 바 차트 업데이트
     private void UpdateBarChart()
     {
         try
         {
+            if (barChart == null) // 바 차트 컴포넌트가 없으면 종료
+            {
+                return;
+            }
+            
             var data = UserDataManager.Instance?.GetUserData<UserDailyTimeData>(); // 사용자 일일 시간 데이터
-            bool hasData = data?.DailyTimeItemDataList?.Count > 0; // 데이터 존재 여부
-            
-            barChartContent?.SetActive(hasData); // 데이터가 있으면 콘텐츠 표시
-            barChartEmptyText?.SetActive(!hasData); // 데이터가 없으면 빈 텍스트 표시
-            
-            if (hasData && barChart != null) // 데이터가 있는 경우에만 업데이트
+            if (data == null) // 데이터가 없으면 종료
             {
-                barChart.ClearData(); // 기존 데이터 초기화
-                DateTime now = DateTime.UtcNow.AddHours(9); // 한국 시간 기준 현재 날짜
-                
-                for (int i = 6; i >= 0; i--) // 최근 7일치 데이터 확인
-                {
-                    DateTime date = now.AddDays(-i); // i일 전 날짜
-                    var dayData = data.DailyTimeItemDataList.FirstOrDefault(x => x.Date == date.ToString("yyyy-MM-dd")); // 해당 날짜 데이터 찾기
-                    barChart.AddData(date.ToString("MM/dd"), dayData?.Time / 3600f ?? 0); // 데이터가 없으면 0으로 추가
-                }
-                
-                barChart.RefreshChart(); // 차트 새로고침
+                return;
             }
-            else
+            
+            var chartData = GetWeeklyData(data); // 최근 7일 데이터 가져오기
+            if (chartData.Count == 0) // 데이터가 없으면 빈 텍스트 표시
             {
-                barChart?.ClearData(); // 데이터가 없으면 차트 초기화
+                ShowEmpty(barChartEmptyText, barChartContent); // 빈 텍스트 표시
+                return;
             }
+            
+            ShowChart(barChartEmptyText, barChartContent); // 차트 표시
+            barChart.SetData(chartData); // 차트 데이터 설정
+            barChart.RefreshChart(); // 차트 새로고침
         }
         catch (Exception e)
         {
@@ -117,34 +118,82 @@ public class ChartManager
     {
         try
         {
+            if (lineChart == null) // 라인 차트 컴포넌트가 없으면 종료
+            {
+                return;
+            }
+            
             var data = UserDataManager.Instance?.GetUserData<UserDailyTimeData>(); // 사용자 일일 시간 데이터
-            bool hasData = data?.DailyTimeItemDataList?.Count > 0; // 데이터 존재 여부
-            
-            lineChartContent?.SetActive(hasData); // 데이터가 있으면 콘텐츠 표시
-            lineChartEmptyText?.SetActive(!hasData); // 데이터가 없으면 빈
-            
-            if (hasData && lineChart != null) // 데이터가 있는 경우에만 업데이트
+            if (data == null) // 데이터가 없으면 종료
             {
-                lineChart.ClearData(); // 기존 데이터 초기화
-                DateTime now = DateTime.UtcNow.AddHours(9); // 한국 시간 기준 현재 날짜
-                
-                for (int i = 29; i >= 0; i--) // 최근 30일치 데이터 확인
-                {
-                    DateTime date = now.AddDays(-i); // i일 전 날짜
-                    var dayData = data.DailyTimeItemDataList.FirstOrDefault(x => x.Date == date.ToString("yyyy-MM-dd")); // 해당 날짜 데이터 찾기
-                    lineChart.AddData(date.ToString("MM/dd"), dayData?.Time / 3600f ?? 0); // 데이터가 없으면 0으로 추가
-                }
-                
-                lineChart.RefreshChart(); // 차트 새로고침
+                return;
             }
-            else
+            
+            var chartData = GetMonthlyData(data); // 최근 30일 데이터 가져오기
+            if (chartData.Count == 0) // 데이터가 없으면 빈 텍스트 표시
             {
-                lineChart?.ClearData(); // 데이터가 없으면 차트 초기화
+                ShowEmpty(lineChartEmptyText, lineChartContent); // 빈 텍스트 표시
+                return;
             }
+            
+            ShowChart(lineChartEmptyText, lineChartContent); // 차트 표시
+            lineChart.SetData(chartData); // 차트 데이터 설정
+            lineChart.RefreshChart(); // 차트 새로고침
         }
         catch (Exception e)
         {
             Logger.LogError($"{GetType()}::라인 차트 업데이트 중 오류 발생 - {e.Message}");
         }
+    }
+
+    // 최근 7일간의 데이터를 "M/d" 형식의 라벨과 시간(시간 단위)으로 매핑
+    private Dictionary<string, float> GetWeeklyData(UserDailyTimeData data)
+    {
+        var result = new Dictionary<string, float>(); // 결과 딕셔너리 초기화
+        DateTime now = DateTime.UtcNow.AddHours(9); // 한국 시간 기준 현재 날짜
+
+        for (int i = 6; i >= 0; i--) // 최근 7일치 데이터 확인
+        {
+            DateTime date = now.AddDays(-i); // i일 전 날짜
+            string dateStr = date.ToString("yyyy-MM-dd"); // "yyyy-MM-dd" 형식의 날짜 문자열
+            string label = date.ToString("M/d"); // "M/d" 형식으로 라벨 생성
+            
+            var dayData = data.DailyTimeItemDataList.FirstOrDefault(x => x.Date == dateStr); // 해당 날짜 데이터 찾기
+            result[label] = dayData?.Time ?? 0; // 시간 단위로 변환
+        }
+
+        return result; // 결과 반환
+    }
+    
+    private Dictionary<string, float> GetMonthlyData(UserDailyTimeData data)
+    {
+        var result = new Dictionary<string, float>(); // 결과 딕셔너리 초기화
+        DateTime now = DateTime.UtcNow.AddHours(9); // 한국 시간 기준 현재 날짜
+
+        for (int i = 29; i >= 0; i--) // 최근 30일치 데이터 확인
+        {
+            DateTime date = now.AddDays(-i); // i일 전 날짜
+            string dateStr = date.ToString("yyyy-MM-dd"); // "yyyy-MM-dd" 형식의 날짜 문자열
+            string label = date.ToString("M/d"); // "M/d" 형식으로 라벨 생성
+            
+            var dayData = data.DailyTimeItemDataList.FirstOrDefault(x => x.Date == dateStr); // 해당 날짜 데이터 찾기
+            result[label] = dayData?.Time ?? 0; // 시간 단위로 변환
+        }
+
+        return result; // 결과 반환
+    }
+
+    // 빈 텍스트 표시
+    private void ShowEmpty(GameObject emptyText, GameObject content)
+    {
+        emptyText?.SetActive(true); // 빈 텍스트 표시
+        content?.SetActive(false); // 차트 숨기기
+    }
+    
+    // 차트 표시
+    private void ShowChart(GameObject emptyText, GameObject content)
+    {
+        emptyText?.SetActive(false); // 빈 텍스트 숨기기
+        content?.SetActive(true); // 차트 표시
     }
 }
