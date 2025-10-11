@@ -18,16 +18,15 @@ public class DashboardTabUI : BaseUI
 {
     [Header("텍스트 UI 요소들")] 
     [SerializeField] private Text aiText; // AI 조언을 보여주는 텍스트
-
     [SerializeField] private TMP_Text totalTimeText; // 총 학습 시간을 보여주는 텍스트
     [SerializeField] private TMP_Text weeklyTotalTime; // 주간 총 학습 시간을 보여주는 텍스트
     [SerializeField] private TMP_Text subjectTime; // 과목별 학습 시간을 보여주는 텍스트
-
+    
     [Header("차트 컴포넌트들")] 
     [SerializeField] private CustomPieChart pieChart; // 파이차트 컴포넌트
     [SerializeField] private CustomBarChart barChart; // 막대차트 컴포넌트
     [SerializeField] private CustomLineChart lineChart; // 꺾은선차트 컴포넌트
-
+    
     [Header("빈 데이터일 때 보여줄 텍스트들")] 
     [SerializeField] private GameObject aiEmptyText; // AI 조언이 없을 때 보여줄 텍스트
     [SerializeField] private GameObject pieChartEmptyText; // 파이차트 데이터가 없을 때 보여줄 텍스트
@@ -46,6 +45,8 @@ public class DashboardTabUI : BaseUI
     private readonly StringBuilder _sb = new StringBuilder(); // 일반 용도
     private readonly StringBuilder _sbSubject = new StringBuilder(); // 과목별 시간 표시용
     
+    private ChartManager chartManager; // 차트 관리자
+    
     /// <summary>
     /// UI가 열릴 때 호출되는 설정 함수
     /// </summary>
@@ -54,6 +55,7 @@ public class DashboardTabUI : BaseUI
         base.OnSetting(data);
 
         InitializeChartComponents(); // 차트 컴포넌트 초기화 시도
+        InitializeChartManager(); // 차트 매니저 초기화
         RefreshAllData(); // 모든 데이터를 새로고침
     }
 
@@ -74,6 +76,15 @@ public class DashboardTabUI : BaseUI
         {
             Logger.LogError($"{GetType()}::{chartName} 컴포넌트가 연결되지 않았습니다");
         }
+    }
+    
+    private void InitializeChartManager()
+    {
+        chartManager = new ChartManager(
+            pieChart, pieChartContent, pieChartEmptyText,
+            barChart, barChartContent, barChartEmptyText,
+            lineChart, lineChartContent, lineChartEmptyText
+        );
     }
 
     private void RefreshAllData()
