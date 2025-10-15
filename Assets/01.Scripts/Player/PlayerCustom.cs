@@ -9,6 +9,26 @@ public class PlayerCustom : SingletonBehaviour<PlayerCustom>
     [SerializeField] Transform player;
     public Transform character;
     
+    protected override void Awake()
+    {
+        base.Awake();
+        LoadEquippedItems();
+    }
+    
+    private void LoadEquippedItems()
+    {
+        var userInventoryData = UserDataManager.Instance?.GetUserData<UserInventoryData>();
+        if (userInventoryData?.EquippedItemIdList == null)
+        {
+            return;
+        }
+
+        foreach (var itemId in userInventoryData.EquippedItemIdList)
+        {
+            Equip(itemId);
+        }
+    }
+    
     public void Equip(string id)
     {
         if (playerItemDict.ContainsKey(id) || characterItemDict.ContainsKey(id))
