@@ -56,8 +56,6 @@ public class CustomLineChart : BaseChart
             DrawAxisLabels();
         }
 
-        DrawAxisLabels();
-
         Debug.Log($"{GetType()}::선차트 그리기 완료 - {dataPoints.Count}개 포인트");
     }
     

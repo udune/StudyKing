@@ -171,10 +171,7 @@ public class DashboardTabUI : BaseUI
     
     private void RefreshAIAdvice()
     {
-        aiAdviceManager?.GetTodayAdvice(advice =>
-        {
-            ShowAIState(advice);
-        });
+        aiAdviceManager?.GetTodayAdvice(ShowAIState);
     }
     
     private string FormatStudyTime(long totalSeconds)

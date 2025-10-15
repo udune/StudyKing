@@ -1180,7 +1180,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   chartContainer: {fileID: 3067488935759274893}
   chartColors: []
-  showLabels: 1
+  showLabels: 0
   font: {fileID: 12800000, guid: e987e055c59745948a7db4bd2a040bdd, type: 3}
   labelFontSize: 16
   lineWidth: 2
@@ -3814,7 +3814,7 @@ MonoBehaviour:
   m_charWidthMaxAdj: 0
   m_TextWrappingMode: 1
   m_wordWrappingRatios: 0.4
-  m_overflowMode: 1
+  m_overflowMode: 3
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
   m_enableKerning: 0
