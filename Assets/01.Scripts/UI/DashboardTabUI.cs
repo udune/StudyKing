@@ -39,12 +39,9 @@ public class DashboardTabUI : BaseUI
     [Header("에러 핸들링")]
     [SerializeField] private ErrorHandler errorHandler; // 에러 핸들러 컴포넌트
     
-    // 텍스트를 만들 때 사용하는 StringBuilder (메모리 효율성을 위해)
-    private readonly StringBuilder _sb = new StringBuilder(); // 일반 용도
-    private readonly StringBuilder _sbSubject = new StringBuilder(); // 과목별 시간 표시용
-    
     private AIAdviceManager aiAdviceManager; // AI 조언 관리자
     private ChartManager chartManager; // 차트 관리자
+    private StatisticsTextManager statisticsTextManager; // 통계 텍스트 관리자
     
     /// <summary>
     /// UI가 열릴 때 호출되는 설정 함수
@@ -54,14 +51,13 @@ public class DashboardTabUI : BaseUI
         base.OnSetting(data);
 
         InitializeChartComponents(); // 차트 컴포넌트 초기화 시도
-        InitializeManager(); // 차트 매니저 초기화
+        InitializeManagers(); // 매니저 초기화
         RefreshAllData(); // 모든 데이터를 새로고침
     }
 
     /// <summary>
     /// 차트 컴포넌트들을 자동으로 찾아서 연결
     /// </summary>
-    // private bool InitializeChartComponents()
     private void InitializeChartComponents()
     {
         ValidateChartComponent(pieChart, "PieChart"); // 각 차트 컴포넌트가 연결되었는지 확인
@@ -77,8 +73,8 @@ public class DashboardTabUI : BaseUI
         }
     }
     
-    // 차트 매니저 초기화
-    private void InitializeManager()
+    // 매니저 초기화
+    private void InitializeManagers()
     {
         // AI 조언 관리자 초기화
         aiAdviceManager = new AIAdviceManager(this, errorHandler);
@@ -89,6 +85,11 @@ public class DashboardTabUI : BaseUI
             barChart, barChartContent, barChartEmptyText,
             lineChart, lineChartContent, lineChartEmptyText
         );
+        
+        // 통계 텍스트 관리자 초기화
+        statisticsTextManager = new StatisticsTextManager(
+            totalTimeText, weeklyTotalTime, subjectTime, errorHandler, RefreshAllData
+        );
     }
 
     private void RefreshAllData()
@@ -97,9 +98,7 @@ public class DashboardTabUI : BaseUI
         {
             errorHandler?.Hide(); // 에러 패널 숨기기
             
-            RefreshTotalTime(); // 총 학습 시간 새로고침
-            RefreshWeeklyTime(); // 주간 총 학습 시간 새로고침
-            RefreshSubjectTime(); // 과목별 학습 시간 새로고침
+            statisticsTextManager?.RefreshAllStatistics(); // 통계 텍스트 새로고침
             chartManager?.UpdateAllCharts(); // 차트 새로고침
             RefreshAIAdvice(); // AI 조언 새로고침
         }
@@ -110,101 +109,9 @@ public class DashboardTabUI : BaseUI
         }
     }
 
-    private void RefreshTotalTime()
-    {
-        if (totalTimeText == null) // 총 학습 시간 텍스트가 연결되어 있지 않으면 종료
-        {
-            return;
-        }
-
-        var userData = UserDataManager.Instance.GetUserData<UserTimeData>(); // 사용자 학습 시간 데이터 가져오기
-        if (userData == null) // 데이터가 없으면 에러 패널 표시 및 재시도 콜백 설정
-        {
-            errorHandler?.Show(ErrorType.DataError, RefreshAllData); // 재시도 콜백 설정
-            return;
-        }
-
-        totalTimeText.text = FormatStudyTime(userData.Time); // 총 학습 시간 텍스트 설정
-    }
-
-    private void RefreshWeeklyTime()
-    {
-        if (weeklyTotalTime == null)
-        {
-            return;
-        }
-        
-        var dailyData = UserDataManager.Instance.GetUserData<UserDailyTimeData>();
-        if (dailyData == null)
-        {
-            errorHandler?.Show(ErrorType.DataError, RefreshAllData);
-            return;
-        }
-
-        long weeklyTotal = CalculateWeeklyTotal(dailyData);
-        weeklyTotalTime.text = FormatStudyTime(weeklyTotal);
-    }
-
-    private void RefreshSubjectTime()
-    {
-        if (subjectTime == null) 
-        {
-            return;
-        }
-        
-        var subjectData = UserDataManager.Instance.GetUserData<UserSubjectTimeData>();
-        if (subjectData == null)
-        {
-            errorHandler?.Show(ErrorType.DataError, RefreshAllData);
-            return;
-        }
-
-        _sbSubject.Clear();
-
-        foreach (var item in subjectData.SubjectTimeItemDataList.OrderByDescending(x => x.Time))
-        {
-            _sbSubject.AppendLine($"{item.Name}: {FormatStudyTime(item.Time)}");
-        }
-        
-        subjectTime.text = _sbSubject.ToString();
-    }
-    
     private void RefreshAIAdvice()
     {
         aiAdviceManager?.GetTodayAdvice(ShowAIState);
-    }
-    
-    private string FormatStudyTime(long totalSeconds)
-    {
-        int hours = (int)(totalSeconds / 3600);
-        int minutes = (int)((totalSeconds % 3600) / 60);
-
-        if (hours > 0)
-        {
-            return $"{hours}시간 {minutes}분";
-        }
-        else
-        {
-            return $"{minutes}분";
-        }
-    }
-
-    private long CalculateWeeklyTotal(UserDailyTimeData dailyData)
-    {
-        DateTime now = DateTime.UtcNow.AddHours(9);
-        long weeklyTotal = 0;
-
-        for (int i = 0; i < 7; i++)
-        {
-            string date = now.AddDays(-i).ToString("yyyy-MM-dd");
-            var dayData = dailyData.DailyTimeItemDataList.FirstOrDefault(x => x.Date == date);
-            if (dayData != null)
-            {
-                weeklyTotal += dayData.Time;
-            }
-        }
-        
-        return weeklyTotal;
     }
 
     private void ShowAIState(string advice)
